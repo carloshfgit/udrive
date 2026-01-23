@@ -86,28 +86,8 @@ export function useAuth() {
         }
     }, [storeLogout]);
 
-    // Verificar autenticação ao iniciar
-    useEffect(() => {
-        const checkAuth = async () => {
-            setLoading(true);
+    // Verificação de autenticação movida para o App.tsx para evitar loop infinito
 
-            const hasToken = await tokenManager.hasValidToken();
-
-            if (hasToken) {
-                try {
-                    const { data } = await api.get<AuthResponse['user']>('/auth/me');
-                    setUser(data);
-                } catch {
-                    await tokenManager.clearTokens();
-                    setUser(null);
-                }
-            } else {
-                setUser(null);
-            }
-        };
-
-        checkAuth();
-    }, [setLoading, setUser]);
 
     return {
         // Estado

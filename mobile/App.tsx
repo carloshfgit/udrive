@@ -5,14 +5,15 @@
  */
 
 import './global.css';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, ActivityIndicator, View, Text } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { NavigationContainer } from '@react-navigation/native';
 import { queryClient } from './src/lib/queryClient';
-import { useAuthStore } from './src/lib/store';
+import { useAuthStore, type User } from './src/lib/store';
+import { api, tokenManager } from './src/lib';
 import { AuthNavigator } from './src/features/auth';
 
 /**
@@ -53,7 +54,31 @@ function MainNavigator() {
 }
 
 export default function App() {
-  const { isAuthenticated, isLoading } = useAuthStore();
+  const { isAuthenticated, isLoading, setUser, setLoading } = useAuthStore();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      setLoading(true);
+      try {
+        const hasToken = await tokenManager.hasValidToken();
+        if (hasToken) {
+          try {
+            const { data } = await api.get<User>('/auth/me');
+            setUser(data);
+          } catch {
+            await tokenManager.clearTokens();
+            setUser(null);
+          }
+        } else {
+          setUser(null);
+        }
+      } catch {
+        setUser(null);
+      }
+    };
+
+    checkAuth();
+  }, [setLoading, setUser]);
 
   return (
     <SafeAreaProvider>
