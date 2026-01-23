@@ -38,6 +38,11 @@ class Settings(BaseSettings):
     # CORS
     cors_origins: list[str] = ["http://localhost:3000", "http://localhost:8081"]
 
+    # Rate Limiting (conforme PROJECT_GUIDELINES.md)
+    rate_limit_login: str = "5/minute"
+    rate_limit_public: str = "30/minute"
+    rate_limit_authenticated: str = "100/minute"
+
     # API
     api_title: str = "GoDrive API"
     api_version: str = "0.1.0"

@@ -7,9 +7,13 @@ Ponto de entrada principal da API FastAPI.
 import structlog
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi.errors import RateLimitExceeded
 
 from src.infrastructure.config import settings
-from src.interface.api.routers import health
+from src.interface.api.exceptions import EXCEPTION_HANDLERS
+from src.interface.api.middleware.rate_limit import limiter, rate_limit_exceeded_handler
+from src.interface.api.middleware.security import SecurityHeadersMiddleware
+from src.interface.api.routers import auth, health
 
 # Configurar logging estruturado
 structlog.configure(
@@ -41,7 +45,14 @@ app = FastAPI(
     redoc_url="/redoc" if settings.debug else None,
 )
 
-# Configurar CORS
+# =============================================================================
+# Middlewares (ordem importa: último adicionado é executado primeiro)
+# =============================================================================
+
+# 1. Headers de segurança (executado por último na resposta)
+app.add_middleware(SecurityHeadersMiddleware)
+
+# 2. CORS (deve vir antes de outros middlewares)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
@@ -50,8 +61,31 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Incluir routers
+# 3. Configurar Rate Limiter no estado do app
+app.state.limiter = limiter
+
+# =============================================================================
+# Exception Handlers
+# =============================================================================
+
+# Registrar handlers para exceções de domínio
+for exc_class, handler in EXCEPTION_HANDLERS.items():
+    app.add_exception_handler(exc_class, handler)
+
+# Handler para rate limit excedido
+app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
+
+# =============================================================================
+# Routers
+# =============================================================================
+
 app.include_router(health.router, tags=["Health"])
+app.include_router(auth.router)
+
+
+# =============================================================================
+# Eventos de Lifecycle
+# =============================================================================
 
 
 @app.on_event("startup")
@@ -61,6 +95,8 @@ async def startup_event() -> None:
         "application_startup",
         environment=settings.environment,
         debug=settings.debug,
+        rate_limiting="enabled",
+        security_headers="enabled",
     )
 
 
