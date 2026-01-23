@@ -4,8 +4,10 @@
  * Configuração do QueryClientProvider, NavigationContainer e providers globais.
  */
 
+import './global.css';
 import React from 'react';
-import { SafeAreaView, StyleSheet, ActivityIndicator, View, Text } from 'react-native';
+import { StyleSheet, ActivityIndicator, View, Text } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { NavigationContainer } from '@react-navigation/native';
@@ -54,19 +56,21 @@ export default function App() {
   const { isAuthenticated, isLoading } = useAuthStore();
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <SafeAreaView style={styles.container}>
-        <StatusBar style="dark" />
+    <SafeAreaProvider>
+      <QueryClientProvider client={queryClient}>
+        <SafeAreaView style={styles.container}>
+          <StatusBar style="dark" />
 
-        {isLoading ? (
-          <LoadingScreen />
-        ) : (
-          <NavigationContainer>
-            {isAuthenticated ? <MainNavigator /> : <AuthNavigator />}
-          </NavigationContainer>
-        )}
-      </SafeAreaView>
-    </QueryClientProvider>
+          {isLoading ? (
+            <LoadingScreen />
+          ) : (
+            <NavigationContainer>
+              {isAuthenticated ? <MainNavigator /> : <AuthNavigator />}
+            </NavigationContainer>
+          )}
+        </SafeAreaView>
+      </QueryClientProvider>
+    </SafeAreaProvider>
   );
 }
 
