@@ -1,6 +1,15 @@
 """
 Domain Entities
 
-Entidades puras do domínio (dataclasses ou Pydantic models puros).
-Não devem conter lógica de infraestrutura.
+Entidades puras de domínio sem dependências externas.
 """
+
+from .refresh_token import RefreshToken
+from .user import User
+from .user_type import UserType
+
+__all__ = [
+    "User",
+    "UserType",
+    "RefreshToken",
+]

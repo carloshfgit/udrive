@@ -16,7 +16,7 @@ from src.infrastructure.config import settings
 from src.infrastructure.db.database import Base
 
 # Importar todos os models para que Alembic os detecte
-# from src.infrastructure.db.models import *  # noqa
+from src.infrastructure.db.models import RefreshTokenModel, UserModel  # noqa: F401
 
 # Configuração do Alembic
 config = context.config

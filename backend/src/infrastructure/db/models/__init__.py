@@ -1,5 +1,13 @@
 """
-Infrastructure - Database Models
+Database Models
 
-Models SQLAlchemy que representam as tabelas do banco de dados.
+Modelos SQLAlchemy para persistência de dados.
 """
+
+from .refresh_token_model import RefreshTokenModel
+from .user_model import UserModel
+
+__all__ = [
+    "UserModel",
+    "RefreshTokenModel",
+]

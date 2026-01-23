@@ -1,6 +1,20 @@
 """
 Application Use Cases
 
-Casos de uso que implementam as regras de negócio da aplicação.
-Cada arquivo representa um caso de uso específico.
+Casos de uso que orquestram as regras de negócio.
 """
+
+from .login_user import LoginUserUseCase
+from .logout_user import LogoutUserUseCase
+from .refresh_token import RefreshTokenUseCase
+from .register_user import RegisterUserUseCase
+from .reset_password import RequestPasswordResetUseCase, ResetPasswordUseCase
+
+__all__ = [
+    "RegisterUserUseCase",
+    "LoginUserUseCase",
+    "RefreshTokenUseCase",
+    "LogoutUserUseCase",
+    "RequestPasswordResetUseCase",
+    "ResetPasswordUseCase",
+]

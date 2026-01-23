@@ -188,18 +188,64 @@ mobile/src/
 - **Naming convention:** `{YYYY_MM_DD}_{descricao_snake_case}` (ex: `2024_01_15_criar_tabela_agendamentos`).
 - **Nunca editar migrations já mergeadas na main.**
 - **Sempre testar rollback:** `alembic downgrade -1` antes de merge.
+- **Migrations manuais:** Não usar `--autogenerate` para evitar código verbose e desnecessário.
 
 ### Comandos Padrão
 ```bash
-# Criar nova migration
-alembic revision --autogenerate -m "descricao_da_mudanca"
+# Criar nova migration (manual - sem autogenerate)
+alembic revision -m "descricao_da_mudanca"
 
 # Aplicar migrations
 alembic upgrade head
 
 # Rollback
 alembic downgrade -1
+
+# Verificar status atual
+alembic current
+
+# Histórico de migrations
+alembic history
 ```
+
+### Template de Migration
+O arquivo gerado terá funções `upgrade()` e `downgrade()` vazias. Preencha manualmente:
+
+```python
+"""descricao_da_mudanca
+
+Revision ID: abc123
+Revises: def456
+Create Date: 2024-01-15 10:00:00.000000
+
+"""
+from collections.abc import Sequence
+
+import sqlalchemy as sa
+from alembic import op
+from sqlalchemy.dialects import postgresql
+
+revision: str = "abc123"
+down_revision: str | None = "def456"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
+
+
+def upgrade() -> None:
+    """Aplica a migration."""
+    op.create_table(
+        "nome_tabela",
+        sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
+        sa.Column("campo", sa.String(255), nullable=False),
+    )
+
+
+def downgrade() -> None:
+    """Reverte a migration."""
+    op.drop_table("nome_tabela")
+```
+
+> **Dica:** Para referência de operações Alembic, consulte: `op.create_table`, `op.drop_table`, `op.add_column`, `op.drop_column`, `op.create_index`, `op.drop_index`.
 
 ---
 
