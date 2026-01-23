@@ -8,19 +8,39 @@ module.exports = {
     theme: {
         extend: {
             colors: {
-                // Cores principais do GoDrive
+                // Cores principais do GoDrive (baseado no design #135bec)
                 primary: {
-                    50: '#f0f9ff',
-                    100: '#e0f2fe',
-                    200: '#bae6fd',
-                    300: '#7dd3fc',
-                    400: '#38bdf8',
-                    500: '#0ea5e9',
-                    600: '#0284c7',
-                    700: '#0369a1',
-                    800: '#075985',
-                    900: '#0c4a6e',
-                    950: '#082f49',
+                    50: '#eef4ff',
+                    100: '#dbe7fe',
+                    200: '#bfd4fe',
+                    300: '#93b8fd',
+                    400: '#6092fa',
+                    500: '#135bec',
+                    600: '#0d4fd4',
+                    700: '#0a3fb0',
+                    800: '#0d3690',
+                    900: '#103175',
+                    950: '#0c1f48',
+                },
+                // Cores de fundo
+                background: {
+                    light: '#f6f6f8',
+                    dark: '#101622',
+                },
+                // Cores de superfície
+                surface: {
+                    light: '#ffffff',
+                    dark: '#1a212f',
+                },
+                // Cores de texto
+                text: {
+                    primary: '#111318',
+                    secondary: '#616f89',
+                },
+                // Cores de borda
+                border: {
+                    light: '#dbdfe6',
+                    dark: '#374151',
                 },
                 secondary: {
                     50: '#fdf4ff',

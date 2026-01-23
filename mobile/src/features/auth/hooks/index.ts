@@ -1,7 +1,8 @@
 /**
  * Auth Feature - Hooks
  *
- * Custom hooks para autenticação.
+ * Hooks customizados da feature de autenticação.
  */
 
 export { useAuth } from './useAuth';
+export { useForgotPassword } from './useForgotPassword';

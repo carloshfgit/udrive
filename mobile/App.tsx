@@ -1,53 +1,70 @@
 /**
  * GoDrive Mobile - Main App Entry
  *
- * Configuração do QueryClientProvider e providers globais.
+ * Configuração do QueryClientProvider, NavigationContainer e providers globais.
  */
 
 import React from 'react';
-import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView, StyleSheet, ActivityIndicator, View, Text } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { QueryClientProvider } from '@tanstack/react-query';
+import { NavigationContainer } from '@react-navigation/native';
 import { queryClient } from './src/lib/queryClient';
-import { Button } from './src/shared/components';
+import { useAuthStore } from './src/lib/store';
+import { AuthNavigator } from './src/features/auth';
+
+/**
+ * Tela de loading enquanto verifica autenticação.
+ */
+function LoadingScreen() {
+  return (
+    <View style={styles.loadingContainer}>
+      <Text style={styles.loadingLogo}>🚗</Text>
+      <Text style={styles.loadingTitle}>GoDrive</Text>
+      <ActivityIndicator size="large" color="#135bec" style={styles.spinner} />
+    </View>
+  );
+}
+
+/**
+ * Placeholder para o navigator principal (autenticado).
+ * Será implementado nas próximas fases.
+ */
+function MainNavigator() {
+  const { logout } = useAuthStore();
+
+  return (
+    <View style={styles.mainContainer}>
+      <Text style={styles.mainLogo}>🚗</Text>
+      <Text style={styles.mainTitle}>GoDrive</Text>
+      <Text style={styles.mainSubtitle}>Bem-vindo!</Text>
+      <Text style={styles.mainText}>
+        Você está autenticado. As demais funcionalidades serão implementadas nas próximas fases.
+      </Text>
+      <View style={styles.logoutButton}>
+        <Text style={styles.logoutButtonText} onPress={logout}>
+          Sair
+        </Text>
+      </View>
+    </View>
+  );
+}
 
 export default function App() {
+  const { isAuthenticated, isLoading } = useAuthStore();
+
   return (
     <QueryClientProvider client={queryClient}>
       <SafeAreaView style={styles.container}>
-        <StatusBar style="auto" />
+        <StatusBar style="dark" />
 
-        <View style={styles.content}>
-          <Text style={styles.logo}>🚗</Text>
-          <Text style={styles.title}>GoDrive</Text>
-          <Text style={styles.subtitle}>
-            Conectando alunos a instrutores de direção
-          </Text>
-
-          <View style={styles.buttonContainer}>
-            <Button
-              title="Começar"
-              onPress={() => {
-                // Navegação será implementada na Fase 2
-              }}
-              size="lg"
-              fullWidth
-            />
-
-            <Button
-              title="Já tenho conta"
-              onPress={() => {
-                // Navegação será implementada na Fase 2
-              }}
-              variant="outline"
-              size="lg"
-              fullWidth
-              style={styles.secondaryButton}
-            />
-          </View>
-        </View>
-
-        <Text style={styles.version}>v1.0.0 - Fase 1</Text>
+        {isLoading ? (
+          <LoadingScreen />
+        ) : (
+          <NavigationContainer>
+            {isAuthenticated ? <MainNavigator /> : <AuthNavigator />}
+          </NavigationContainer>
+        )}
       </SafeAreaView>
     </QueryClientProvider>
   );
@@ -56,41 +73,68 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f0f9ff',
+    backgroundColor: '#ffffff',
   },
-  content: {
+  // Loading Screen
+  loadingContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 32,
+    backgroundColor: '#ffffff',
   },
-  logo: {
-    fontSize: 80,
+  loadingLogo: {
+    fontSize: 64,
     marginBottom: 16,
   },
-  title: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    color: '#0c4a6e',
+  loadingTitle: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: '#135bec',
+    marginBottom: 24,
+  },
+  spinner: {
+    marginTop: 16,
+  },
+  // Main Navigator Placeholder
+  mainContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 32,
+  },
+  mainLogo: {
+    fontSize: 64,
+    marginBottom: 16,
+  },
+  mainTitle: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: '#135bec',
     marginBottom: 8,
   },
-  subtitle: {
+  mainSubtitle: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: '#111318',
+    marginBottom: 16,
+  },
+  mainText: {
     fontSize: 16,
-    color: '#075985',
+    color: '#616f89',
     textAlign: 'center',
-    marginBottom: 48,
+    lineHeight: 24,
+    marginBottom: 32,
   },
-  buttonContainer: {
-    width: '100%',
-    gap: 16,
+  logoutButton: {
+    backgroundColor: '#ef4444',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
   },
-  secondaryButton: {
-    marginTop: 8,
-  },
-  version: {
-    textAlign: 'center',
-    color: '#64748b',
-    paddingBottom: 24,
-    fontSize: 12,
+  logoutButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#ffffff',
   },
 });

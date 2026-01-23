@@ -4,4 +4,5 @@
  * Componentes exclusivos da feature de autenticação.
  */
 
-// Componentes serão adicionados na Fase 2
+export { UserTypeSelector } from './UserTypeSelector';
+export { SocialLoginButtons } from './SocialLoginButtons';
