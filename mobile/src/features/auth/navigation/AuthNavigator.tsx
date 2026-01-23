@@ -7,15 +7,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { LoginScreen, RegisterScreen, ForgotPasswordScreen } from '../screens';
-
-/**
- * Tipos das rotas do AuthStack.
- */
-export type AuthStackParamList = {
-    Login: undefined;
-    Register: undefined;
-    ForgotPassword: undefined;
-};
+import type { AuthStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
