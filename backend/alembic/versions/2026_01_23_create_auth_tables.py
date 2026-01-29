@@ -25,8 +25,8 @@ depends_on: str | Sequence[str] | None = None
 def upgrade() -> None:
     """Aplica a migration - Recria tabelas de autenticação."""
     # Dropar tabelas existentes em ordem (refresh_tokens depende de users)
-    op.drop_table("refresh_tokens")
-    op.drop_table("users")
+    op.execute("DROP TABLE IF EXISTS refresh_tokens")
+    op.execute("DROP TABLE IF EXISTS users CASCADE")
 
     # Dropar enum antigo
     op.execute("DROP TYPE IF EXISTS userrole")
