@@ -6,8 +6,10 @@ Implementações concretas ficam na camada Infrastructure.
 """
 
 from .auth_service import IAuthService
+from .availability_repository import IAvailabilityRepository
 from .instructor_repository import IInstructorRepository
 from .location_service import ILocationService
+from .scheduling_repository import ISchedulingRepository
 from .student_repository import IStudentRepository
 from .token_repository import ITokenRepository
 from .user_repository import IUserRepository
@@ -19,5 +21,7 @@ __all__ = [
     "IInstructorRepository",
     "IStudentRepository",
     "ILocationService",
+    "ISchedulingRepository",
+    "IAvailabilityRepository",
 ]
 

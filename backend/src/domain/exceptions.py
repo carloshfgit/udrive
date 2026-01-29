@@ -124,3 +124,104 @@ class LocationRequiredException(DomainException):
     def __init__(self) -> None:
         super().__init__("Localização é obrigatória para esta operação", "LOCATION_REQUIRED")
 
+
+# === Scheduling Exceptions ===
+
+
+class SchedulingNotFoundException(DomainException):
+    """Exceção lançada quando um agendamento não é encontrado."""
+
+    def __init__(self, identifier: str | None = None) -> None:
+        message = (
+            f"Agendamento não encontrado: {identifier}"
+            if identifier
+            else "Agendamento não encontrado"
+        )
+        super().__init__(message, "SCHEDULING_NOT_FOUND")
+
+
+class SchedulingConflictException(DomainException):
+    """Exceção lançada quando há conflito de horário no agendamento."""
+
+    def __init__(self, reason: str | None = None) -> None:
+        message = (
+            f"Conflito de horário: {reason}"
+            if reason
+            else "Já existe um agendamento neste horário"
+        )
+        super().__init__(message, "SCHEDULING_CONFLICT")
+
+
+class UnavailableSlotException(DomainException):
+    """Exceção lançada quando o slot de horário não está disponível."""
+
+    def __init__(self, reason: str | None = None) -> None:
+        message = (
+            f"Horário indisponível: {reason}"
+            if reason
+            else "O instrutor não está disponível neste horário"
+        )
+        super().__init__(message, "UNAVAILABLE_SLOT")
+
+
+class SchedulingAlreadyCancelledException(DomainException):
+    """Exceção lançada quando tentamos cancelar um agendamento já cancelado."""
+
+    def __init__(self) -> None:
+        super().__init__("Agendamento já foi cancelado", "SCHEDULING_ALREADY_CANCELLED")
+
+
+class SchedulingAlreadyCompletedException(DomainException):
+    """Exceção lançada quando tentamos modificar um agendamento já concluído."""
+
+    def __init__(self) -> None:
+        super().__init__("Agendamento já foi concluído", "SCHEDULING_ALREADY_COMPLETED")
+
+
+class InvalidSchedulingStateException(DomainException):
+    """Exceção lançada quando o estado do agendamento é inválido para a operação."""
+
+    def __init__(self, current_state: str, expected_state: str | None = None) -> None:
+        if expected_state:
+            message = f"Estado inválido: esperado '{expected_state}', atual '{current_state}'"
+        else:
+            message = f"Operação não permitida no estado atual: {current_state}"
+        super().__init__(message, "INVALID_SCHEDULING_STATE")
+
+
+# === Availability Exceptions ===
+
+
+class AvailabilityNotFoundException(DomainException):
+    """Exceção lançada quando uma disponibilidade não é encontrada."""
+
+    def __init__(self, identifier: str | None = None) -> None:
+        message = (
+            f"Disponibilidade não encontrada: {identifier}"
+            if identifier
+            else "Disponibilidade não encontrada"
+        )
+        super().__init__(message, "AVAILABILITY_NOT_FOUND")
+
+
+class InvalidAvailabilityTimeException(DomainException):
+    """Exceção lançada quando o intervalo de tempo é inválido."""
+
+    def __init__(self, reason: str | None = None) -> None:
+        message = (
+            f"Intervalo de tempo inválido: {reason}"
+            if reason
+            else "Hora de início deve ser anterior à hora de término"
+        )
+        super().__init__(message, "INVALID_AVAILABILITY_TIME")
+
+
+class AvailabilityOverlapException(DomainException):
+    """Exceção lançada quando há sobreposição de slots de disponibilidade."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "Já existe um slot de disponibilidade neste horário",
+            "AVAILABILITY_OVERLAP"
+        )
+

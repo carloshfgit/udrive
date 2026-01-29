@@ -1,0 +1,21 @@
+"""
+Scheduling Use Cases
+
+Casos de uso relacionados a agendamentos de aulas.
+"""
+
+from .cancel_scheduling import CancelSchedulingUseCase
+from .complete_scheduling import CompleteSchedulingUseCase
+from .confirm_scheduling import ConfirmSchedulingUseCase
+from .create_scheduling import CreateSchedulingUseCase
+from .list_user_schedulings import ListUserSchedulingsUseCase
+from .manage_availability import ManageAvailabilityUseCase
+
+__all__ = [
+    "CreateSchedulingUseCase",
+    "CancelSchedulingUseCase",
+    "ConfirmSchedulingUseCase",
+    "CompleteSchedulingUseCase",
+    "ListUserSchedulingsUseCase",
+    "ManageAvailabilityUseCase",
+]
