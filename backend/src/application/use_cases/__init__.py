@@ -6,6 +6,13 @@ Casos de uso que orquestram as regras de negócio.
 
 from .login_user import LoginUserUseCase
 from .logout_user import LogoutUserUseCase
+from .payment import (
+    CalculateSplitUseCase,
+    ConnectStripeAccountUseCase,
+    GetPaymentHistoryUseCase,
+    ProcessPaymentUseCase,
+    ProcessRefundUseCase,
+)
 from .refresh_token import RefreshTokenUseCase
 from .register_user import RegisterUserUseCase
 from .reset_password import RequestPasswordResetUseCase, ResetPasswordUseCase
@@ -33,4 +40,11 @@ __all__ = [
     "CompleteSchedulingUseCase",
     "ListUserSchedulingsUseCase",
     "ManageAvailabilityUseCase",
+    # Payment Use Cases
+    "CalculateSplitUseCase",
+    "ProcessPaymentUseCase",
+    "ProcessRefundUseCase",
+    "GetPaymentHistoryUseCase",
+    "ConnectStripeAccountUseCase",
 ]
+

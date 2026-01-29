@@ -225,3 +225,76 @@ class AvailabilityOverlapException(DomainException):
             "AVAILABILITY_OVERLAP"
         )
 
+
+# === Payment Exceptions ===
+
+
+class PaymentNotFoundException(DomainException):
+    """Exceção lançada quando um pagamento não é encontrado."""
+
+    def __init__(self, identifier: str | None = None) -> None:
+        message = (
+            f"Pagamento não encontrado: {identifier}"
+            if identifier
+            else "Pagamento não encontrado"
+        )
+        super().__init__(message, "PAYMENT_NOT_FOUND")
+
+
+class PaymentFailedException(DomainException):
+    """Exceção lançada quando um pagamento falha no gateway."""
+
+    def __init__(self, reason: str | None = None) -> None:
+        message = (
+            f"Falha no pagamento: {reason}"
+            if reason
+            else "Falha ao processar pagamento"
+        )
+        super().__init__(message, "PAYMENT_FAILED")
+
+
+class RefundException(DomainException):
+    """Exceção lançada quando há erro no reembolso."""
+
+    def __init__(self, reason: str | None = None) -> None:
+        message = (
+            f"Erro no reembolso: {reason}"
+            if reason
+            else "Erro ao processar reembolso"
+        )
+        super().__init__(message, "REFUND_ERROR")
+
+
+class InvalidRefundAmountException(DomainException):
+    """Exceção lançada quando o valor de reembolso é inválido."""
+
+    def __init__(self, reason: str | None = None) -> None:
+        message = (
+            f"Valor de reembolso inválido: {reason}"
+            if reason
+            else "Valor de reembolso inválido"
+        )
+        super().__init__(message, "INVALID_REFUND_AMOUNT")
+
+
+class StripeAccountNotConnectedException(DomainException):
+    """Exceção lançada quando instrutor não tem conta Stripe conectada."""
+
+    def __init__(self, instructor_id: str | None = None) -> None:
+        message = (
+            f"Instrutor {instructor_id} não possui conta Stripe conectada"
+            if instructor_id
+            else "Instrutor não possui conta Stripe conectada"
+        )
+        super().__init__(message, "STRIPE_ACCOUNT_NOT_CONNECTED")
+
+
+class PaymentAlreadyProcessedException(DomainException):
+    """Exceção lançada quando pagamento já foi processado."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "Pagamento já foi processado",
+            "PAYMENT_ALREADY_PROCESSED"
+        )
+

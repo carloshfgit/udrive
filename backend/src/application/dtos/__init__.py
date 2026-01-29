@@ -5,6 +5,18 @@ Data Transfer Objects para operações da camada de aplicação.
 """
 
 from .auth_dtos import LoginDTO, RegisterUserDTO, TokenPairDTO
+from .payment_dtos import (
+    ConnectStripeAccountDTO,
+    GetPaymentHistoryDTO,
+    InstructorEarningsDTO,
+    PaymentHistoryResponseDTO,
+    PaymentResponseDTO,
+    ProcessPaymentDTO,
+    ProcessRefundDTO,
+    RefundResultDTO,
+    SplitCalculationDTO,
+    StripeConnectResponseDTO,
+)
 from .profile_dtos import (
     InstructorProfileResponseDTO,
     InstructorSearchDTO,
@@ -59,4 +71,16 @@ __all__ = [
     "SchedulingListResponseDTO",
     "AvailabilityResponseDTO",
     "AvailabilityListResponseDTO",
+    # Payment DTOs
+    "ProcessPaymentDTO",
+    "ProcessRefundDTO",
+    "GetPaymentHistoryDTO",
+    "ConnectStripeAccountDTO",
+    "SplitCalculationDTO",
+    "PaymentResponseDTO",
+    "RefundResultDTO",
+    "PaymentHistoryResponseDTO",
+    "StripeConnectResponseDTO",
+    "InstructorEarningsDTO",
 ]
+
