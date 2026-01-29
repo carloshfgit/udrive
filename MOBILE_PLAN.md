@@ -1,0 +1,474 @@
+# Plano de Desenvolvimento Mobile - GoDrive (UDrive)
+
+> **Foco:** Telas do Usuário Aluno | **Target:** React Native (Expo) + NativeWind
+
+---
+
+## Análise Visual de Referência
+
+As imagens de referência estabelecem um padrão visual consistente que deve ser seguido em todas as telas:
+
+### Elementos de Design Identificados
+
+| Elemento | Especificação |
+|----------|---------------|
+| **Paleta de Cores** | Azul primário (`#2563EB`), Branco (`#FFFFFF`), Cinza suave (`#F3F4F6`), Laranja para destaques de progresso |
+| **Tipografia** | Sans-serif moderna, hierarquia clara (títulos grandes, subtítulos médios, texto de corpo menor) |
+| **Cards** | Bordas arredondadas (`rounded-2xl`), sombra suave, padding consistente |
+| **Ícones** | Outline style, tamanho consistente, cor azul primário |
+| **Botões Primários** | Azul sólido, texto branco, cantos bem arredondados |
+| **Botões Secundários** | Outline azul, fundo branco ou transparente |
+| **Tabs/Segmented Control** | Indicador de seleção com sublinhado ou fundo destacado |
+| **Bottom Tab Bar** | 4-5 itens, ícones + labels, item ativo em azul |
+| **Progress Bars** | Barras coloridas (azul para legislação, laranja para mecânica), texto de percentual |
+| **Tags/Chips** | Fundo azul claro com texto azul, cantos arredondados |
+
+### Padrões de Layout
+
+- **Header**: Seta de voltar à esquerda, título centralizado, ícone de ação à direita (quando aplicável)
+- **Listas**: Cards empilhados verticalmente com espaçamento consistente
+- **Seções**: Título de seção com link "Ver tudo" alinhado à direita
+- **Navegação**: Bottom Tab Bar fixa com 4-5 opções principais
+
+---
+
+## Fase M1: Design System e Componentes Base
+
+**Objetivo:** Estabelecer o Design System unificado e componentes reutilizáveis seguindo o estilo visual das referências.
+
+### Etapa M1.1: Tokens e Tema Global
+
+- [ ] Atualizar `tailwind.config.js` com paleta de cores completa
+  - Azul primário e variantes (50-900)
+  - Cores de estado (success, warning, error, info)
+  - Cores neutras expandidas
+- [ ] Definir tipografia customizada
+  - Fonte: Inter ou similar via `expo-google-fonts`
+  - Escalas de tamanho: xs, sm, base, lg, xl, 2xl, 3xl
+  - Pesos: regular (400), medium (500), semibold (600), bold (700)
+- [ ] Configurar espaçamentos e bordas padrão
+- [ ] Criar arquivo `theme.ts` com constantes exportáveis
+
+### Etapa M1.2: Componentes Shared Adicionais
+
+**Estrutura:** `mobile/src/shared/components/`
+
+- [ ] **Card.tsx** - Container base com variantes (elevated, outlined, filled)
+- [ ] **Avatar.tsx** - Foto de perfil com badge de câmera para edição
+- [ ] **Badge.tsx** - Tags e chips (ex: "Categoria B", "RECOMENDADO")
+- [ ] **ProgressBar.tsx** - Barra de progresso com label de percentual
+- [ ] **StarRating.tsx** - Exibição de nota com ícones de estrela
+- [ ] **ListItem.tsx** - Item de lista com ícone, título, subtítulo e chevron
+- [ ] **SectionHeader.tsx** - Título de seção com botão "Ver tudo"
+- [ ] **EmptyState.tsx** - Estado vazio com ilustração e mensagem
+- [ ] **LoadingState.tsx** - Skeleton loaders para cards e listas
+- [ ] **BottomSheet.tsx** - Modal deslizante inferior para filtros
+- [ ] **TabSegment.tsx** - Controle de abas (Lista/Mapa, Próximas/Histórico)
+- [ ] **SearchBar.tsx** - Barra de busca com ícone e placeholder
+- [ ] **FilterChip.tsx** - Chips de filtro selecionáveis (Categoria, Preço, Avaliação)
+
+### Etapa M1.3: Navegação Principal do Aluno
+
+**Estrutura:** `mobile/src/navigation/`
+
+- [ ] Criar `StudentTabNavigator.tsx` com Bottom Tab Bar
+  - Tab "Início" (Home)
+  - Tab "Buscar" (Search/Map)
+  - Tab "Aprender" (Learning)
+  - Tab "Aulas" (Scheduling)
+  - Tab "Perfil" (Profile)
+- [ ] Configurar ícones e labels das tabs
+- [ ] Implementar navegação aninhada (Stack dentro de cada Tab)
+- [ ] Integrar com `App.tsx` baseado em estado de autenticação
+
+---
+
+## Fase M2: Tela Inicial (Home) e Busca de Instrutores
+
+**Objetivo:** Implementar a experiência principal de descoberta de instrutores.
+
+### Etapa M2.1: Tela Home do Aluno
+
+**Estrutura:** `mobile/src/features/home/`
+
+- [ ] **Criar feature `home/`**
+  - `screens/HomeScreen.tsx`
+  - `components/`
+  - `hooks/`
+  - `api/`
+
+- [ ] **Componentes da HomeScreen:**
+  - Header com saudação personalizada e avatar
+  - Card de resumo de próxima aula agendada
+  - Seção "Instrutores Próximos" (horizontal scroll)
+  - Seção "Continue seu progresso" (cursos em andamento)
+  - Seção "Simulados Recomendados"
+
+### Etapa M2.2: Tela de Busca de Instrutores
+
+**Estrutura:** `mobile/src/features/search/`
+
+- [ ] **Criar feature `search/`**
+  - `screens/InstructorSearchScreen.tsx`
+  - `components/InstructorCard.tsx`
+  - `components/FilterModal.tsx`
+  - `components/MapView.tsx`
+  - `hooks/useInstructorSearch.ts`
+  - `api/searchApi.ts`
+
+- [ ] **InstructorSearchScreen.tsx:**
+  - SearchBar no topo
+  - Linha de FilterChips (Categoria, Preço, Avaliação)
+  - TabSegment para alternar Lista/Mapa
+  - Lista de InstructorCards ou visualização em mapa
+
+- [ ] **InstructorCard.tsx:**
+  - Layout conforme imagem de referência
+  - Avatar à direita
+  - Nome, avaliação (estrela + número), veículo, categoria
+  - Preço por hora em destaque
+  - Botão "Ver Perfil"
+
+- [ ] **Integração com Backend:**
+  - Hook `useInstructorSearch` com TanStack Query
+  - Filtros como parâmetros de query
+  - Paginação infinita para lista
+
+### Etapa M2.3: Integração com Mapa
+
+**Estrutura:** `mobile/src/features/map/`
+
+- [ ] Configurar `react-native-maps` com estilo customizado
+- [ ] Criar marcadores personalizados para instrutores
+- [ ] Implementar busca por região visível do mapa
+- [ ] Cluster de marcadores para muitos instrutores próximos
+- [ ] Modal de preview ao tocar em marcador
+
+---
+
+## Fase M3: Perfil do Instrutor e Agendamento
+
+**Objetivo:** Permitir ao aluno visualizar detalhes do instrutor e iniciar agendamento.
+
+### Etapa M3.1: Tela de Perfil do Instrutor (Visualização)
+
+**Estrutura:** `mobile/src/features/instructor/`
+
+- [ ] **Criar feature `instructor/`**
+  - `screens/InstructorProfileScreen.tsx`
+  - `components/ProfileHeader.tsx`
+  - `components/ServicesList.tsx`
+  - `components/ReviewsList.tsx`
+  - `components/VehicleGallery.tsx`
+  - `components/AvailabilityCalendar.tsx`
+  - `hooks/useInstructorProfile.ts`
+  - `api/instructorApi.ts`
+
+- [ ] **InstructorProfileScreen.tsx:**
+  - Foto grande no topo com gradiente overlay
+  - Informações: nome, avaliação, categoria, veículo
+  - Seção "Sobre" com biografia
+  - Seção "Veículo" com galeria de fotos
+  - Seção "Disponibilidade" com calendário inline
+  - Seção "Avaliações" com lista de reviews
+  - Botão fixo no rodapé "Agendar Aula"
+
+### Etapa M3.2: Fluxo de Agendamento
+
+**Estrutura:** `mobile/src/features/scheduling/`
+
+- [ ] **Telas do fluxo:**
+  - `screens/SelectDateTimeScreen.tsx` - Seleção de data e horário
+  - `screens/ConfirmBookingScreen.tsx` - Resumo e confirmação
+  - `screens/BookingSuccessScreen.tsx` - Confirmação visual
+
+- [ ] **Componentes:**
+  - `components/CalendarPicker.tsx` - Seletor de data visual
+  - `components/TimeSlotPicker.tsx` - Grid de horários disponíveis
+  - `components/BookingSummary.tsx` - Resumo do agendamento
+
+- [ ] **Hooks e API:**
+  - `hooks/useAvailability.ts` - Buscar disponibilidade
+  - `hooks/useCreateBooking.ts` - Mutation para criar agendamento
+  - `api/schedulingApi.ts` - Endpoints de agendamento
+
+---
+
+## Fase M4: Centro de Aprendizado
+
+**Objetivo:** Implementar área de cursos teóricos e simulados para o aluno.
+
+### Etapa M4.1: Tela Principal do Centro de Aprendizado
+
+**Estrutura:** `mobile/src/features/learning/`
+
+- [ ] **Criar feature `learning/`**
+  - `screens/LearningCenterScreen.tsx`
+  - `screens/CourseDetailScreen.tsx`
+  - `screens/LessonScreen.tsx`
+  - `screens/SimuladoScreen.tsx`
+  - `screens/SimuladoResultScreen.tsx`
+  - `components/`
+  - `hooks/`
+  - `api/`
+
+- [ ] **LearningCenterScreen.tsx:**
+  - Seção "Meus Cursos" com cards de progresso conforme imagem
+  - Link "Ver tudo" para lista completa de cursos
+  - Cards de curso com:
+    - Ícone representativo
+    - Nome do curso
+    - Barra de progresso com percentual
+    - Contador de aulas (ex: "12 de 15 aulas concluídas")
+  - Seção "Simulados" com card destacado "RECOMENDADO"
+  - Grid 2x2 de tópicos de simulado:
+    - Sinalização
+    - Direção Defensiva
+    - Primeiros Socorros
+    - Meio Ambiente
+
+### Etapa M4.2: Telas de Curso e Aulas
+
+- [ ] **CourseDetailScreen.tsx:**
+  - Header com progresso geral
+  - Lista de módulos/aulas com status (concluído, em progresso, bloqueado)
+  - Botão "Continuar de onde parou"
+
+- [ ] **LessonScreen.tsx:**
+  - Conteúdo da aula (texto, imagens)
+  - Navegação entre aulas (anterior/próxima)
+  - Marcação de aula como concluída
+
+### Etapa M4.3: Sistema de Simulados
+
+- [ ] **SimuladoScreen.tsx:**
+  - Timer de 60 minutos
+  - Questões com alternativas
+  - Navegação entre questões
+  - Barra de progresso de questões respondidas
+  - Botão "Finalizar Simulado"
+
+- [ ] **SimuladoResultScreen.tsx:**
+  - Porcentagem de acerto
+  - Detalhamento por categoria
+  - Correção das questões erradas
+  - Botões "Refazer" e "Ver Correção"
+
+---
+
+## Fase M5: Gestão de Aulas (Aluno)
+
+**Objetivo:** Permitir ao aluno gerenciar suas aulas agendadas.
+
+### Etapa M5.1: Tela de Minhas Aulas
+
+**Estrutura:** `mobile/src/features/scheduling/`
+
+- [ ] **Atualizar feature `scheduling/`**
+  - `screens/MyLessonsScreen.tsx`
+  - `screens/LessonDetailScreen.tsx`
+  - `components/LessonCard.tsx`
+  - `components/LessonStatusBadge.tsx`
+
+- [ ] **MyLessonsScreen.tsx:**
+  - TabSegment "Próximas" / "Histórico"
+  - Lista de LessonCards
+
+- [ ] **LessonCard.tsx:**
+  - Data e hora em destaque
+  - Nome e foto do instrutor
+  - Localização com link para mapa
+  - Status (confirmada, pendente, concluída, cancelada)
+  - Ações: cancelar, reagendar, avaliar
+
+### Etapa M5.2: Detalhes da Aula
+
+- [ ] **LessonDetailScreen.tsx:**
+  - Todas as informações da aula
+  - Informações do instrutor com link para perfil
+  - Mapa com localização do ponto de encontro
+  - Ações contextuais baseadas no status
+  - Chat com instrutor (link)
+
+### Etapa M5.3: Ações e Fluxos
+
+- [ ] **Cancelamento:**
+  - Modal de confirmação com aviso sobre multa (se < 24h)
+  - Feedback visual após cancelamento
+
+- [ ] **Avaliação:**
+  - Modal/Tela de avaliação pós-aula
+  - Seleção de nota (1-5 estrelas)
+  - Campo de comentário opcional
+  - Submissão e confirmação
+
+---
+
+## Fase M6: Perfil do Aluno
+
+**Objetivo:** Implementar área de perfil e configurações do aluno.
+
+### Etapa M6.1: Tela de Perfil Principal
+
+**Estrutura:** `mobile/src/features/profile/`
+
+- [ ] **ProfileScreen.tsx (Atualizar conforme imagem de referência):**
+  - Header com avatar grande (com badge de câmera para editar foto)
+  - Nome do aluno
+  - Tag de categoria (ex: "Categoria B")
+  - Lista de opções com ícones:
+    - Informações Pessoais
+    - Meus Agendamentos
+    - Histórico de Aulas
+    - Pagamentos
+    - Configurações
+  - Botão "Sair da Conta" em destaque (outline vermelho)
+  - Versão do app no rodapé
+
+### Etapa M6.2: Sub-telas do Perfil
+
+- [ ] **PersonalInfoScreen.tsx:**
+  - Edição de dados pessoais
+  - Campos: nome, email, telefone, CPF, data de nascimento
+  - Upload de documento (CNH provisória, se houver)
+
+- [ ] **PaymentMethodsScreen.tsx:**
+  - Lista de cartões salvos
+  - Adicionar novo cartão (Stripe SDK)
+  - Definir cartão padrão
+  - Remover cartão
+
+- [ ] **PaymentHistoryScreen.tsx:**
+  - Lista de transações
+  - Filtro por período
+  - Detalhes de cada transação
+
+- [ ] **SettingsScreen.tsx:**
+  - Notificações (toggles)
+  - Tema (claro/escuro)
+  - Idioma
+  - Termos de uso
+  - Política de privacidade
+  - Exportar meus dados (LGPD)
+  - Excluir conta (LGPD)
+
+### Etapa M6.3: Edição de Foto de Perfil
+
+- [ ] **Hook `useImagePicker.ts`:**
+  - Integrar `expo-image-picker`
+  - Opções: câmera ou galeria
+  - Crop circular
+  - Upload para API
+
+---
+
+## Fase M7: Integrações e Polimento
+
+**Objetivo:** Integrar todas as features e polir a experiência.
+
+### Etapa M7.1: Notificações Push
+
+- [ ] Configurar `expo-notifications`
+- [ ] Handlers para diferentes tipos:
+  - Lembrete de aula
+  - Confirmação de agendamento
+  - Promoções e novidades
+- [ ] Deep linking a partir de notificações
+
+### Etapa M7.2: Estados de Loading e Erro
+
+- [ ] Implementar Skeleton loaders para todas as listas
+- [ ] Estados de erro com opção de retry
+- [ ] Pull-to-refresh em listas principais
+- [ ] Feedback visual para ações (toasts/snackbars)
+
+### Etapa M7.3: Performance e Otimização
+
+- [ ] Memoização de componentes pesados (`React.memo`, `useMemo`, `useCallback`)
+- [ ] Virtualização de listas longas (`FlashList`)
+- [ ] Lazy loading de imagens
+- [ ] Otimização de bundles
+
+### Etapa M7.4: Acessibilidade
+
+- [ ] Labels para screen readers
+- [ ] Contraste adequado de cores
+- [ ] Tamanhos de toque mínimos (44x44)
+- [ ] Suporte a fontes do sistema (acessibilidade)
+
+---
+
+## Resumo de Arquivos e Estrutura Final
+
+```text
+mobile/src/
+├── app/                          # Expo Router
+├── features/
+│   ├── auth/                     # ✅ Existente
+│   ├── home/                     # 🆕 Fase M2
+│   │   ├── screens/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   └── api/
+│   ├── search/                   # 🆕 Fase M2
+│   │   ├── screens/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   └── api/
+│   ├── instructor/               # 🆕 Fase M3
+│   │   ├── screens/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   └── api/
+│   ├── learning/                 # 🆕 Fase M4
+│   │   ├── screens/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   └── api/
+│   ├── scheduling/               # 🔄 Atualizar
+│   │   ├── screens/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   └── api/
+│   ├── profile/                  # 🔄 Atualizar
+│   │   ├── screens/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   └── api/
+│   └── map/                      # 🔄 Atualizar
+├── shared/
+│   ├── components/               # 🔄 Expandir
+│   └── index.ts
+├── lib/                          # Configs (axios, query, zustand)
+└── navigation/                   # 🆕 StudentTabNavigator
+```
+
+---
+
+## Cronograma Estimado
+
+| Fase | Duração | Dependências |
+|------|---------|--------------|
+| M1: Design System | 1-2 semanas | - |
+| M2: Home e Busca | 2-3 semanas | M1 |
+| M3: Perfil Instrutor e Agendamento | 2-3 semanas | M2, Backend Fase 4 |
+| M4: Centro de Aprendizado | 2-3 semanas | M1 |
+| M5: Gestão de Aulas | 1-2 semanas | M3, Backend Fase 4 |
+| M6: Perfil do Aluno | 1-2 semanas | M1 |
+| M7: Integrações e Polimento | 2 semanas | M1-M6 |
+
+**Total estimado: 10-16 semanas**
+
+---
+
+## Referências Visuais
+
+As imagens de referência foram usadas para definir o estilo visual:
+
+1. **Perfil do Aluno** - Layout de perfil com avatar, tags e lista de opções
+2. **Busca de Instrutores** - Cards de instrutor com filtros e tabs Lista/Mapa
+3. **Centro de Aprendizado** - Cursos com barras de progresso e grid de simulados
+
+---
+
+> **Nota:** Este plano deve ser executado em conjunto com o backend já desenvolvido até a Fase 5. A integração com APIs deve seguir os padrões de TanStack Query definidos no `PROJECT_GUIDELINES.md`.
