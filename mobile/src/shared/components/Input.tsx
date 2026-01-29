@@ -10,7 +10,6 @@ import {
     View,
     TextInput,
     Text,
-    StyleSheet,
     TextInputProps,
     ViewStyle,
 } from 'react-native';
@@ -26,6 +25,8 @@ interface InputProps extends TextInputProps {
     error?: string;
     /** Estilo do container */
     containerStyle?: ViewStyle;
+    className?: string; // Container className
+    inputClassName?: string; // TextInput className
 }
 
 export function Input({
@@ -34,95 +35,57 @@ export function Input({
     rightIcon,
     error,
     containerStyle,
+    className = '',
+    inputClassName = '',
     style,
     ...props
 }: InputProps) {
     const hasError = Boolean(error);
 
     return (
-        <View style={[styles.container, containerStyle]}>
-            {label && <Text style={styles.label}>{label}</Text>}
+        <View className={`w-full ${className}`} style={containerStyle}>
+            {label && (
+                <Text className="text-sm font-semibold text-neutral-900 mb-2">
+                    {label}
+                </Text>
+            )}
 
             <View
-                style={[
-                    styles.inputContainer,
-                    hasError && styles.inputContainerError,
-                ]}
+                className={`
+                    flex-row items-center bg-white border rounded-xl h-14 shadow-sm
+                    ${hasError ? 'border-error-500' : 'border-neutral-200'}
+                `}
             >
-                {leftIcon && <View style={styles.leftIconContainer}>{leftIcon}</View>}
+                {leftIcon && (
+                    <View className="pl-3 justify-center items-center">
+                        {leftIcon}
+                    </View>
+                )}
 
                 <TextInput
-                    style={[
-                        styles.input,
-                        leftIcon ? styles.inputWithLeftIcon : null,
-                        rightIcon ? styles.inputWithRightIcon : null,
-                        style,
-                    ]}
-                    placeholderTextColor="#616f89"
+                    className={`
+                        flex-1 h-full text-base text-neutral-900 px-4
+                        ${leftIcon ? 'pl-2' : ''}
+                        ${rightIcon ? 'pr-2' : ''}
+                        ${inputClassName}
+                    `}
+                    placeholderTextColor="#9ca3af" // neutral-400
+                    style={style}
                     {...props}
                 />
 
-                {rightIcon && <View style={styles.rightIconContainer}>{rightIcon}</View>}
+                {rightIcon && (
+                    <View className="pr-3 justify-center items-center">
+                        {rightIcon}
+                    </View>
+                )}
             </View>
 
-            {error && <Text style={styles.errorText}>{error}</Text>}
+            {error && (
+                <Text className="text-xs text-error-500 mt-1 ml-1">
+                    {error}
+                </Text>
+            )}
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        width: '100%',
-    },
-    label: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#111318',
-        marginBottom: 8,
-    },
-    inputContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#ffffff',
-        borderWidth: 1,
-        borderColor: '#dbdfe6',
-        borderRadius: 12,
-        height: 56,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 2,
-        elevation: 1,
-    },
-    inputContainerError: {
-        borderColor: '#ef4444',
-    },
-    leftIconContainer: {
-        paddingLeft: 12,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    rightIconContainer: {
-        paddingRight: 12,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    input: {
-        flex: 1,
-        height: '100%',
-        fontSize: 16,
-        color: '#111318',
-        paddingHorizontal: 16,
-    },
-    inputWithLeftIcon: {
-        paddingLeft: 8,
-    },
-    inputWithRightIcon: {
-        paddingRight: 8,
-    },
-    errorText: {
-        fontSize: 12,
-        color: '#ef4444',
-        marginTop: 4,
-    },
-});
