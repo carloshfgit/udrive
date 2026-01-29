@@ -95,6 +95,23 @@ class UserModel(Base):
         uselist=False,
         cascade="all, delete-orphan",
     )
+    student_payments = relationship(
+        "PaymentModel",
+        foreign_keys="PaymentModel.student_id",
+        back_populates="student",
+        cascade="all, delete-orphan",
+    )
+    instructor_payments = relationship(
+        "PaymentModel",
+        foreign_keys="PaymentModel.instructor_id",
+        back_populates="instructor",
+        cascade="all, delete-orphan",
+    )
+    transactions = relationship(
+        "TransactionModel",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
 
     # Índices compostos
     __table_args__ = (

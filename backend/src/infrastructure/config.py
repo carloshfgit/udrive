@@ -35,6 +35,10 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 15
     refresh_token_expire_days: int = 7
 
+    # Stripe
+    stripe_secret_key: str | None = None
+    stripe_webhook_secret: str | None = None
+
     # CORS
     cors_origins: list[str] = ["http://localhost:3000", "http://localhost:8081"]
 

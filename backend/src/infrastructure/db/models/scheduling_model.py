@@ -122,6 +122,12 @@ class SchedulingModel(Base):
         "UserModel",
         foreign_keys=[cancelled_by],
     )
+    payment = relationship(
+        "PaymentModel",
+        back_populates="scheduling",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
 
     # Índices
     __table_args__ = (
