@@ -22,6 +22,7 @@ import { queryClient } from './src/lib/queryClient';
 import { useAuthStore, type User } from './src/lib/store';
 import { api, tokenManager } from './src/lib';
 import { AuthNavigator } from './src/features/auth';
+import { StudentTabNavigator } from './src/navigation/StudentTabNavigator';
 
 /**
  * Tela de loading enquanto verifica autenticação.
@@ -36,29 +37,8 @@ function LoadingScreen() {
   );
 }
 
-/**
- * Placeholder para o navigator principal (autenticado).
- * Será implementado nas próximas fases.
- */
-function MainNavigator() {
-  const { logout } = useAuthStore();
+// MainNavigator removed in favor of StudentTabNavigator
 
-  return (
-    <View style={styles.mainContainer}>
-      <Text style={styles.mainLogo}>🚗</Text>
-      <Text style={styles.mainTitle}>GoDrive</Text>
-      <Text style={styles.mainSubtitle}>Bem-vindo!</Text>
-      <Text style={styles.mainText}>
-        Você está autenticado. As demais funcionalidades serão implementadas nas próximas fases.
-      </Text>
-      <View style={styles.logoutButton}>
-        <Text style={styles.logoutButtonText} onPress={logout}>
-          Sair
-        </Text>
-      </View>
-    </View>
-  );
-}
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -108,7 +88,7 @@ export default function App() {
             <LoadingScreen />
           ) : (
             <NavigationContainer>
-              {isAuthenticated ? <MainNavigator /> : <AuthNavigator />}
+              {isAuthenticated ? <StudentTabNavigator /> : <AuthNavigator />}
             </NavigationContainer>
           )}
         </SafeAreaView>
@@ -141,47 +121,5 @@ const styles = StyleSheet.create({
   },
   spinner: {
     marginTop: 16,
-  },
-  // Main Navigator Placeholder
-  mainContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#ffffff',
-    paddingHorizontal: 32,
-  },
-  mainLogo: {
-    fontSize: 64,
-    marginBottom: 16,
-  },
-  mainTitle: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: '#135bec',
-    marginBottom: 8,
-  },
-  mainSubtitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#111318',
-    marginBottom: 16,
-  },
-  mainText: {
-    fontSize: 16,
-    color: '#616f89',
-    textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 32,
-  },
-  logoutButton: {
-    backgroundColor: '#ef4444',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-  },
-  logoutButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#ffffff',
   },
 });
