@@ -83,6 +83,18 @@ class UserModel(Base):
         back_populates="user",
         cascade="all, delete-orphan",
     )
+    instructor_profile = relationship(
+        "InstructorProfileModel",
+        back_populates="user",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
+    student_profile = relationship(
+        "StudentProfileModel",
+        back_populates="user",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
 
     # Índices compostos
     __table_args__ = (

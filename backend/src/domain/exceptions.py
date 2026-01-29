@@ -70,3 +70,57 @@ class InvalidTokenException(DomainException):
     def __init__(self, reason: str | None = None) -> None:
         message = f"Token inválido: {reason}" if reason else "Token inválido"
         super().__init__(message, "INVALID_TOKEN")
+
+
+# === Profile Exceptions ===
+
+
+class InstructorNotFoundException(DomainException):
+    """Exceção lançada quando um perfil de instrutor não é encontrado."""
+
+    def __init__(self, identifier: str | None = None) -> None:
+        message = (
+            f"Perfil de instrutor não encontrado: {identifier}"
+            if identifier
+            else "Perfil de instrutor não encontrado"
+        )
+        super().__init__(message, "INSTRUCTOR_NOT_FOUND")
+
+
+class StudentNotFoundException(DomainException):
+    """Exceção lançada quando um perfil de aluno não é encontrado."""
+
+    def __init__(self, identifier: str | None = None) -> None:
+        message = (
+            f"Perfil de aluno não encontrado: {identifier}"
+            if identifier
+            else "Perfil de aluno não encontrado"
+        )
+        super().__init__(message, "STUDENT_NOT_FOUND")
+
+
+class ProfileAlreadyExistsException(DomainException):
+    """Exceção lançada quando tentamos criar um perfil que já existe."""
+
+    def __init__(self, user_id: str | None = None) -> None:
+        message = f"Perfil já existe para usuário: {user_id}" if user_id else "Perfil já existe"
+        super().__init__(message, "PROFILE_ALREADY_EXISTS")
+
+
+# === Location Exceptions ===
+
+
+class InvalidLocationException(DomainException):
+    """Exceção lançada quando uma localização é inválida."""
+
+    def __init__(self, reason: str | None = None) -> None:
+        message = f"Localização inválida: {reason}" if reason else "Localização inválida"
+        super().__init__(message, "INVALID_LOCATION")
+
+
+class LocationRequiredException(DomainException):
+    """Exceção lançada quando localização é obrigatória mas não fornecida."""
+
+    def __init__(self) -> None:
+        super().__init__("Localização é obrigatória para esta operação", "LOCATION_REQUIRED")
+
