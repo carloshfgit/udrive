@@ -5,45 +5,22 @@
  * Encapsula lógica de login, logout e verificação de estado.
  */
 
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { useAuthStore, api, tokenManager, queryKeys } from '@lib/index';
-
-interface LoginCredentials {
-    email: string;
-    password: string;
-}
-
-interface RegisterData {
-    email: string;
-    password: string;
-    name: string;
-    type: 'student' | 'instructor';
-}
-
-interface AuthResponse {
-    access_token: string;
-    refresh_token: string;
-    user: {
-        id: string;
-        email: string;
-        name: string;
-        type: 'student' | 'instructor' | 'admin';
-        avatarUrl?: string;
-    };
-}
+import { useAuthStore, tokenManager, queryKeys } from '@lib/index';
+import { authApi, LoginRequest, RegisterRequest, AuthResponse } from '../api/authApi';
 
 /**
  * Hook para gerenciamento de autenticação.
  */
 export function useAuth() {
-    const { user, isAuthenticated, isLoading, setUser, setLoading, logout: storeLogout } = useAuthStore();
+    const { user, isAuthenticated, isLoading, setUser, logout: storeLogout } = useAuthStore();
 
     // Query para buscar usuário atual
     const userQuery = useQuery({
         queryKey: queryKeys.auth.user(),
         queryFn: async () => {
-            const response = await api.get<AuthResponse['user']>('/auth/me');
+            const response = await authApi.me();
             return response.data;
         },
         enabled: false, // Não executar automaticamente
@@ -52,8 +29,8 @@ export function useAuth() {
 
     // Mutation para login
     const loginMutation = useMutation({
-        mutationFn: async (credentials: LoginCredentials) => {
-            const response = await api.post<AuthResponse>('/auth/login', credentials);
+        mutationFn: async (credentials: LoginRequest) => {
+            const response = await authApi.login(credentials);
             return response.data;
         },
         onSuccess: async (data) => {
@@ -64,8 +41,8 @@ export function useAuth() {
 
     // Mutation para registro
     const registerMutation = useMutation({
-        mutationFn: async (data: RegisterData) => {
-            const response = await api.post<AuthResponse>('/auth/register', data);
+        mutationFn: async (data: RegisterRequest) => {
+            const response = await authApi.register(data);
             return response.data;
         },
         onSuccess: async (data) => {
@@ -77,7 +54,7 @@ export function useAuth() {
     // Função de logout
     const logout = useCallback(async () => {
         try {
-            await api.post('/auth/logout');
+            await authApi.logout();
         } catch {
             // Ignorar erro de logout
         } finally {
@@ -85,9 +62,6 @@ export function useAuth() {
             storeLogout();
         }
     }, [storeLogout]);
-
-    // Verificação de autenticação movida para o App.tsx para evitar loop infinito
-
 
     return {
         // Estado

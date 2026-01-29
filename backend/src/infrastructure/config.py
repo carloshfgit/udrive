@@ -40,7 +40,7 @@ class Settings(BaseSettings):
     stripe_webhook_secret: str | None = None
 
     # CORS
-    cors_origins: list[str] = ["http://localhost:3000", "http://localhost:8081"]
+    cors_origins: list[str] = ["*"]
 
     # Rate Limiting (conforme PROJECT_GUIDELINES.md)
     rate_limit_login: str = "5/minute"

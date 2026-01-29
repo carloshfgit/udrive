@@ -15,7 +15,7 @@ export interface LoginRequest {
 export interface RegisterRequest {
     email: string;
     password: string;
-    name: string;
+    full_name: string;
     type: 'student' | 'instructor';
 }
 
@@ -32,7 +32,7 @@ export interface ResetPasswordRequest {
 export interface User {
     id: string;
     email: string;
-    name: string;
+    full_name: string;
     type: 'student' | 'instructor' | 'admin';
     avatarUrl?: string;
 }

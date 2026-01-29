@@ -77,7 +77,7 @@ export function RegisterScreen() {
 
         try {
             await register({
-                name: name.trim(),
+                full_name: name.trim(),
                 email: email.trim(),
                 password,
                 type: userType,
