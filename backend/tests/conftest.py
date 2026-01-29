@@ -15,8 +15,8 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from src.infrastructure.db.database import Base, get_db
 from src.interface.api.main import app
 
-# URL do banco de dados de teste (SQLite em memória para testes unitários)
-TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
+# URL do banco de dados de teste (PostgreSQL dedicado para testes)
+TEST_DATABASE_URL = "postgresql+asyncpg://godrive:godrive_dev_password@postgres:5432/godrive_test"
 
 
 @pytest.fixture(scope="session")

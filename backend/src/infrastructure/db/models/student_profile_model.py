@@ -82,11 +82,6 @@ class StudentProfileModel(Base):
     # Relacionamentos
     user = relationship("UserModel", back_populates="student_profile")
 
-    # Índices
-    __table_args__ = (
-        Index("ix_student_profiles_learning_stage", "learning_stage"),
-    )
-
     def to_entity(self) -> StudentProfile:
         """Converte o modelo para entidade de domínio."""
         return StudentProfile(
