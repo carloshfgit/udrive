@@ -8,7 +8,7 @@ module.exports = {
     theme: {
         extend: {
             colors: {
-                // Cores principais do GoDrive (baseado no design #135bec)
+                // Primary Brand Colors
                 primary: {
                     50: '#eef4ff',
                     100: '#dbe7fe',
@@ -22,26 +22,7 @@ module.exports = {
                     900: '#103175',
                     950: '#0c1f48',
                 },
-                // Cores de fundo
-                background: {
-                    light: '#f6f6f8',
-                    dark: '#101622',
-                },
-                // Cores de superfície
-                surface: {
-                    light: '#ffffff',
-                    dark: '#1a212f',
-                },
-                // Cores de texto
-                text: {
-                    primary: '#111318',
-                    secondary: '#616f89',
-                },
-                // Cores de borda
-                border: {
-                    light: '#dbdfe6',
-                    dark: '#374151',
-                },
+                // Secondary/Accent Colors
                 secondary: {
                     50: '#fdf4ff',
                     100: '#fae8ff',
@@ -55,6 +36,7 @@ module.exports = {
                     900: '#701a75',
                     950: '#4a044e',
                 },
+                // Semantic Colors
                 success: {
                     500: '#22c55e',
                     600: '#16a34a',
@@ -67,9 +49,36 @@ module.exports = {
                     500: '#ef4444',
                     600: '#dc2626',
                 },
+                info: {
+                    500: '#3b82f6',
+                    600: '#2563eb',
+                },
+                // Background & Surface
+                background: {
+                    light: '#f6f6f8',
+                    dark: '#101622',
+                },
+                surface: {
+                    light: '#ffffff',
+                    dark: '#1a212f',
+                },
+                // Text Colors
+                text: {
+                    primary: '#111318',
+                    secondary: '#616f89',
+                    inverse: '#ffffff',
+                },
+                // Border Colors
+                border: {
+                    light: '#dbdfe6',
+                    dark: '#374151',
+                },
             },
             fontFamily: {
-                sans: ['Inter', 'system-ui', 'sans-serif'],
+                sans: ['Inter_400Regular'],
+                medium: ['Inter_500Medium'],
+                semibold: ['Inter_600SemiBold'],
+                bold: ['Inter_700Bold'],
             },
         },
     },

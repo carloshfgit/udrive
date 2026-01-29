@@ -11,6 +11,13 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { NavigationContainer } from '@react-navigation/native';
+import {
+  useFonts,
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+} from '@expo-google-fonts/inter';
 import { queryClient } from './src/lib/queryClient';
 import { useAuthStore, type User } from './src/lib/store';
 import { api, tokenManager } from './src/lib';
@@ -54,6 +61,13 @@ function MainNavigator() {
 }
 
 export default function App() {
+  const [fontsLoaded] = useFonts({
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+  });
+
   const { isAuthenticated, isLoading, setUser, setLoading } = useAuthStore();
 
   useEffect(() => {
@@ -79,6 +93,10 @@ export default function App() {
 
     checkAuth();
   }, [setLoading, setUser]);
+
+  if (!fontsLoaded) {
+    return <LoadingScreen />;
+  }
 
   return (
     <SafeAreaProvider>
