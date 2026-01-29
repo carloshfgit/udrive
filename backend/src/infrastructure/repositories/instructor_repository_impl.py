@@ -6,8 +6,7 @@ Implementação concreta do repositório de instrutores com suporte a PostGIS.
 
 from uuid import UUID
 
-from geoalchemy2 import func as geo_func
-from sqlalchemy import select, update
+from sqlalchemy import func as geo_func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.domain.entities.instructor_profile import InstructorProfile

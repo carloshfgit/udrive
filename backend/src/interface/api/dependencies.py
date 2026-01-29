@@ -7,16 +7,35 @@ Usa o padrão de Dependency Injection do FastAPI.
 
 from typing import Annotated
 
-from fastapi import Depends
+from fastapi import Depends, status
+from fastapi.exceptions import HTTPException
+from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.domain.entities.user import User
+from src.domain.exceptions import (
+    InvalidTokenException,
+    TokenExpiredException,
+    UserInactiveException,
+    UserNotFoundException,
+)
 from src.domain.interfaces.auth_service import IAuthService
+from src.domain.interfaces.instructor_repository import IInstructorRepository
+from src.domain.interfaces.location_service import ILocationService
+from src.domain.interfaces.student_repository import IStudentRepository
 from src.domain.interfaces.token_repository import ITokenRepository
 from src.domain.interfaces.user_repository import IUserRepository
 from src.infrastructure.db.database import get_db
+from src.infrastructure.repositories.instructor_repository_impl import (
+    InstructorRepositoryImpl,
+)
+from src.infrastructure.repositories.student_repository_impl import (
+    StudentRepositoryImpl,
+)
 from src.infrastructure.repositories.token_repository_impl import TokenRepositoryImpl
 from src.infrastructure.repositories.user_repository_impl import UserRepositoryImpl
 from src.infrastructure.services.auth_service_impl import AuthServiceImpl
+from src.infrastructure.services.location_service_impl import LocationServiceImpl
 
 
 # =============================================================================
@@ -32,29 +51,23 @@ DBSession = Annotated[AsyncSession, Depends(get_db)]
 
 
 def get_user_repository(session: DBSession) -> IUserRepository:
-    """
-    Fornece uma instância do repositório de usuários.
-
-    Args:
-        session: Sessão do banco de dados injetada.
-
-    Returns:
-        IUserRepository: Implementação do repositório de usuários.
-    """
+    """Fornece uma instância do repositório de usuários."""
     return UserRepositoryImpl(session)
 
 
 def get_token_repository(session: DBSession) -> ITokenRepository:
-    """
-    Fornece uma instância do repositório de tokens.
-
-    Args:
-        session: Sessão do banco de dados injetada.
-
-    Returns:
-        ITokenRepository: Implementação do repositório de tokens.
-    """
+    """Fornece uma instância do repositório de tokens."""
     return TokenRepositoryImpl(session)
+
+
+def get_instructor_repository(session: DBSession) -> IInstructorRepository:
+    """Fornece uma instância do repositório de instrutores."""
+    return InstructorRepositoryImpl(session)
+
+
+def get_student_repository(session: DBSession) -> IStudentRepository:
+    """Fornece uma instância do repositório de alunos."""
+    return StudentRepositoryImpl(session)
 
 
 # =============================================================================
@@ -63,13 +76,73 @@ def get_token_repository(session: DBSession) -> ITokenRepository:
 
 
 def get_auth_service() -> IAuthService:
-    """
-    Fornece uma instância do serviço de autenticação.
-
-    Returns:
-        IAuthService: Implementação do serviço de autenticação.
-    """
+    """Fornece uma instância do serviço de autenticação."""
     return AuthServiceImpl()
+
+
+def get_location_service(
+    instructor_repo: Annotated[IInstructorRepository, Depends(get_instructor_repository)],
+) -> ILocationService:
+    """Fornece uma instância do serviço de geolocalização."""
+    return LocationServiceImpl(instructor_repo)
+
+
+# =============================================================================
+# Authentication Dependencies
+# =============================================================================
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")
+
+
+async def get_current_user(
+    token: Annotated[str, Depends(oauth2_scheme)],
+    auth_service: Annotated[IAuthService, Depends(get_auth_service)],
+    user_repo: Annotated[IUserRepository, Depends(get_user_repository)],
+) -> User:
+    """
+    Obtém o usuário autenticado a partir do token JWT.
+
+    Decodifica o token, valida e busca o usuário no banco.
+
+    Raises:
+        HTTPException 401: Se token inválido, expirado ou usuário não encontrado.
+    """
+    try:
+        payload = auth_service.decode_access_token(token)
+        user_id = payload["user_id"]
+    except (InvalidTokenException, TokenExpiredException):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Credenciais inválidas ou token expirado",
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from None
+
+    user = await user_repo.get_by_id(user_id)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Usuário não encontrado",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    return user
+
+
+async def get_current_active_user(
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> User:
+    """
+    Verifica se o usuário autenticado está ativo.
+
+    Raises:
+        HTTPException 400: Se usuário inativo.
+    """
+    if not current_user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Usuário inativo",
+        )
+    return current_user
 
 
 # =============================================================================
@@ -78,4 +151,10 @@ def get_auth_service() -> IAuthService:
 
 UserRepo = Annotated[IUserRepository, Depends(get_user_repository)]
 TokenRepo = Annotated[ITokenRepository, Depends(get_token_repository)]
+InstructorRepo = Annotated[IInstructorRepository, Depends(get_instructor_repository)]
+StudentRepo = Annotated[IStudentRepository, Depends(get_student_repository)]
 AuthService = Annotated[IAuthService, Depends(get_auth_service)]
+LocationService = Annotated[ILocationService, Depends(get_location_service)]
+CurrentUser = Annotated[User, Depends(get_current_active_user)]
+
+
