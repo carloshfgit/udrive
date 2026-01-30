@@ -33,7 +33,7 @@ export interface User {
     id: string;
     email: string;
     full_name: string;
-    type: 'student' | 'instructor' | 'admin';
+    user_type: 'student' | 'instructor' | 'admin';
     avatarUrl?: string;
 }
 

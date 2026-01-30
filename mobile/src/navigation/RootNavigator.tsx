@@ -1,0 +1,23 @@
+/**
+ * Root Navigator
+ *
+ * Roteia o usuário autenticado para o TabNavigator correto
+ * baseado no tipo de usuário (student ou instructor).
+ */
+
+import React from 'react';
+import { useAuthStore } from '../lib/store';
+import { StudentTabNavigator } from './StudentTabNavigator';
+import { InstructorTabNavigator } from './InstructorTabNavigator';
+
+export function RootNavigator() {
+    const { user } = useAuthStore();
+
+    // Instrutor vai para InstructorTabNavigator
+    if (user?.user_type === 'instructor') {
+        return <InstructorTabNavigator />;
+    }
+
+    // Default: aluno (e admin por enquanto) vai para StudentTabNavigator
+    return <StudentTabNavigator />;
+}

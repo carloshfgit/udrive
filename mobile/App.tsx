@@ -22,7 +22,7 @@ import { queryClient } from './src/lib/queryClient';
 import { useAuthStore, type User } from './src/lib/store';
 import { api, tokenManager } from './src/lib';
 import { AuthNavigator } from './src/features/auth';
-import { StudentTabNavigator } from './src/navigation/StudentTabNavigator';
+import { RootNavigator } from './src/navigation';
 
 /**
  * Tela de loading enquanto verifica autenticação.
@@ -88,7 +88,7 @@ export default function App() {
             <LoadingScreen />
           ) : (
             <NavigationContainer>
-              {isAuthenticated ? <StudentTabNavigator /> : <AuthNavigator />}
+              {isAuthenticated ? <RootNavigator /> : <AuthNavigator />}
             </NavigationContainer>
           )}
         </SafeAreaView>
