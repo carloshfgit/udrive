@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Busca de Instrutores</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#111318] dark:text-white transition-colors duration-200">
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-50 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-800">
+<div class="flex items-center p-4 pb-2 justify-between">
+<div class="text-[#111318] dark:text-white flex size-10 shrink-0 items-center justify-center cursor-pointer">
+<span class="material-symbols-outlined">arrow_back_ios</span>
+</div>
+<h2 class="text-[#111318] dark:text-white text-lg font-bold leading-tight tracking-tight flex-1 text-center">Busca de Instrutores</h2>
+<div class="flex w-10 items-center justify-end">
+<button class="flex items-center justify-center text-[#111318] dark:text-white">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</div>
+</div>
+<!-- Search Bar -->
+<div class="px-4 py-2">
+<label class="flex flex-col min-w-40 h-11 w-full">
+<div class="flex w-full flex-1 items-stretch rounded-xl h-full shadow-sm">
+<div class="text-[#616f89] flex border-none bg-white dark:bg-gray-800 items-center justify-center pl-4 rounded-l-xl border-r-0">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#111318] dark:text-white focus:outline-0 focus:ring-0 border-none bg-white dark:bg-gray-800 focus:border-none h-full placeholder:text-[#616f89] px-4 rounded-l-none border-l-0 pl-2 text-sm font-normal" placeholder="Buscar por nome ou cidade..." value=""/>
+</div>
+</label>
+</div>
+<!-- Filter Chips -->
+<div class="flex gap-2 p-3 overflow-x-auto hide-scrollbar">
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-primary text-white px-4 shadow-sm">
+<p class="text-sm font-medium">Categoria</p>
+<span class="material-symbols-outlined text-[18px]">keyboard_arrow_down</span>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 px-4 text-[#111318] dark:text-white">
+<p class="text-sm font-medium">Preço</p>
+<span class="material-symbols-outlined text-[18px]">keyboard_arrow_down</span>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 px-4 text-[#111318] dark:text-white">
+<p class="text-sm font-medium">Avaliação</p>
+<span class="material-symbols-outlined text-[18px]">star</span>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 px-4 text-[#111318] dark:text-white">
+<p class="text-sm font-medium">Filtros</p>
+<span class="material-symbols-outlined text-[18px]">tune</span>
+</button>
+</div>
+</header>
+<main class="pb-24">
+<!-- View Segmented Toggle -->
+<div class="flex px-4 py-4">
+<div class="flex h-11 flex-1 items-center justify-center rounded-xl bg-gray-200 dark:bg-gray-800 p-1">
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-gray-700 has-[:checked]:shadow-sm has-[:checked]:text-primary text-[#616f89] dark:text-gray-400 text-sm font-semibold transition-all">
+<span class="flex items-center gap-2"><span class="material-symbols-outlined text-[20px]">list</span> Lista</span>
+<input checked="" class="hidden" name="view-mode" type="radio" value="Lista"/>
+</label>
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-gray-700 has-[:checked]:shadow-sm has-[:checked]:text-primary text-[#616f89] dark:text-gray-400 text-sm font-semibold transition-all">
+<span class="flex items-center gap-2"><span class="material-symbols-outlined text-[20px]">map</span> Mapa</span>
+<input class="hidden" name="view-mode" type="radio" value="Mapa"/>
+</label>
+</div>
+</div>
+<!-- Instructor List -->
+<div class="flex flex-col gap-1">
+<!-- Instructor Card 1 -->
+<div class="px-4 py-2">
+<div class="flex items-stretch justify-between gap-4 rounded-xl bg-white dark:bg-gray-800 p-4 shadow-sm border border-gray-50 dark:border-gray-700">
+<div class="flex flex-[2_2_0px] flex-col justify-between">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-yellow-500 text-[16px] fill-current">star</span>
+<p class="text-[#616f89] dark:text-gray-400 text-xs font-medium uppercase">4.9 (120 avaliações)</p>
+</div>
+<p class="text-[#111318] dark:text-white text-lg font-bold leading-tight">João Silva</p>
+<p class="text-[#616f89] dark:text-gray-400 text-sm font-normal">VW Polo / Manual • Categoria B</p>
+</div>
+<div class="mt-3 flex items-center justify-between">
+<div class="flex items-center gap-1 text-primary dark:text-blue-400 font-bold">
+<span class="text-sm">R$</span>
+<span class="text-xl">80</span>
+<span class="text-xs text-gray-500 font-normal">/hora</span>
+</div>
+<button class="bg-primary/10 text-primary px-3 py-1.5 rounded-lg text-sm font-bold">Ver Perfil</button>
+</div>
+</div>
+<div class="w-24 h-24 bg-center bg-no-repeat bg-cover rounded-xl shadow-inner" data-alt="Portrait of a smiling professional driving instructor" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA_-xFPFKuvLacVYEWmLpbFfoPMkAnBpeQ6pgmp1D-jSDtsMlf6X4latHoB7KBfJykOoE6JZjkKc6gmNYhIhZC7GsPhhjX-UUochd8Hd_W_i7UYye8P0nIZpOykgZjRP-dfi7tOkqNISz4ovjhSdc05JhYbS9d31lXQmBO46m_mBCiRRFbRhQdxKx0zyCTrgfe3mN5tLqF678F6Z8_iEVezelrq5xhqIIyhU3BMtVtDem26uApGwZzZkQ4jqq2rODGl4ULvDZOHrvlT");'>
+</div>
+</div>
+</div>
+<!-- Instructor Card 2 -->
+<div class="px-4 py-2">
+<div class="flex items-stretch justify-between gap-4 rounded-xl bg-white dark:bg-gray-800 p-4 shadow-sm border border-gray-50 dark:border-gray-700">
+<div class="flex flex-[2_2_0px] flex-col justify-between">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-yellow-500 text-[16px] fill-current">star</span>
+<p class="text-[#616f89] dark:text-gray-400 text-xs font-medium uppercase">4.8 (85 avaliações)</p>
+</div>
+<p class="text-[#111318] dark:text-white text-lg font-bold leading-tight">Maria Oliveira</p>
+<p class="text-[#616f89] dark:text-gray-400 text-sm font-normal">Honda CG 160 • Categoria A</p>
+</div>
+<div class="mt-3 flex items-center justify-between">
+<div class="flex items-center gap-1 text-primary dark:text-blue-400 font-bold">
+<span class="text-sm">R$</span>
+<span class="text-xl">65</span>
+<span class="text-xs text-gray-500 font-normal">/hora</span>
+</div>
+<button class="bg-primary/10 text-primary px-3 py-1.5 rounded-lg text-sm font-bold">Ver Perfil</button>
+</div>
+</div>
+<div class="w-24 h-24 bg-center bg-no-repeat bg-cover rounded-xl shadow-inner" data-alt="Portrait of a friendly female driving instructor" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAMP7A4fNtxOMswTKKhBtlo9oxA9pvuziWldRZZrFLkARLi7QHTZff1pArZr_1ZtxrHFm7pz2Jhh2KSyKhbvu4GU2h5hj10fHEX-Xi4iNrtxhslhgXO5TFYq3XUS6DGZfzpkA7JIT_yN6m3nyLXL4jfJczCNFJe5fX_znvp5Y1Mk5TRRb6eKLZN9EZSSn-7M0_oavcD41kOO0zmIqyUmclR-tGfa63I2nGSRbLrwPD1Uk3J1abTFG8v7uPwwh-EAV11P-kk2yYScBZG");'>
+</div>
+</div>
+</div>
+<!-- Instructor Card 3 -->
+<div class="px-4 py-2">
+<div class="flex items-stretch justify-between gap-4 rounded-xl bg-white dark:bg-gray-800 p-4 shadow-sm border border-gray-50 dark:border-gray-700">
+<div class="flex flex-[2_2_0px] flex-col justify-between">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-yellow-500 text-[16px] fill-current">star</span>
+<p class="text-[#616f89] dark:text-gray-400 text-xs font-medium uppercase">5.0 (42 avaliações)</p>
+</div>
+<p class="text-[#111318] dark:text-white text-lg font-bold leading-tight">Carlos Mendes</p>
+<p class="text-[#616f89] dark:text-gray-400 text-sm font-normal">Toyota Corolla / Auto • Categoria B</p>
+</div>
+<div class="mt-3 flex items-center justify-between">
+<div class="flex items-center gap-1 text-primary dark:text-blue-400 font-bold">
+<span class="text-sm">R$</span>
+<span class="text-xl">95</span>
+<span class="text-xs text-gray-500 font-normal">/hora</span>
+</div>
+<button class="bg-primary/10 text-primary px-3 py-1.5 rounded-lg text-sm font-bold">Ver Perfil</button>
+</div>
+</div>
+<div class="w-24 h-24 bg-center bg-no-repeat bg-cover rounded-xl shadow-inner" data-alt="Experienced driving instructor smiling at the camera" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAgXGKfc8yGWe8eDjZ_9Ya2BG016P3x0Y6h50slJ7BfGF4Vd8LuiQJEe8-DUbKt036ZBdNBJ3C8cMKh0c4p2FG-S8_Ob7OMu4-FcLz0aCCYlxdjT1YiyVtJLbOd9hF06QW8oMdIvCi1IFNiOr7Ict1dHjBMVaFKQXVF8_on3Oqm9h28lK_6iO4aCaERD34c5EHTd-yVKih7eah0OBZwqD25ExGdiCyCQheKSVk4CmDpLZFEiCxiWiNOqVhV2AQyb3uW-WBSLBAebGt7");'>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Navigation Bar (iOS style) -->
+<nav class="fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-background-dark/90 backdrop-blur-lg border-t border-gray-200 dark:border-gray-800 pb-6 pt-2 px-6 flex justify-between items-center z-50">
+<button class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-medium">Início</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined font-bold">search</span>
+<span class="text-[10px] font-bold">Buscar</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="text-[10px] font-medium">Aulas</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined">chat_bubble</span>
+<span class="text-[10px] font-medium">Chat</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-medium">Perfil</span>
+</button>
+</nav>
+</body></html>
