@@ -329,8 +329,8 @@ As imagens de referência estabelecem um padrão visual consistente que deve ser
 
 - [ ] **PersonalInfoScreen.tsx:**
   - Edição de dados pessoais
-  - Campos: nome, email, telefone, CPF, data de nascimento
-  - Upload de documento (CNH provisória, se houver)
+  - Campos: nome, telefone, CPF, data de nascimento
+  - Localização (importante para o mapa e busca de instrutores próximos)
 
 - [ ] **PaymentMethodsScreen.tsx:**
   - Lista de cartões salvos
@@ -345,8 +345,6 @@ As imagens de referência estabelecem um padrão visual consistente que deve ser
 
 - [ ] **SettingsScreen.tsx:**
   - Notificações (toggles)
-  - Tema (claro/escuro)
-  - Idioma
   - Termos de uso
   - Política de privacidade
   - Exportar meus dados (LGPD)

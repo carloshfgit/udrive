@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Lexend', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .nav-item-active .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen flex justify-center">
+<div class="relative w-full max-w-[430px] min-h-screen bg-white dark:bg-[#111318] flex flex-col shadow-2xl overflow-x-hidden pb-20">
+<div class="sticky top-0 z-10 flex items-center bg-white dark:bg-[#111318] p-4 pb-2 justify-between">
+<div class="w-10"></div> 
+<h2 class="text-[#111318] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">Perfil do Aluno</h2>
+<div class="w-10 flex justify-end">
+<span class="material-symbols-outlined text-[#111318] dark:text-white">edit</span>
+</div>
+</div>
+<div class="h-4 bg-white dark:bg-[#111318]"></div>
+<div class="flex p-4 @container bg-white dark:bg-[#111318]">
+<div class="flex w-full flex-col gap-4 items-center">
+<div class="flex gap-4 flex-col items-center">
+<div class="relative">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full min-h-32 w-32 border-4 border-primary/10" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBTGfZjIwT9EOX5i7c3aR-BaImpmcs0LZ0y3An4TF9eiewdsc7CCLYFWZ8NEw5oHuebiuPha3xcwgx8poNNb6qW4TDP6vbHl8_VeWVYviOG6WKtn_r7mzU87icQRWBXsAugngKjMBOrshC0ygwdA9uWOaTh7lSXU_iGwDh2pZbotmBWDiVuJrXyH5zW8k8LpxHGZQMFISF8xAkLox1t-qSvPW1LrQ3gd-TseJY6sD5GkVSaf9epxzgkBMfqwKK10JWX8uMlvbbtjzZU");'>
+</div>
+<div class="absolute bottom-1 right-1 bg-primary text-white p-1.5 rounded-full border-2 border-white dark:border-[#111318] flex items-center justify-center">
+<span class="material-symbols-outlined text-sm">photo_camera</span>
+</div>
+</div>
+<div class="flex flex-col items-center justify-center">
+<p class="text-[#111318] dark:text-white text-[22px] font-bold leading-tight tracking-[-0.015em] text-center">Lucas Silva</p>
+<div class="mt-2 px-3 py-1 bg-primary/10 dark:bg-primary/20 rounded-full">
+<p class="text-primary text-sm font-semibold leading-normal text-center">Categoria B</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="h-6 bg-white dark:bg-[#111318]"></div>
+<div class="flex flex-col px-2 bg-white dark:bg-[#111318]">
+<div class="flex items-center gap-4 bg-white dark:bg-[#111318] px-4 py-3 min-h-14 justify-between hover:bg-background-light dark:hover:bg-white/5 cursor-pointer transition-colors rounded-xl">
+<div class="flex items-center gap-4">
+<div class="text-primary flex items-center justify-center rounded-lg bg-primary/10 shrink-0 size-10">
+<span class="material-symbols-outlined">person</span>
+</div>
+<p class="text-[#111318] dark:text-white text-base font-medium leading-normal flex-1 truncate">Informações Pessoais</p>
+</div>
+<div class="shrink-0">
+<div class="text-[#616f89] flex size-7 items-center justify-center">
+<span class="material-symbols-outlined">chevron_right</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4 bg-white dark:bg-[#111318] px-4 py-3 min-h-14 justify-between hover:bg-background-light dark:hover:bg-white/5 cursor-pointer transition-colors rounded-xl">
+<div class="flex items-center gap-4">
+<div class="text-primary flex items-center justify-center rounded-lg bg-primary/10 shrink-0 size-10">
+<span class="material-symbols-outlined">calendar_today</span>
+</div>
+<p class="text-[#111318] dark:text-white text-base font-medium leading-normal flex-1 truncate">Meus Agendamentos</p>
+</div>
+<div class="shrink-0">
+<div class="text-[#616f89] flex size-7 items-center justify-center">
+<span class="material-symbols-outlined">chevron_right</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4 bg-white dark:bg-[#111318] px-4 py-3 min-h-14 justify-between hover:bg-background-light dark:hover:bg-white/5 cursor-pointer transition-colors rounded-xl">
+<div class="flex items-center gap-4">
+<div class="text-primary flex items-center justify-center rounded-lg bg-primary/10 shrink-0 size-10">
+<span class="material-symbols-outlined">history</span>
+</div>
+<p class="text-[#111318] dark:text-white text-base font-medium leading-normal flex-1 truncate">Histórico de Aulas</p>
+</div>
+<div class="shrink-0">
+<div class="text-[#616f89] flex size-7 items-center justify-center">
+<span class="material-symbols-outlined">chevron_right</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4 bg-white dark:bg-[#111318] px-4 py-3 min-h-14 justify-between hover:bg-background-light dark:hover:bg-white/5 cursor-pointer transition-colors rounded-xl">
+<div class="flex items-center gap-4">
+<div class="text-primary flex items-center justify-center rounded-lg bg-primary/10 shrink-0 size-10">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<p class="text-[#111318] dark:text-white text-base font-medium leading-normal flex-1 truncate">Pagamentos</p>
+</div>
+<div class="shrink-0">
+<div class="text-[#616f89] flex size-7 items-center justify-center">
+<span class="material-symbols-outlined">chevron_right</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4 bg-white dark:bg-[#111318] px-4 py-3 min-h-14 justify-between hover:bg-background-light dark:hover:bg-white/5 cursor-pointer transition-colors rounded-xl">
+<div class="flex items-center gap-4">
+<div class="text-primary flex items-center justify-center rounded-lg bg-primary/10 shrink-0 size-10">
+<span class="material-symbols-outlined">settings</span>
+</div>
+<p class="text-[#111318] dark:text-white text-base font-medium leading-normal flex-1 truncate">Configurações</p>
+</div>
+<div class="shrink-0">
+<div class="text-[#616f89] flex size-7 items-center justify-center">
+<span class="material-symbols-outlined">chevron_right</span>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-auto p-6 pb-12 bg-white dark:bg-[#111318]">
+<button class="w-full flex items-center justify-center gap-2 px-4 py-4 rounded-xl border border-red-100 dark:border-red-900/30 bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 font-semibold transition-all hover:bg-red-100">
+<span class="material-symbols-outlined">logout</span>
+                Sair da Conta
+            </button>
+<p class="text-center text-[#616f89] text-xs mt-6 opacity-60">Versão 2.4.0 • AutoEscola Digital</p>
+</div>
+<nav class="fixed bottom-0 w-full max-w-[430px] bg-white/80 dark:bg-[#111318]/80 backdrop-blur-md border-t border-gray-100 dark:border-white/10 px-6 py-2 flex justify-between items-center z-20">
+<a class="flex flex-col items-center gap-1 group" href="#">
+<span class="material-symbols-outlined text-[#616f89] dark:text-gray-400 group-hover:text-primary transition-colors">search</span>
+<span class="text-[10px] font-medium text-[#616f89] dark:text-gray-400 group-hover:text-primary">Buscar</span>
+</a>
+<a class="flex flex-col items-center gap-1 group" href="#">
+<span class="material-symbols-outlined text-[#616f89] dark:text-gray-400 group-hover:text-primary transition-colors">school</span>
+<span class="text-[10px] font-medium text-[#616f89] dark:text-gray-400 group-hover:text-primary">Aprendizado</span>
+</a>
+<a class="flex flex-col items-center gap-1 nav-item-active" href="#">
+<span class="material-symbols-outlined text-primary">person</span>
+<span class="text-[10px] font-semibold text-primary">Perfil</span>
+</a>
+</nav>
+</div>
+
+</body></html>

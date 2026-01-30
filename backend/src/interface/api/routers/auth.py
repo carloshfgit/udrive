@@ -24,7 +24,15 @@ from src.application.use_cases.reset_password import (
     ResetPasswordUseCase,
 )
 from src.domain.entities.user_type import UserType
-from src.interface.api.dependencies import AuthService, CurrentUser, TokenRepo, UserRepo
+from src.domain.entities.user_type import UserType
+from src.interface.api.dependencies import (
+    AuthService,
+    CurrentUser,
+    InstructorRepo,
+    StudentRepo,
+    TokenRepo,
+    UserRepo,
+)
 from src.interface.api.schemas.auth import (
     ForgotPasswordRequest,
     LoginRequest,
@@ -60,11 +68,15 @@ async def me(current_user: CurrentUser) -> UserResponse:
 async def register(
     request: RegisterRequest,
     user_repo: UserRepo,
+    instructor_repo: InstructorRepo,
+    student_repo: StudentRepo,
     auth_service: AuthService,
 ) -> UserResponse:
     """Cadastra um novo usuário."""
     use_case = RegisterUserUseCase(
         user_repository=user_repo,
+        instructor_repository=instructor_repo,
+        student_repository=student_repo,
         auth_service=auth_service,
     )
 

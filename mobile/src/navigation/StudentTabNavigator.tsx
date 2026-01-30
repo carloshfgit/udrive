@@ -6,7 +6,7 @@ import { HomeScreen } from '../features/home/screens/HomeScreen';
 import { InstructorSearchScreen } from '../features/search/screens/InstructorSearchScreen';
 import { LearningCenterScreen } from '../features/learning/screens/LearningCenterScreen';
 import { MyLessonsScreen } from '../features/scheduling/screens/MyLessonsScreen';
-import { ProfileScreen } from '../features/profile/screens/ProfileScreen';
+import { ProfileStackNavigator } from '../features/profile/navigation/ProfileStackNavigator';
 
 const Tab = createBottomTabNavigator();
 
@@ -64,7 +64,7 @@ export function StudentTabNavigator() {
             />
             <Tab.Screen
                 name="Profile"
-                component={ProfileScreen}
+                component={ProfileStackNavigator}
                 options={{
                     tabBarLabel: 'Perfil',
                     tabBarIcon: ({ color, size }) => <User color={color} size={size} />,

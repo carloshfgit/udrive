@@ -7,9 +7,14 @@ Caso de uso para registro de novos usuários no sistema.
 from dataclasses import dataclass
 
 from src.application.dtos.auth_dtos import RegisterUserDTO, UserResponseDTO
+from src.domain.entities.instructor_profile import InstructorProfile
+from src.domain.entities.student_profile import StudentProfile
 from src.domain.entities.user import User
+from src.domain.entities.user_type import UserType
 from src.domain.exceptions import UserAlreadyExistsException
 from src.domain.interfaces.auth_service import IAuthService
+from src.domain.interfaces.instructor_repository import IInstructorRepository
+from src.domain.interfaces.student_repository import IStudentRepository
 from src.domain.interfaces.user_repository import IUserRepository
 
 
@@ -27,6 +32,8 @@ class RegisterUserUseCase:
     """
 
     user_repository: IUserRepository
+    instructor_repository: IInstructorRepository
+    student_repository: IStudentRepository
     auth_service: IAuthService
 
     async def execute(self, dto: RegisterUserDTO) -> UserResponseDTO:
@@ -60,6 +67,14 @@ class RegisterUserUseCase:
 
         # Persistir
         created_user = await self.user_repository.create(user)
+
+        # Criar perfil específico baseada no tipo
+        if created_user.user_type == UserType.INSTRUCTOR:
+            instructor_profile = InstructorProfile(user_id=created_user.id)
+            await self.instructor_repository.create(instructor_profile)
+        elif created_user.user_type == UserType.STUDENT:
+            student_profile = StudentProfile(user_id=created_user.id)
+            await self.student_repository.create(student_profile)
 
         # Retornar DTO de resposta (sem senha)
         return UserResponseDTO(
