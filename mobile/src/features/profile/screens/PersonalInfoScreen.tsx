@@ -88,6 +88,19 @@ export function PersonalInfoScreen() {
     const [isLoadingLocation, setIsLoadingLocation] = useState(false);
     const [locationError, setLocationError] = useState<string | null>(null);
 
+    // Carregar dados do perfil quando disponível
+    useEffect(() => {
+        if (profile) {
+            setPhone(profile.phone || '');
+            setCpf(profile.cpf || '');
+            // Converter de ISO (YYYY-MM-DD) para formato BR (DD/MM/YYYY)
+            if (profile.birth_date) {
+                const [year, month, day] = profile.birth_date.split('-');
+                setBirthDate(`${day}/${month}/${year}`);
+            }
+        }
+    }, [profile]);
+
     // Carregar endereço quando coordenadas mudarem
     useEffect(() => {
         if (latitude && longitude) {
@@ -162,14 +175,25 @@ export function PersonalInfoScreen() {
         }
     };
 
+    // Converter data BR (DD/MM/YYYY) para ISO (YYYY-MM-DD)
+    const convertDateToISO = (brDate: string): string | null => {
+        if (!brDate || brDate.length < 10) return null;
+        const parts = brDate.split('/');
+        if (parts.length !== 3) return null;
+        const [day, month, year] = parts;
+        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    };
+
     // Salvar dados do perfil
     const handleSave = async () => {
         try {
+            // Converter data para formato ISO
+            const isoDate = convertDateToISO(birthDate);
+
             await updateProfile.mutateAsync({
-                // Nota: Os campos nome, telefone, cpf e data de nascimento
-                // podem precisar de endpoint separado no backend.
-                // Por ora, salvamos apenas os campos disponíveis.
-                notes: `Tel: ${phone} | CPF: ${cpf} | Nasc: ${birthDate}`,
+                phone: phone || undefined,
+                cpf: cpf || undefined,
+                birth_date: isoDate,
             });
 
             Alert.alert('Sucesso', 'Dados salvos com sucesso!');

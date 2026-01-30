@@ -16,6 +16,9 @@ export interface StudentProfile {
     learning_stage: string;
     notes: string;
     total_lessons: number;
+    phone: string;
+    cpf: string;
+    birth_date: string | null; // ISO date format YYYY-MM-DD
 }
 
 export interface UpdateStudentProfileRequest {
@@ -23,6 +26,9 @@ export interface UpdateStudentProfileRequest {
     license_category_goal?: string;
     learning_stage?: string;
     notes?: string;
+    phone?: string;
+    cpf?: string;
+    birth_date?: string | null; // ISO date format YYYY-MM-DD
 }
 
 export interface LocationData {

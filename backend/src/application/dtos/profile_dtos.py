@@ -5,6 +5,7 @@ Data Transfer Objects para operações com perfis de usuários.
 """
 
 from dataclasses import dataclass
+from datetime import date
 from decimal import Decimal
 from uuid import UUID
 
@@ -35,6 +36,9 @@ class UpdateStudentProfileDTO:
     license_category_goal: str | None = None
     learning_stage: str | None = None
     notes: str | None = None
+    phone: str | None = None
+    cpf: str | None = None
+    birth_date: date | None = None
 
 
 @dataclass(frozen=True)
@@ -96,6 +100,9 @@ class StudentProfileResponseDTO:
     learning_stage: str
     notes: str
     total_lessons: int
+    phone: str
+    cpf: str
+    birth_date: date | None
 
 
 @dataclass

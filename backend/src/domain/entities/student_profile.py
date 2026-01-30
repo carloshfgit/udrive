@@ -5,7 +5,7 @@ Entidade de domínio representando o perfil de um aluno.
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import date, datetime
 from uuid import UUID, uuid4
 
 
@@ -32,6 +32,9 @@ class StudentProfile:
         learning_stage: Estágio atual de aprendizado.
         notes: Observações adicionais do aluno.
         total_lessons: Total de aulas realizadas.
+        phone: Telefone de contato do aluno.
+        cpf: CPF do aluno (documento).
+        birth_date: Data de nascimento do aluno.
     """
 
     user_id: UUID
@@ -40,6 +43,9 @@ class StudentProfile:
     learning_stage: str = LearningStage.BEGINNER
     notes: str = ""
     total_lessons: int = 0
+    phone: str = ""
+    cpf: str = ""
+    birth_date: date | None = None
     id: UUID = field(default_factory=uuid4)
     created_at: datetime = field(default_factory=datetime.utcnow)
     updated_at: datetime | None = None
@@ -63,6 +69,9 @@ class StudentProfile:
         license_category_goal: str | None = None,
         learning_stage: str | None = None,
         notes: str | None = None,
+        phone: str | None = None,
+        cpf: str | None = None,
+        birth_date: date | None = None,
     ) -> None:
         """
         Atualiza informações do perfil.
@@ -72,6 +81,9 @@ class StudentProfile:
             license_category_goal: Nova categoria de CNH objetivo (opcional).
             learning_stage: Novo estágio de aprendizado (opcional).
             notes: Novas observações (opcional).
+            phone: Telefone de contato (opcional).
+            cpf: CPF do aluno (opcional).
+            birth_date: Data de nascimento (opcional).
         """
         if preferred_schedule is not None:
             self.preferred_schedule = preferred_schedule
@@ -89,6 +101,12 @@ class StudentProfile:
             self.learning_stage = learning_stage
         if notes is not None:
             self.notes = notes
+        if phone is not None:
+            self.phone = phone
+        if cpf is not None:
+            self.cpf = cpf
+        if birth_date is not None:
+            self.birth_date = birth_date
 
         self.updated_at = datetime.utcnow()
 

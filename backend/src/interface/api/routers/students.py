@@ -63,6 +63,9 @@ async def update_student_profile(
         license_category_goal=request.license_category_goal,
         learning_stage=request.learning_stage,
         notes=request.notes,
+        phone=request.phone,
+        cpf=request.cpf,
+        birth_date=request.birth_date,
     )
 
     try:

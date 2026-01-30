@@ -4,6 +4,7 @@ Profile Schemas
 Esquemas Pydantic para validação de requests e responses de perfis.
 """
 
+from datetime import date
 from decimal import Decimal
 from typing import Annotated
 from uuid import UUID
@@ -31,6 +32,9 @@ class UpdateStudentProfileRequest(BaseModel):
     license_category_goal: str | None = Field(None, max_length=10, description="Categoria pretendida")
     learning_stage: str | None = Field(None, max_length=50, description="Estágio de aprendizado")
     notes: str | None = Field(None, max_length=1000, description="Observações gerais")
+    phone: str | None = Field(None, max_length=20, description="Telefone de contato")
+    cpf: str | None = Field(None, max_length=14, description="CPF do aluno")
+    birth_date: date | None = Field(None, description="Data de nascimento")
 
 
 class UpdateLocationRequest(BaseModel):
@@ -87,6 +91,9 @@ class StudentProfileResponse(BaseModel):
     learning_stage: str
     notes: str
     total_lessons: int
+    phone: str
+    cpf: str
+    birth_date: date | None
 
     model_config = ConfigDict(from_attributes=True)
 

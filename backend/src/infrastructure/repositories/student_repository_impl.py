@@ -65,6 +65,9 @@ class StudentRepositoryImpl(IStudentRepository):
         model.learning_stage = profile.learning_stage
         model.notes = profile.notes
         model.total_lessons = profile.total_lessons
+        model.phone = profile.phone
+        model.cpf = profile.cpf
+        model.birth_date = profile.birth_date
 
         await self._session.commit()
         await self._session.refresh(model)

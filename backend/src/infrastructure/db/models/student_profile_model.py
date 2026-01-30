@@ -5,9 +5,9 @@ Modelo de banco de dados para perfis de alunos.
 """
 
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 
-from sqlalchemy import DateTime, ForeignKey, Index, String, Text, func
+from sqlalchemy import Date, DateTime, ForeignKey, Index, String, Text, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -61,6 +61,22 @@ class StudentProfileModel(Base):
         nullable=False,
     )
 
+    # Dados pessoais
+    phone: Mapped[str] = mapped_column(
+        String(20),
+        default="",
+        nullable=False,
+    )
+    cpf: Mapped[str] = mapped_column(
+        String(14),
+        default="",
+        nullable=False,
+    )
+    birth_date: Mapped[date | None] = mapped_column(
+        Date,
+        nullable=True,
+    )
+
     # Estatísticas
     total_lessons: Mapped[int] = mapped_column(
         default=0,
@@ -92,6 +108,9 @@ class StudentProfileModel(Base):
             learning_stage=self.learning_stage,
             notes=self.notes,
             total_lessons=self.total_lessons,
+            phone=self.phone,
+            cpf=self.cpf,
+            birth_date=self.birth_date,
             created_at=self.created_at,
             updated_at=self.updated_at,
         )
@@ -107,6 +126,9 @@ class StudentProfileModel(Base):
             learning_stage=profile.learning_stage,
             notes=profile.notes,
             total_lessons=profile.total_lessons,
+            phone=profile.phone,
+            cpf=profile.cpf,
+            birth_date=profile.birth_date,
             created_at=profile.created_at,
             updated_at=profile.updated_at,
         )

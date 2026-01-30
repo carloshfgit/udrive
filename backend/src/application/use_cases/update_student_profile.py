@@ -71,6 +71,9 @@ class UpdateStudentProfileUseCase:
             license_category_goal=dto.license_category_goal,
             learning_stage=dto.learning_stage,
             notes=dto.notes,
+            phone=dto.phone,
+            cpf=dto.cpf,
+            birth_date=dto.birth_date,
         )
 
         # Persistir (criar ou atualizar)
@@ -87,4 +90,7 @@ class UpdateStudentProfileUseCase:
             learning_stage=saved_profile.learning_stage,
             notes=saved_profile.notes,
             total_lessons=saved_profile.total_lessons,
+            phone=saved_profile.phone,
+            cpf=saved_profile.cpf,
+            birth_date=saved_profile.birth_date,
         )
