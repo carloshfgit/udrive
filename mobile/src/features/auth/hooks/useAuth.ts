@@ -7,7 +7,7 @@
 
 import { useCallback } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { useAuthStore, tokenManager, queryKeys } from '@lib/index';
+import { useAuthStore, tokenManager, queryKeys, api } from '@lib/index';
 import { authApi, LoginRequest, RegisterRequest, AuthResponse } from '../api/authApi';
 
 /**
@@ -30,11 +30,33 @@ export function useAuth() {
     // Mutation para login
     const loginMutation = useMutation({
         mutationFn: async (credentials: LoginRequest) => {
-            const response = await authApi.login(credentials);
-            return response.data;
+            // 1. Login para obter tokens
+            const loginResponse = await authApi.login(credentials);
+            console.log('Login Response Data:', JSON.stringify(loginResponse.data, null, 2));
+            const { access_token, refresh_token } = loginResponse.data;
+
+            if (!access_token || !refresh_token) {
+                console.error('Login response invalid:', loginResponse.data);
+                throw new Error(`Falha no login: Tokens não recebidos. Recebido: ${JSON.stringify(loginResponse.data)}`);
+            }
+
+            // 2. Salvar tokens
+            await tokenManager.setTokens(access_token, refresh_token);
+
+            // 3. Configurar header manualmente para a próxima requisição
+            // (necessário porque o axios interceptor pode não pegar o token do SecureStore imediatamente)
+            api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+
+            // 4. Buscar dados do usuário
+            const userResponse = await authApi.me();
+
+            return {
+                tokens: loginResponse.data,
+                user: userResponse.data
+            };
         },
         onSuccess: async (data) => {
-            await tokenManager.setTokens(data.access_token, data.refresh_token);
+            // Estado global já pode ser atualizado
             setUser(data.user);
         },
     });
@@ -44,10 +66,6 @@ export function useAuth() {
         mutationFn: async (data: RegisterRequest) => {
             const response = await authApi.register(data);
             return response.data;
-        },
-        onSuccess: async (data) => {
-            await tokenManager.setTokens(data.access_token, data.refresh_token);
-            setUser(data.user);
         },
     });
 

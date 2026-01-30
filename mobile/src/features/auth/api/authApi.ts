@@ -16,7 +16,7 @@ export interface RegisterRequest {
     email: string;
     password: string;
     full_name: string;
-    type: 'student' | 'instructor';
+    user_type: 'student' | 'instructor';
 }
 
 export interface ForgotPasswordRequest {
@@ -40,7 +40,7 @@ export interface User {
 export interface AuthResponse {
     access_token: string;
     refresh_token: string;
-    user: User;
+    token_type: string;
 }
 
 export interface MessageResponse {
@@ -61,7 +61,7 @@ export const authApi = {
      * Registro de novo usuário.
      */
     register: (data: RegisterRequest) =>
-        api.post<AuthResponse>('/auth/register', data),
+        api.post<User>('/auth/register', data),
 
     /**
      * Solicitar recuperação de senha.

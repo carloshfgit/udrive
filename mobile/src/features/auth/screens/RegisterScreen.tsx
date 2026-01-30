@@ -25,7 +25,7 @@ type RegisterScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList
 
 export function RegisterScreen() {
     const navigation = useNavigation<RegisterScreenNavigationProp>();
-    const { register, isRegistering, registerError } = useAuth();
+    const { register, login, isRegistering, registerError, loginError } = useAuth();
 
     const [userType, setUserType] = useState<'student' | 'instructor'>('student');
     const [name, setName] = useState('');
@@ -58,8 +58,8 @@ export function RegisterScreen() {
 
         if (!password.trim()) {
             newErrors.password = 'Senha é obrigatória';
-        } else if (password.length < 6) {
-            newErrors.password = 'Senha deve ter pelo menos 6 caracteres';
+        } else if (password.length < 8) {
+            newErrors.password = 'Senha deve ter pelo menos 8 caracteres';
         }
 
         if (!confirmPassword.trim()) {
@@ -76,15 +76,24 @@ export function RegisterScreen() {
         if (!validateForm()) return;
 
         try {
+            // 1. Registrar usuário
             await register({
                 full_name: name.trim(),
                 email: email.trim(),
                 password,
-                type: userType,
+                user_type: userType,
             });
+
+            // 2. Fazer login automático para obter tokens
+            await login({
+                email: email.trim(),
+                password,
+            });
+
             // Navegação será tratada pelo App.tsx ao detectar mudança de autenticação
-        } catch {
-            // Erro já está em registerError
+        } catch (error) {
+            console.error('Registration/Login error:', error);
+            // Erro já está sendo tratado pelos hooks, mas podemos adicionar feedback visual aqui se necessário
         }
     };
 
@@ -171,7 +180,7 @@ export function RegisterScreen() {
                     {/* Password Input */}
                     <Input
                         label="Senha"
-                        placeholder="Mínimo 6 caracteres"
+                        placeholder="Mínimo 8 caracteres"
                         secureTextEntry={!showPassword}
                         autoComplete="new-password"
                         value={password}
@@ -210,6 +219,11 @@ export function RegisterScreen() {
                     {registerError && (
                         <Text style={styles.errorText}>
                             {registerError.message || 'Erro ao criar conta. Tente novamente.'}
+                        </Text>
+                    )}
+                    {loginError && (
+                        <Text style={styles.errorText}>
+                            {loginError.message || 'Erro ao fazer login.'}
                         </Text>
                     )}
                 </View>

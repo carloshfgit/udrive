@@ -24,7 +24,7 @@ from src.application.use_cases.reset_password import (
     ResetPasswordUseCase,
 )
 from src.domain.entities.user_type import UserType
-from src.interface.api.dependencies import AuthService, TokenRepo, UserRepo
+from src.interface.api.dependencies import AuthService, CurrentUser, TokenRepo, UserRepo
 from src.interface.api.schemas.auth import (
     ForgotPasswordRequest,
     LoginRequest,
@@ -37,6 +37,17 @@ from src.interface.api.schemas.auth import (
 )
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
+
+
+@router.get(
+    "/me",
+    response_model=UserResponse,
+    summary="Obter usuário atual",
+    description="Retorna os dados do usuário autenticado.",
+)
+async def me(current_user: CurrentUser) -> UserResponse:
+    """Retorna os dados do usuário autenticado."""
+    return current_user
 
 
 @router.post(
