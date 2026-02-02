@@ -40,7 +40,7 @@ from src.infrastructure.repositories.transaction_repository_impl import (
     TransactionRepositoryImpl,
 )
 from src.infrastructure.repositories.user_repository_impl import UserRepositoryImpl
-from src.interface.api.dependencies import CurrentUser, get_current_user
+from src.interface.api.dependencies import CurrentStudent, CurrentUser, get_current_user
 
 router = APIRouter(prefix="/payments", tags=["Payments"])
 
@@ -54,7 +54,7 @@ router = APIRouter(prefix="/payments", tags=["Payments"])
 )
 async def checkout(
     dto: ProcessPaymentDTO,
-    current_user: CurrentUser,
+    current_user: CurrentStudent,
     db: AsyncSession = Depends(get_db),
 ) -> PaymentResponseDTO:
     """

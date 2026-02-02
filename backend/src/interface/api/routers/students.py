@@ -9,7 +9,7 @@ from fastapi import APIRouter, HTTPException, status
 from src.application.dtos.profile_dtos import UpdateStudentProfileDTO
 from src.application.use_cases.update_student_profile import UpdateStudentProfileUseCase
 from src.domain.exceptions import StudentNotFoundException
-from src.interface.api.dependencies import CurrentUser, StudentRepo, UserRepo
+from src.interface.api.dependencies import CurrentStudent, StudentRepo, UserRepo
 from src.interface.api.schemas.profiles import (
     StudentProfileResponse,
     UpdateStudentProfileRequest,
@@ -25,7 +25,7 @@ router = APIRouter(prefix="/students", tags=["Students"])
     description="Retorna os dados do perfil do aluno autenticado.",
 )
 async def get_current_student_profile(
-    current_user: CurrentUser,
+    current_user: CurrentStudent,
     student_repo: StudentRepo,
 ) -> StudentProfileResponse:
     """Retorna o perfil do aluno logado."""
@@ -47,7 +47,7 @@ async def get_current_student_profile(
 )
 async def update_student_profile(
     request: UpdateStudentProfileRequest,
-    current_user: CurrentUser,
+    current_user: CurrentStudent,
     user_repo: UserRepo,
     student_repo: StudentRepo,
 ) -> StudentProfileResponse:

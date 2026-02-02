@@ -32,6 +32,8 @@ from src.application.use_cases.scheduling.manage_availability import (
 from src.domain.entities.scheduling_status import SchedulingStatus
 from src.interface.api.dependencies import (
     AvailabilityRepo,
+    CurrentInstructor,
+    CurrentStudent,
     CurrentUser,
     SchedulingRepo,
 )
@@ -64,7 +66,7 @@ instructor_availability_router = APIRouter(prefix="/instructors", tags=["Availab
 )
 async def create_scheduling(
     request: CreateSchedulingRequest,
-    current_user: CurrentUser,
+    current_user: CurrentStudent,
     scheduling_repo: SchedulingRepo,
     availability_repo: AvailabilityRepo,
 ) -> SchedulingResponse:
@@ -176,7 +178,7 @@ async def cancel_scheduling(
 )
 async def confirm_scheduling(
     scheduling_id: UUID,
-    current_user: CurrentUser,
+    current_user: CurrentInstructor,
     scheduling_repo: SchedulingRepo,
 ) -> SchedulingResponse:
     """Confirma um agendamento pendente."""
@@ -196,7 +198,7 @@ async def confirm_scheduling(
 )
 async def complete_scheduling(
     scheduling_id: UUID,
-    current_user: CurrentUser,
+    current_user: CurrentInstructor,
     scheduling_repo: SchedulingRepo,
 ) -> SchedulingResponse:
     """Marca um agendamento como concluído."""
@@ -232,7 +234,7 @@ async def complete_scheduling(
 )
 async def create_availability(
     request: CreateAvailabilityRequest,
-    current_user: CurrentUser,
+    current_user: CurrentInstructor,
     availability_repo: AvailabilityRepo,
 ) -> AvailabilityResponse:
     """Cria um novo horário disponível para o instrutor."""
@@ -263,7 +265,7 @@ async def create_availability(
 )
 async def delete_availability(
     availability_id: UUID,
-    current_user: CurrentUser,
+    current_user: CurrentInstructor,
     availability_repo: AvailabilityRepo,
 ) -> None:
     """Remove um slot de disponibilidade."""

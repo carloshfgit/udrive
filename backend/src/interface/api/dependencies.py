@@ -163,6 +163,46 @@ async def get_current_active_user(
     return current_user
 
 
+
+# =============================================================================
+# Permission Dependencies
+# =============================================================================
+
+
+def require_student(
+    current_user: Annotated[User, Depends(get_current_active_user)],
+) -> User:
+    """
+    Garante que o usuário autenticado seja um aluno.
+
+    Raises:
+        HTTPException 403: Se não for aluno.
+    """
+    if not current_user.is_student:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Acesso permitido apenas para alunos",
+        )
+    return current_user
+
+
+def require_instructor(
+    current_user: Annotated[User, Depends(get_current_active_user)],
+) -> User:
+    """
+    Garante que o usuário autenticado seja um instrutor.
+
+    Raises:
+        HTTPException 403: Se não for instrutor.
+    """
+    if not current_user.is_instructor:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Acesso permitido apenas para instrutores",
+        )
+    return current_user
+
+
 # =============================================================================
 # Type Aliases para uso nos endpoints
 # =============================================================================
@@ -175,6 +215,9 @@ SchedulingRepo = Annotated[ISchedulingRepository, Depends(get_scheduling_reposit
 AvailabilityRepo = Annotated[IAvailabilityRepository, Depends(get_availability_repository)]
 AuthService = Annotated[IAuthService, Depends(get_auth_service)]
 LocationService = Annotated[ILocationService, Depends(get_location_service)]
+
 CurrentUser = Annotated[User, Depends(get_current_active_user)]
+CurrentStudent = Annotated[User, Depends(require_student)]
+CurrentInstructor = Annotated[User, Depends(require_instructor)]
 
 

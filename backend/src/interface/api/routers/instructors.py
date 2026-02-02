@@ -1,26 +1,43 @@
-"""
-Instructor Router
+from datetime import datetime
+from typing import Annotated
 
-Endpoints para gerenciamento de perfil de instrutores e busca por localização.
-"""
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from fastapi import APIRouter, HTTPException, status
-
+from src.application.dtos.payment_dtos import (
+    ConnectStripeAccountDTO,
+    InstructorEarningsDTO,
+    StripeConnectResponseDTO,
+)
 from src.application.dtos.profile_dtos import (
     InstructorSearchDTO,
     UpdateInstructorProfileDTO,
     UpdateLocationDTO,
 )
 from src.application.use_cases.get_nearby_instructors import GetNearbyInstructorsUseCase
+from src.application.use_cases.payment import (
+    ConnectStripeAccountUseCase,
+    GetInstructorEarningsUseCase,
+)
 from src.application.use_cases.update_instructor_location import (
     UpdateInstructorLocationUseCase,
 )
 from src.application.use_cases.update_instructor_profile import (
     UpdateInstructorProfileUseCase,
 )
-from src.domain.exceptions import InstructorNotFoundException, InvalidLocationException
+from src.domain.exceptions import (
+    InstructorNotFoundException,
+    InvalidLocationException,
+    UserNotFoundException,
+)
+from src.infrastructure.db.database import get_db
+from src.infrastructure.external.stripe_gateway import StripePaymentGateway
+from src.infrastructure.repositories.payment_repository_impl import (
+    PaymentRepositoryImpl,
+)
 from src.interface.api.dependencies import (
-    CurrentUser,
+    CurrentInstructor,
+    CurrentStudent,
     InstructorRepo,
     LocationService,
     UserRepo,
@@ -32,24 +49,6 @@ from src.interface.api.schemas.profiles import (
     UpdateLocationRequest,
 )
 
-
-from src.application.dtos.payment_dtos import (
-    ConnectStripeAccountDTO,
-    InstructorEarningsDTO,
-    StripeConnectResponseDTO,
-)
-from src.application.use_cases.payment import (
-    ConnectStripeAccountUseCase,
-    GetInstructorEarningsUseCase,
-)
-from src.infrastructure.db.database import get_db
-from src.infrastructure.external.stripe_gateway import StripePaymentGateway
-from src.infrastructure.repositories.payment_repository_impl import (
-    PaymentRepositoryImpl,
-)
-from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import Depends
-
 router = APIRouter(prefix="/instructors", tags=["Instructors"])
 
 
@@ -60,7 +59,7 @@ router = APIRouter(prefix="/instructors", tags=["Instructors"])
     description="Retorna os dados do perfil do instrutor autenticado.",
 )
 async def get_current_instructor_profile(
-    current_user: CurrentUser,
+    current_user: CurrentInstructor,
     instructor_repo: InstructorRepo,
 ) -> InstructorProfileResponse:
     """Retorna o perfil do instrutor logado."""
@@ -84,7 +83,7 @@ async def get_current_instructor_profile(
 )
 async def update_instructor_profile(
     request: UpdateInstructorProfileRequest,
-    current_user: CurrentUser,
+    current_user: CurrentInstructor,
     user_repo: UserRepo,
     instructor_repo: InstructorRepo,
 ) -> InstructorProfileResponse:
@@ -123,7 +122,7 @@ async def update_instructor_profile(
 )
 async def update_location(
     request: UpdateLocationRequest,
-    current_user: CurrentUser,
+    current_user: CurrentInstructor,
     instructor_repo: InstructorRepo,
 ) -> None:
     """
@@ -164,6 +163,7 @@ async def search_instructors(
     latitude: float,
     longitude: float,
     instructor_repo: InstructorRepo,
+    _current_student: CurrentStudent,  # Guard: Apenas alunos podem buscar
     radius_km: float = 10.0,
     limit: int = 50,
     # TODO: Injetar CacheService aqui quando disponível
@@ -205,7 +205,7 @@ async def search_instructors(
 )
 async def connect_stripe_account(
     dto: ConnectStripeAccountDTO,
-    current_user: CurrentUser,
+    current_user: CurrentInstructor,
     user_repo: UserRepo,
     instructor_repo: InstructorRepo,
 ) -> StripeConnectResponseDTO:
@@ -239,7 +239,7 @@ async def connect_stripe_account(
     description="Retorna resumo financeiro do instrutor.",
 )
 async def get_instructor_earnings(
-    current_user: CurrentUser,
+    current_user: CurrentInstructor,
     instructor_repo: InstructorRepo,
     db: AsyncSession = Depends(get_db),
 ) -> InstructorEarningsDTO:
@@ -255,4 +255,3 @@ async def get_instructor_earnings(
         return await use_case.execute(str(current_user.id))
     except InstructorNotFoundException as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
-
