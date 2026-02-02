@@ -15,11 +15,11 @@ from src.application.dtos.auth_dtos import (
     ResetPasswordDTO,
     ResetPasswordRequestDTO,
 )
-from src.application.use_cases.login_user import LoginUserUseCase
-from src.application.use_cases.logout_user import LogoutUserUseCase
-from src.application.use_cases.refresh_token import RefreshTokenUseCase
-from src.application.use_cases.register_user import RegisterUserUseCase
-from src.application.use_cases.reset_password import (
+from src.application.use_cases.common.login_user import LoginUserUseCase
+from src.application.use_cases.common.logout_user import LogoutUserUseCase
+from src.application.use_cases.common.refresh_token import RefreshTokenUseCase
+from src.application.use_cases.common.register_user import RegisterUserUseCase
+from src.application.use_cases.common.reset_password import (
     RequestPasswordResetUseCase,
     ResetPasswordUseCase,
 )

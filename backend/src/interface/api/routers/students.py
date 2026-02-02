@@ -7,7 +7,9 @@ Endpoints para gerenciamento de perfil de alunos.
 from fastapi import APIRouter, HTTPException, status
 
 from src.application.dtos.profile_dtos import UpdateStudentProfileDTO
-from src.application.use_cases.update_student_profile import UpdateStudentProfileUseCase
+from src.application.use_cases.student.update_student_profile import (
+    UpdateStudentProfileUseCase,
+)
 from src.domain.exceptions import StudentNotFoundException
 from src.interface.api.dependencies import CurrentStudent, StudentRepo, UserRepo
 from src.interface.api.schemas.profiles import (

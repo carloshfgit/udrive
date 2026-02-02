@@ -4,8 +4,8 @@ Application Use Cases
 Casos de uso que orquestram as regras de negócio.
 """
 
-from .login_user import LoginUserUseCase
-from .logout_user import LogoutUserUseCase
+from .common.login_user import LoginUserUseCase
+from .common.logout_user import LogoutUserUseCase
 from .payment import (
     CalculateSplitUseCase,
     ConnectStripeAccountUseCase,
@@ -14,9 +14,9 @@ from .payment import (
     ProcessPaymentUseCase,
     ProcessRefundUseCase,
 )
-from .refresh_token import RefreshTokenUseCase
-from .register_user import RegisterUserUseCase
-from .reset_password import RequestPasswordResetUseCase, ResetPasswordUseCase
+from .common.refresh_token import RefreshTokenUseCase
+from .common.register_user import RegisterUserUseCase
+from .common.reset_password import RequestPasswordResetUseCase, ResetPasswordUseCase
 from .scheduling import (
     CancelSchedulingUseCase,
     CompleteSchedulingUseCase,

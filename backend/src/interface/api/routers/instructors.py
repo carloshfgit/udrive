@@ -14,15 +14,17 @@ from src.application.dtos.profile_dtos import (
     UpdateInstructorProfileDTO,
     UpdateLocationDTO,
 )
-from src.application.use_cases.get_nearby_instructors import GetNearbyInstructorsUseCase
+from src.application.use_cases.student.get_nearby_instructors import (
+    GetNearbyInstructorsUseCase,
+)
 from src.application.use_cases.payment import (
     ConnectStripeAccountUseCase,
     GetInstructorEarningsUseCase,
 )
-from src.application.use_cases.update_instructor_location import (
+from src.application.use_cases.instructor.update_instructor_location import (
     UpdateInstructorLocationUseCase,
 )
-from src.application.use_cases.update_instructor_profile import (
+from src.application.use_cases.instructor.update_instructor_profile import (
     UpdateInstructorProfileUseCase,
 )
 from src.domain.exceptions import (
