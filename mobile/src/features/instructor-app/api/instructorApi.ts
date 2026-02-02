@@ -4,7 +4,7 @@
  * Funções para comunicação com endpoints de perfil do instrutor.
  */
 
-import api from '../../../lib/axios';
+import api, { INSTRUCTOR_API } from '../../../lib/axios';
 
 // ============= Types =============
 
@@ -43,7 +43,7 @@ export interface UpdateInstructorProfileRequest {
  */
 export async function getInstructorProfile(): Promise<InstructorProfile | null> {
     try {
-        const response = await api.get<InstructorProfile>('/instructors/profile');
+        const response = await api.get<InstructorProfile>(`${INSTRUCTOR_API}/profile`);
         return response.data;
     } catch (error: unknown) {
         // 404 significa que o perfil ainda não foi criado - retornar null
@@ -66,6 +66,6 @@ export async function getInstructorProfile(): Promise<InstructorProfile | null> 
 export async function updateInstructorProfile(
     data: UpdateInstructorProfileRequest
 ): Promise<InstructorProfile> {
-    const response = await api.put<InstructorProfile>('/instructors/profile', data);
+    const response = await api.put<InstructorProfile>(`${INSTRUCTOR_API}/profile`, data);
     return response.data;
 }

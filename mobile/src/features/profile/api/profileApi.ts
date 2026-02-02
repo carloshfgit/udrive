@@ -4,7 +4,7 @@
  * Funções para comunicação com endpoints de perfil do aluno.
  */
 
-import api from '../../../lib/axios';
+import api, { STUDENT_API } from '../../../lib/axios';
 
 // ============= Types =============
 
@@ -44,7 +44,7 @@ export interface LocationData {
  */
 export async function getStudentProfile(): Promise<StudentProfile | null> {
     try {
-        const response = await api.get<StudentProfile>('/students/profile');
+        const response = await api.get<StudentProfile>(`${STUDENT_API}/profile`);
         return response.data;
     } catch (error: unknown) {
         // 404 significa que o perfil ainda não foi criado - retornar null
@@ -67,7 +67,7 @@ export async function getStudentProfile(): Promise<StudentProfile | null> {
 export async function updateStudentProfile(
     data: UpdateStudentProfileRequest
 ): Promise<StudentProfile> {
-    const response = await api.put<StudentProfile>('/students/profile', data);
+    const response = await api.put<StudentProfile>(`${STUDENT_API}/profile`, data);
     return response.data;
 }
 
@@ -81,6 +81,5 @@ export async function updateLocation(location: LocationData): Promise<void> {
     // A localização é usada principalmente para busca de instrutores.
     // Por ora, apenas log para debug - implementar quando endpoint estiver disponível.
     console.log('[profileApi] Location updated:', location);
-    // Futuro: await api.put('/students/location', location);
+    // Futuro: await api.put(`${STUDENT_API}/location`, location);
 }
-

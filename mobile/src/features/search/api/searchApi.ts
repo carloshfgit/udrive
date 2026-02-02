@@ -4,15 +4,7 @@
  * Funções para consumir a API de busca de instrutores.
  */
 
-import axios from 'axios';
-
-// Configuração base - pode ser movida para lib/axios.ts se ainda não existir
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
-
-const api = axios.create({
-    baseURL: API_BASE_URL,
-    timeout: 10000,
-});
+import api, { STUDENT_API, SHARED_API } from '../../../lib/axios';
 
 // === Tipos ===
 
@@ -67,7 +59,7 @@ export async function searchInstructors(
 ): Promise<SearchInstructorsResponse> {
     const { latitude, longitude, radiusKm = 10, limit = 50 } = params;
 
-    const response = await api.get<SearchInstructorsResponse>('/instructors/search', {
+    const response = await api.get<SearchInstructorsResponse>(`${STUDENT_API}/instructors/search`, {
         params: {
             latitude,
             longitude,
@@ -83,6 +75,6 @@ export async function searchInstructors(
  * Busca detalhes de um instrutor específico pelo ID.
  */
 export async function getInstructorById(instructorId: string): Promise<Instructor> {
-    const response = await api.get<Instructor>(`/instructors/${instructorId}`);
+    const response = await api.get<Instructor>(`${SHARED_API}/instructors/${instructorId}`);
     return response.data;
 }
