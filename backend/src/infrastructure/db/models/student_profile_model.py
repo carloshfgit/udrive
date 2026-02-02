@@ -61,21 +61,7 @@ class StudentProfileModel(Base):
         nullable=False,
     )
 
-    # Dados pessoais
-    phone: Mapped[str] = mapped_column(
-        String(20),
-        default="",
-        nullable=False,
-    )
-    cpf: Mapped[str] = mapped_column(
-        String(14),
-        default="",
-        nullable=False,
-    )
-    birth_date: Mapped[date | None] = mapped_column(
-        Date,
-        nullable=True,
-    )
+    # Dados pessoais movidos para UserModel
 
     # Estatísticas
     total_lessons: Mapped[int] = mapped_column(
@@ -108,9 +94,6 @@ class StudentProfileModel(Base):
             learning_stage=self.learning_stage,
             notes=self.notes,
             total_lessons=self.total_lessons,
-            phone=self.phone,
-            cpf=self.cpf,
-            birth_date=self.birth_date,
             created_at=self.created_at,
             updated_at=self.updated_at,
         )
@@ -126,9 +109,6 @@ class StudentProfileModel(Base):
             learning_stage=profile.learning_stage,
             notes=profile.notes,
             total_lessons=profile.total_lessons,
-            phone=profile.phone,
-            cpf=profile.cpf,
-            birth_date=profile.birth_date,
             created_at=profile.created_at,
             updated_at=profile.updated_at,
         )

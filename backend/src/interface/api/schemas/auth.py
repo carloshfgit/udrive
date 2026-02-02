@@ -5,6 +5,7 @@ Esquemas Pydantic v2 para validação de requests e formatação de responses
 nas operações de autenticação.
 """
 
+from datetime import date
 from enum import Enum
 from uuid import UUID
 
@@ -120,6 +121,9 @@ class UserResponse(BaseModel):
     user_type: UserTypeEnum = Field(..., description="Tipo de usuário")
     is_active: bool = Field(..., description="Se o usuário está ativo")
     is_verified: bool = Field(..., description="Se o email foi verificado")
+    phone: str | None = Field(None, description="Telefone do usuário")
+    cpf: str | None = Field(None, description="CPF do usuário")
+    birth_date: date | None = Field(None, description="Data de nascimento")
 
 
 class MessageResponse(BaseModel):

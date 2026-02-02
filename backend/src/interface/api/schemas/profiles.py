@@ -91,9 +91,6 @@ class StudentProfileResponse(BaseModel):
     learning_stage: str
     notes: str
     total_lessons: int
-    phone: str
-    cpf: str
-    birth_date: date | None
 
     model_config = ConfigDict(from_attributes=True)
 

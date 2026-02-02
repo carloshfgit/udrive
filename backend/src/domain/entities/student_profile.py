@@ -43,9 +43,6 @@ class StudentProfile:
     learning_stage: str = LearningStage.BEGINNER
     notes: str = ""
     total_lessons: int = 0
-    phone: str = ""
-    cpf: str = ""
-    birth_date: date | None = None
     id: UUID = field(default_factory=uuid4)
     created_at: datetime = field(default_factory=datetime.utcnow)
     updated_at: datetime | None = None
@@ -69,9 +66,6 @@ class StudentProfile:
         license_category_goal: str | None = None,
         learning_stage: str | None = None,
         notes: str | None = None,
-        phone: str | None = None,
-        cpf: str | None = None,
-        birth_date: date | None = None,
     ) -> None:
         """
         Atualiza informações do perfil.
@@ -101,12 +95,6 @@ class StudentProfile:
             self.learning_stage = learning_stage
         if notes is not None:
             self.notes = notes
-        if phone is not None:
-            self.phone = phone
-        if cpf is not None:
-            self.cpf = cpf
-        if birth_date is not None:
-            self.birth_date = birth_date
 
         self.updated_at = datetime.utcnow()
 

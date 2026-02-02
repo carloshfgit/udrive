@@ -5,9 +5,9 @@ Modelo de banco de dados para usuários.
 """
 
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 
-from sqlalchemy import Boolean, DateTime, Index, String, func
+from sqlalchemy import Boolean, Date, DateTime, Index, String, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -46,6 +46,20 @@ class UserModel(Base):
     full_name: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
+    )
+
+    # Dados pessoais (migrados de StudentProfile)
+    phone: Mapped[str | None] = mapped_column(
+        String(20),
+        nullable=True,
+    )
+    cpf: Mapped[str | None] = mapped_column(
+        String(14),
+        nullable=True,
+    )
+    birth_date: Mapped[date | None] = mapped_column(
+        Date,
+        nullable=True,
     )
 
     # Tipo e status
@@ -126,6 +140,9 @@ class UserModel(Base):
             email=self.email,
             hashed_password=self.hashed_password,
             full_name=self.full_name,
+            phone=self.phone,
+            cpf=self.cpf,
+            birth_date=self.birth_date,
             user_type=UserType(self.user_type),
             is_active=self.is_active,
             is_verified=self.is_verified,
@@ -141,6 +158,9 @@ class UserModel(Base):
             email=user.email,
             hashed_password=user.hashed_password,
             full_name=user.full_name,
+            phone=user.phone,
+            cpf=user.cpf,
+            birth_date=user.birth_date,
             user_type=user.user_type.value,
             is_active=user.is_active,
             is_verified=user.is_verified,

@@ -38,7 +38,18 @@ async def get_current_student_profile(
             detail="Perfil de aluno não encontrado",
         )
 
-    return StudentProfileResponse.model_validate(profile)
+    return StudentProfileResponse(
+        id=profile.id,
+        user_id=profile.user_id,
+        preferred_schedule=profile.preferred_schedule,
+        license_category_goal=profile.license_category_goal,
+        learning_stage=profile.learning_stage,
+        notes=profile.notes,
+        total_lessons=profile.total_lessons,
+        phone=current_user.phone or "",
+        cpf=current_user.cpf or "",
+        birth_date=current_user.birth_date,
+    )
 
 
 @router.put(

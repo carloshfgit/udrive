@@ -5,7 +5,7 @@ Entidade de domínio representando um usuário do sistema.
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import date, datetime
 from uuid import UUID, uuid4
 
 from .user_type import UserType
@@ -28,6 +28,9 @@ class User:
     is_verified: bool = False
     created_at: datetime = field(default_factory=datetime.utcnow)
     updated_at: datetime | None = None
+    phone: str | None = None
+    cpf: str | None = None
+    birth_date: date | None = None
 
     def __post_init__(self) -> None:
         """Valida campos após inicialização."""

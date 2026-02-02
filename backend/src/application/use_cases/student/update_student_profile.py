@@ -71,10 +71,19 @@ class UpdateStudentProfileUseCase:
             license_category_goal=dto.license_category_goal,
             learning_stage=dto.learning_stage,
             notes=dto.notes,
-            phone=dto.phone,
-            cpf=dto.cpf,
-            birth_date=dto.birth_date,
+
         )
+
+        # Atualizar dados do usuário
+        if dto.phone is not None:
+            user.phone = dto.phone
+        if dto.cpf is not None:
+            user.cpf = dto.cpf
+        if dto.birth_date is not None:
+            user.birth_date = dto.birth_date
+        
+        # Persistir usuário
+        await self.user_repository.update(user)
 
         # Persistir (criar ou atualizar)
         if await self.student_repository.get_by_user_id(dto.user_id) is None:
@@ -90,7 +99,7 @@ class UpdateStudentProfileUseCase:
             learning_stage=saved_profile.learning_stage,
             notes=saved_profile.notes,
             total_lessons=saved_profile.total_lessons,
-            phone=saved_profile.phone,
-            cpf=saved_profile.cpf,
-            birth_date=saved_profile.birth_date,
+            phone=user.phone or "",
+            cpf=user.cpf or "",
+            birth_date=user.birth_date,
         )
