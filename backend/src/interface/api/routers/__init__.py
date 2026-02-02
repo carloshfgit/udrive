@@ -1,16 +1,15 @@
 """
 Interface - API Routers
 
-Routers FastAPI organizados por domínio.
+Routers FastAPI organizados por domínio e tipo de usuário.
 """
 
-from src.interface.api.routers import auth, health, instructors, payments, schedulings, students
+from src.interface.api.routers import auth, health, instructor, shared, student
 
 __all__ = [
     "auth",
     "health",
-    "instructors",
-    "students",
-    "schedulings",
-    "payments",
+    "student",
+    "instructor",
+    "shared",
 ]

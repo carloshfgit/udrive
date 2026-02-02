@@ -1,0 +1,67 @@
+"""
+Shared Instructors Router
+
+Endpoints públicos/compartilhados relacionados a instrutores.
+"""
+
+from datetime import date, datetime
+from uuid import UUID
+
+from fastapi import APIRouter, Query
+
+from src.interface.api.dependencies import AvailabilityRepo
+from src.interface.api.schemas.scheduling_schemas import AvailabilityListResponse, AvailabilityResponse
+
+router = APIRouter(prefix="/instructors", tags=["Shared - Instructors"])
+
+DAYS_MAP = {
+    0: "Segunda",
+    1: "Terça",
+    2: "Quarta",
+    3: "Quinta",
+    4: "Sexta",
+    5: "Sábado",
+    6: "Domingo",
+}
+
+
+@router.get(
+    "/{instructor_id}/availability",
+    response_model=AvailabilityListResponse,
+    summary="Listar disponibilidade do instrutor",
+    description="Lista horários disponíveis de um instrutor específico.",
+)
+async def list_instructor_availability(
+    instructor_id: UUID,
+    availability_repo: AvailabilityRepo,
+    only_active: bool = Query(True, description="Apenas slots ativos"),
+) -> AvailabilityListResponse:
+    """Lista horários disponíveis de um instrutor."""
+    slots = await availability_repo.list_by_instructor(instructor_id, only_active=only_active)
+
+    response_items = []
+    for slot in slots:
+        # Calcular duração em minutos
+        dummy_date = date.today()
+        dt_start = datetime.combine(dummy_date, slot.start_time)
+        dt_end = datetime.combine(dummy_date, slot.end_time)
+        duration = int((dt_end - dt_start).total_seconds() / 60)
+
+        response_items.append(
+            AvailabilityResponse(
+                id=slot.id,
+                instructor_id=slot.instructor_id,
+                day_of_week=slot.day_of_week,
+                day_name=DAYS_MAP.get(slot.day_of_week, "Desconhecido"),
+                start_time=slot.start_time.strftime("%H:%M"),
+                end_time=slot.end_time.strftime("%H:%M"),
+                is_active=slot.is_active,
+                duration_minutes=duration,
+            )
+        )
+
+    return AvailabilityListResponse(
+        availabilities=response_items,
+        instructor_id=instructor_id,
+        total_count=len(response_items),
+    )

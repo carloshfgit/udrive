@@ -13,14 +13,7 @@ from src.infrastructure.config import settings
 from src.interface.api.exceptions import EXCEPTION_HANDLERS
 from src.interface.api.middleware.rate_limit import limiter, rate_limit_exceeded_handler
 from src.interface.api.middleware.security import SecurityHeadersMiddleware
-from src.interface.api.routers import (
-    auth,
-    health,
-    instructors,
-    payments,
-    schedulings,
-    students,
-)
+from src.interface.api.routers import auth, health, instructor, shared, student
 
 # Configurar logging estruturado
 structlog.configure(
@@ -88,12 +81,11 @@ app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
 
 app.include_router(health.router, tags=["Health"])
 app.include_router(auth.router)
-app.include_router(instructors.router)
-app.include_router(students.router)
-app.include_router(schedulings.router)
-app.include_router(schedulings.availability_router)
-app.include_router(schedulings.instructor_availability_router)
-app.include_router(payments.router)
+
+# Routers organizados por tipo de usuário
+app.include_router(student.router, prefix="/api/v1/student", tags=["Student"])
+app.include_router(instructor.router, prefix="/api/v1/instructor", tags=["Instructor"])
+app.include_router(shared.router, prefix="/api/v1/shared", tags=["Shared"])
 
 
 # =============================================================================
