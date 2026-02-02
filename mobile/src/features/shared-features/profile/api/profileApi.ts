@@ -4,7 +4,7 @@
  * Funções para comunicação com endpoints de perfil do aluno.
  */
 
-import api, { STUDENT_API } from '../../../lib/axios';
+import api, { STUDENT_API } from '../../../../lib/axios';
 
 // ============= Types =============
 

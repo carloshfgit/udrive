@@ -2,11 +2,14 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Home, Search, BookOpen, Calendar, User } from 'lucide-react-native';
 
-import { HomeScreen } from '../features/home/screens/HomeScreen';
-import { InstructorSearchScreen } from '../features/search/screens/InstructorSearchScreen';
-import { LearningCenterScreen } from '../features/learning/screens/LearningCenterScreen';
-import { MyLessonsScreen } from '../features/scheduling/screens/MyLessonsScreen';
-import { ProfileStackNavigator } from '../features/profile/navigation/ProfileStackNavigator';
+// Student-specific screens (same level)
+import { HomeScreen } from '../home/screens/HomeScreen';
+import { InstructorSearchScreen } from '../search/screens/InstructorSearchScreen';
+import { LearningCenterScreen } from '../learning/screens/LearningCenterScreen';
+
+// Shared features (different directory)
+import { MyLessonsScreen } from '../../shared-features/scheduling/screens/MyLessonsScreen';
+import { ProfileStackNavigator } from '../../shared-features/profile/navigation/ProfileStackNavigator';
 
 const Tab = createBottomTabNavigator();
 

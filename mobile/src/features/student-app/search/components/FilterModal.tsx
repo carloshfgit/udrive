@@ -6,7 +6,7 @@
 
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { BottomSheet } from '../../../shared/components';
+import { BottomSheet } from '../../../../shared/components';
 import { SearchFilters } from '../hooks/useInstructorSearch';
 
 interface FilterModalProps {

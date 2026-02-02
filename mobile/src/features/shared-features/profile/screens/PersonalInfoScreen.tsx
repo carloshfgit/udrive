@@ -25,9 +25,9 @@ import {
 } from 'lucide-react-native';
 import * as Location from 'expo-location';
 
-import { useAuthStore, useLocationStore } from '../../../lib/store';
+import { useAuthStore, useLocationStore } from '../../../../lib/store';
 import { useStudentProfile, useUpdateStudentProfile, useUpdateLocation } from '../hooks/useStudentProfile';
-import { Button } from '../../../shared/components';
+import { Button } from '../../../../shared/components';
 
 // Componente de input customizado para esta tela
 interface FormInputProps {

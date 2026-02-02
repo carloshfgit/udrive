@@ -4,7 +4,7 @@
  * Funções para consumir a API de busca de instrutores.
  */
 
-import api, { STUDENT_API, SHARED_API } from '../../../lib/axios';
+import api, { STUDENT_API, SHARED_API } from '../../../../lib/axios';
 
 // === Tipos ===
 

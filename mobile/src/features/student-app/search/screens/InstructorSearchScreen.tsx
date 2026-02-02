@@ -15,7 +15,7 @@ import {
     ActivityIndicator,
     RefreshControl,
 } from 'react-native';
-import { SearchBar, TabSegment, EmptyState, LoadingState } from '../../../shared/components';
+import { SearchBar, TabSegment, EmptyState, LoadingState } from '../../../../shared/components';
 import { InstructorCard } from '../components/InstructorCard';
 import { FilterModal } from '../components/FilterModal';
 import { MapView } from '../components/MapView';

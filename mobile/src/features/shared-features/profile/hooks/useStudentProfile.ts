@@ -12,7 +12,7 @@ import {
     UpdateStudentProfileRequest,
     LocationData,
 } from '../api/profileApi';
-import { useLocationStore } from '../../../lib/store';
+import { useLocationStore } from '../../../../lib/store';
 
 // Query keys
 export const PROFILE_QUERY_KEY = ['student', 'profile'];

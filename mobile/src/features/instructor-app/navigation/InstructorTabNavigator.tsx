@@ -12,12 +12,13 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Home, Calendar, BarChart2, User } from 'lucide-react-native';
 
+// Instructor-specific screens (same feature)
 import {
     InstructorHomeScreen,
     InstructorScheduleScreen,
     InstructorDashboardScreen,
-} from '../features/instructor-app/screens';
-import { InstructorProfileStack } from '../features/instructor-app/navigation/InstructorProfileStack';
+} from '../screens';
+import { InstructorProfileStack } from './InstructorProfileStack';
 
 const Tab = createBottomTabNavigator();
 

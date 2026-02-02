@@ -26,8 +26,8 @@ import {
     Edit3,
 } from 'lucide-react-native';
 
-import { useAuthStore } from '../../../lib/store';
-import { Avatar, Badge } from '../../../shared/components';
+import { useAuthStore } from '../../../../lib/store';
+import { Avatar, Badge } from '../../../../shared/components';
 import { ProfileStackParamList } from '../navigation/ProfileStackNavigator';
 
 type ProfileNavigationProp = NativeStackNavigationProp<ProfileStackParamList, 'ProfileMain'>;

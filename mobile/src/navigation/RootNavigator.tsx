@@ -7,8 +7,8 @@
 
 import React from 'react';
 import { useAuthStore } from '../lib/store';
-import { StudentTabNavigator } from './StudentTabNavigator';
-import { InstructorTabNavigator } from './InstructorTabNavigator';
+import { StudentTabNavigator } from '../features/student-app/navigation/StudentTabNavigator';
+import { InstructorTabNavigator } from '../features/instructor-app/navigation/InstructorTabNavigator';
 
 export function RootNavigator() {
     const { user } = useAuthStore();
