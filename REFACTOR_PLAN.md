@@ -373,3 +373,5 @@ backend/src/
 ├── domain/
 └── infrastructure/
 ```
+
+terminado.
