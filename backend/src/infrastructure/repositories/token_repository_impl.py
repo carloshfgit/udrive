@@ -4,7 +4,7 @@ Token Repository Implementation
 Implementação concreta do repositório de refresh tokens usando SQLAlchemy.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import UUID
 
 from sqlalchemy import delete, select, update
@@ -112,7 +112,7 @@ class TokenRepositoryImpl:
             int: Número de tokens removidos.
         """
         stmt = delete(RefreshTokenModel).where(
-            RefreshTokenModel.expires_at < datetime.utcnow()
+            RefreshTokenModel.expires_at < datetime.now(timezone.utc)
         )
         result = await self._session.execute(stmt)
         await self._session.flush()

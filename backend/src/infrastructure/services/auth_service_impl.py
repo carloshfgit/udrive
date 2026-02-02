@@ -6,7 +6,7 @@ Implementação do serviço de autenticação com JWT e bcrypt.
 
 import hashlib
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
 import bcrypt
@@ -92,7 +92,7 @@ class AuthServiceImpl:
         Returns:
             str: Token JWT assinado.
         """
-        expire = datetime.utcnow() + timedelta(
+        expire = datetime.now(timezone.utc) + timedelta(
             minutes=expires_minutes or self._access_token_expire_minutes
         )
 
@@ -100,7 +100,7 @@ class AuthServiceImpl:
             "sub": str(user_id),
             "type": user_type.value,
             "exp": expire,
-            "iat": datetime.utcnow(),
+            "iat": datetime.now(timezone.utc),
         }
 
         return jwt.encode(payload, self._secret_key, algorithm=self._algorithm)

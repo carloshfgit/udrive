@@ -5,7 +5,7 @@ Caso de uso para renovação de tokens com rotação obrigatória.
 """
 
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from src.application.dtos.auth_dtos import RefreshTokenDTO, TokenPairDTO
 from src.domain.entities.refresh_token import RefreshToken
@@ -94,7 +94,7 @@ class RefreshTokenUseCase:
         new_token_hash = self.auth_service.hash_token(raw_refresh_token)
 
         # Calcular expiração
-        expires_at = datetime.utcnow() + timedelta(days=self.refresh_token_expire_days)
+        expires_at = datetime.now(timezone.utc) + timedelta(days=self.refresh_token_expire_days)
 
         # Criar nova entidade de refresh token
         new_refresh_token = RefreshToken(

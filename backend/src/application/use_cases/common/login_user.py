@@ -5,7 +5,7 @@ Caso de uso para autenticação de usuários.
 """
 
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from src.application.dtos.auth_dtos import LoginDTO, TokenPairDTO
 from src.domain.entities.refresh_token import RefreshToken
@@ -77,7 +77,7 @@ class LoginUserUseCase:
         token_hash = self.auth_service.hash_token(raw_refresh_token)
 
         # Calcular expiração
-        expires_at = datetime.utcnow() + timedelta(days=self.refresh_token_expire_days)
+        expires_at = datetime.now(timezone.utc) + timedelta(days=self.refresh_token_expire_days)
 
         # Criar entidade de refresh token
         refresh_token_entity = RefreshToken(
