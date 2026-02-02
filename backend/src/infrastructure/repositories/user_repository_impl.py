@@ -99,6 +99,9 @@ class UserRepositoryImpl:
         model.user_type = user.user_type.value
         model.is_active = user.is_active
         model.is_verified = user.is_verified
+        model.phone = user.phone
+        model.cpf = user.cpf
+        model.birth_date = user.birth_date
 
         await self._session.flush()
         await self._session.refresh(model)

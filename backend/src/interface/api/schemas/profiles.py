@@ -23,6 +23,10 @@ class UpdateInstructorProfileRequest(BaseModel):
     license_category: str | None = Field(None, max_length=10, description="Categoria da CNH")
     hourly_rate: Decimal | None = Field(None, ge=0, description="Valor da hora/aula")
     is_available: bool | None = Field(None, description="Disponibilidade para novas aulas")
+    full_name: str | None = Field(None, min_length=2, description="Nome completo")
+    phone: str | None = Field(None, max_length=20, description="Telefone de contato")
+    cpf: str | None = Field(None, max_length=14, description="CPF")
+    birth_date: date | None = Field(None, description="Data de nascimento")
 
 
 class UpdateStudentProfileRequest(BaseModel):
@@ -75,6 +79,10 @@ class InstructorProfileResponse(BaseModel):
     rating: float
     total_reviews: int
     is_available: bool
+    full_name: str
+    phone: str | None
+    cpf: str | None
+    birth_date: date | None
     location: LocationResponse | None = None
     distance_km: float | None = None
 

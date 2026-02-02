@@ -45,7 +45,21 @@ async def get_current_instructor_profile(
             detail="Perfil de instrutor não encontrado",
         )
 
-    return InstructorProfileResponse.model_validate(profile)
+    return InstructorProfileResponse(
+        id=profile.id,
+        user_id=profile.user_id,
+        bio=profile.bio,
+        vehicle_type=profile.vehicle_type,
+        license_category=profile.license_category,
+        hourly_rate=profile.hourly_rate,
+        rating=profile.rating,
+        total_reviews=profile.total_reviews,
+        is_available=profile.is_available,
+        full_name=current_user.full_name,
+        phone=current_user.phone,
+        cpf=current_user.cpf,
+        birth_date=current_user.birth_date,
+    )
 
 
 @router.put(
@@ -73,6 +87,10 @@ async def update_instructor_profile(
         license_category=request.license_category,
         hourly_rate=request.hourly_rate,
         is_available=request.is_available,
+        full_name=request.full_name,
+        phone=request.phone,
+        cpf=request.cpf,
+        birth_date=request.birth_date,
     )
 
     try:

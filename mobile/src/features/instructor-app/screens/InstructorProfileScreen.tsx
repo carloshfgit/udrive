@@ -26,6 +26,7 @@ import {
 
 import { useAuthStore } from '../../../lib/store';
 import { Avatar } from '../../../shared/components';
+import { useInstructorProfile } from '../hooks/useInstructorProfile';
 import type { InstructorProfileStackParamList } from '../navigation/InstructorProfileStack';
 
 type ProfileNavigationProp = NativeStackNavigationProp<InstructorProfileStackParamList, 'InstructorProfileMain'>;
@@ -64,6 +65,7 @@ const MENU_ITEMS = [
 export function InstructorProfileScreen() {
     const navigation = useNavigation<ProfileNavigationProp>();
     const { user, logout } = useAuthStore();
+    const { data: profile } = useInstructorProfile();
 
     const handleMenuItemPress = (route: string | null) => {
         if (route === 'EditInstructorProfile') {
@@ -134,7 +136,7 @@ export function InstructorProfileScreen() {
 
                     {/* Nome */}
                     <Text className="text-xl font-bold text-gray-900 mt-4">
-                        {user?.full_name || 'Nome do Instrutor'}
+                        {profile?.full_name || user?.full_name || 'Nome do Instrutor'}
                     </Text>
 
                     {/* Badge de Instrutor */}

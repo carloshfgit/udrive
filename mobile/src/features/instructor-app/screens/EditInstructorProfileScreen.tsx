@@ -174,8 +174,28 @@ export function EditInstructorProfileScreen() {
             setLicenseCategory(profile.license_category || 'B');
             setHourlyRate(profile.hourly_rate?.toString() || '80');
             setIsAvailable(profile.is_available ?? true);
+
+            // Carregar dados pessoais do perfil (mais atualizado que user store)
+            if (profile.full_name) setName(profile.full_name);
+            if (profile.phone) setPhone(profile.phone);
+            if (profile.cpf) setCpf(profile.cpf);
+
+            // Formatando data de YYYY-MM-DD para DD/MM/YYYY
+            if (profile.birth_date) {
+                const [year, month, day] = profile.birth_date.split('-');
+                setBirthDate(`${day}/${month}/${year}`);
+            }
         }
     }, [profile]);
+
+    // Converter data BR (DD/MM/YYYY) para ISO (YYYY-MM-DD)
+    const convertDateToISO = (brDate: string): string | null => {
+        if (!brDate || brDate.length < 10) return null;
+        const parts = brDate.split('/');
+        if (parts.length !== 3) return null;
+        const [day, month, year] = parts;
+        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    };
 
     // Carregar nome do user
     useEffect(() => {
@@ -328,7 +348,14 @@ export function EditInstructorProfileScreen() {
                 return;
             }
 
+            // Converter data para ISO
+            const isoBirthDate = convertDateToISO(birthDate);
+
             await updateProfile.mutateAsync({
+                full_name: name,
+                phone: phone || undefined,
+                cpf: cpf || undefined,
+                birth_date: isoBirthDate,
                 bio: bio || undefined,
                 vehicle_type: vehicleType || undefined,
                 license_category: licenseCategory,
@@ -417,7 +444,7 @@ export function EditInstructorProfileScreen() {
                         value={name}
                         onChangeText={setName}
                         placeholder="Seu nome"
-                        editable={false}
+                        editable={true}
                     />
 
                     {/* Telefone */}

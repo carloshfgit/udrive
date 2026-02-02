@@ -18,6 +18,10 @@ export interface InstructorProfile {
     rating: number;
     total_reviews: number;
     is_available: boolean;
+    full_name: string;
+    phone?: string | null;
+    cpf?: string | null;
+    birth_date?: string | null;
     location: LocationData | null;
     distance_km?: number;
 }
@@ -33,6 +37,10 @@ export interface UpdateInstructorProfileRequest {
     license_category?: string;
     hourly_rate?: number;
     is_available?: boolean;
+    full_name?: string;
+    phone?: string;
+    cpf?: string;
+    birth_date?: string | null;
 }
 
 // ============= API Functions =============

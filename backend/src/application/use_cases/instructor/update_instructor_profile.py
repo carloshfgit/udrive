@@ -4,6 +4,7 @@ Update Instructor Profile Use Case
 Caso de uso para criar ou atualizar perfil de instrutor.
 """
 
+from datetime import datetime
 from dataclasses import dataclass
 
 from src.application.dtos.profile_dtos import (
@@ -86,6 +87,25 @@ class UpdateInstructorProfileUseCase:
         if dto.is_available is not None:
             profile.set_availability(dto.is_available)
 
+        # Atualizar dados do usuário se fornecidos
+        user_updated = False
+        if dto.full_name is not None:
+            user.full_name = dto.full_name
+            user_updated = True
+        if dto.phone is not None:
+            user.phone = dto.phone
+            user_updated = True
+        if dto.cpf is not None:
+            user.cpf = dto.cpf
+            user_updated = True
+        if dto.birth_date is not None:
+            user.birth_date = dto.birth_date
+            user_updated = True
+
+        if user_updated:
+            user.updated_at = datetime.utcnow()
+            await self.user_repository.update(user)
+
         # Persistir (criar ou atualizar)
         if await self.instructor_repository.get_by_user_id(dto.user_id) is None:
             saved_profile = await self.instructor_repository.create(profile)
@@ -110,5 +130,9 @@ class UpdateInstructorProfileUseCase:
             rating=saved_profile.rating,
             total_reviews=saved_profile.total_reviews,
             is_available=saved_profile.is_available,
+            full_name=user.full_name,
+            phone=user.phone,
+            cpf=user.cpf,
+            birth_date=user.birth_date,
             location=location_dto,
         )
