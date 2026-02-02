@@ -8,12 +8,12 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { InstructorProfileScreen } from '../screens/InstructorProfileScreen';
-import { PersonalInfoScreen } from '../../profile/screens/PersonalInfoScreen';
+import { EditInstructorProfileScreen } from '../screens/EditInstructorProfileScreen';
 
 // Tipos de rotas do perfil do instrutor
 export type InstructorProfileStackParamList = {
     InstructorProfileMain: undefined;
-    InstructorPersonalInfo: undefined;
+    EditInstructorProfile: undefined;
     // Futuras sub-telas:
     // MyVehicle: undefined;
     // BankingDetails: undefined;
@@ -30,7 +30,7 @@ export function InstructorProfileStack() {
             }}
         >
             <Stack.Screen name="InstructorProfileMain" component={InstructorProfileScreen} />
-            <Stack.Screen name="InstructorPersonalInfo" component={PersonalInfoScreen} />
+            <Stack.Screen name="EditInstructorProfile" component={EditInstructorProfileScreen} />
         </Stack.Navigator>
     );
 }

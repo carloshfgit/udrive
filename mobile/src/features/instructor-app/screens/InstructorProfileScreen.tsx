@@ -22,7 +22,6 @@ import {
     LogOut,
     ChevronRight,
     Camera,
-    Edit3,
 } from 'lucide-react-native';
 
 import { useAuthStore } from '../../../lib/store';
@@ -40,7 +39,7 @@ const MENU_ITEMS = [
         id: 'personal',
         title: 'Informações Pessoais',
         icon: User,
-        route: 'InstructorPersonalInfo' as const,
+        route: 'EditInstructorProfile' as const,
     },
     {
         id: 'vehicle',
@@ -67,8 +66,8 @@ export function InstructorProfileScreen() {
     const { user, logout } = useAuthStore();
 
     const handleMenuItemPress = (route: string | null) => {
-        if (route === 'InstructorPersonalInfo') {
-            navigation.navigate('InstructorPersonalInfo');
+        if (route === 'EditInstructorProfile') {
+            navigation.navigate('EditInstructorProfile');
         }
         // TODO: Implementar outras rotas
     };
@@ -99,12 +98,7 @@ export function InstructorProfileScreen() {
             <View className="flex-row items-center justify-between px-4 py-3">
                 <View className="w-10" />
                 <Text className="text-lg font-bold text-gray-900">Perfil do Instrutor</Text>
-                <TouchableOpacity
-                    className="w-10 items-end"
-                    accessibilityLabel="Editar perfil"
-                >
-                    <Edit3 size={20} color="#111318" />
-                </TouchableOpacity>
+                <View className="w-10" />
             </View>
 
             <ScrollView

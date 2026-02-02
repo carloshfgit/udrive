@@ -76,6 +76,145 @@ mobile/src/
 └── lib/               # Configurações (Axios, QueryClient, Zustand Store)
 ```
 
+### 3.1 Mobile: Separação por Tipo de Usuário
+
+O GoDrive possui dois tipos de usuários com interfaces **completamente distintas**. A estrutura deve refletir isso explicitamente:
+
+```plaintext
+mobile/src/
+├── features/
+│   ├── student-app/               # Tudo exclusivo do ALUNO
+│   │   ├── screens/               # Telas do aluno
+│   │   ├── components/            # Componentes específicos
+│   │   ├── navigation/            # StudentTabNavigator
+│   │   └── hooks/                 # Hooks específicos
+│   ├── instructor-app/            # Tudo exclusivo do INSTRUTOR
+│   │   ├── screens/               # Telas do instrutor
+│   │   ├── components/            # Componentes específicos
+│   │   ├── navigation/            # InstructorTabNavigator
+│   │   └── hooks/                 # Hooks específicos
+│   ├── auth/                      # Compartilhado (login, cadastro)
+│   └── shared-features/           # Features usadas por AMBOS
+│       ├── scheduling/            # Lógica de agendamento compartilhada
+│       ├── chat/                  # Mensagens entre aluno e instrutor
+│       └── payments/              # Telas de pagamento/recebimento
+├── shared/                        # UI components agnósticos
+│   ├── components/
+│   ├── hooks/
+│   └── lib/
+└── navigation/
+    └── RootNavigator.tsx          # Decide qual stack baseado no user_type
+```
+
+**Regras:**
+- **Nunca** espalhar `if (userType === 'instructor')` pelo código
+- Features exclusivas de cada tipo devem evoluir independentemente
+- Componentes visuais reutilizáveis ficam em `shared/components/`
+
+### 3.2 Backend: Use Cases por Domínio de Usuário
+
+Organizar casos de uso por tipo de usuário para manter regras de negócio isoladas:
+
+```plaintext
+backend/src/application/use_cases/
+├── common/                        # Use cases compartilhados
+│   ├── update_profile.py
+│   └── get_notifications.py
+├── student/                       # Use cases exclusivos do ALUNO
+│   ├── search_instructors.py
+│   ├── book_lesson.py
+│   ├── cancel_booking.py
+│   └── rate_instructor.py
+└── instructor/                    # Use cases exclusivos do INSTRUTOR
+    ├── set_availability.py
+    ├── manage_schedule.py
+    ├── accept_booking.py
+    └── view_earnings.py
+```
+
+### 3.3 Backend: API Routes por Prefixo de Usuário
+
+Endpoints devem ser agrupados por tipo de usuário na camada de interface:
+
+```plaintext
+backend/src/interface/api/
+├── v1/
+│   ├── auth/                      # /api/v1/auth/* (público)
+│   ├── student/                   # /api/v1/student/* (endpoints do aluno)
+│   │   ├── instructors.py         # Busca de instrutores
+│   │   ├── lessons.py             # Agendamentos do aluno
+│   │   └── payments.py            # Pagamentos realizados
+│   ├── instructor/                # /api/v1/instructor/* (endpoints do instrutor)
+│   │   ├── availability.py        # Gestão de horários
+│   │   ├── schedule.py            # Agenda e confirmações
+│   │   └── earnings.py            # Dashboard financeiro
+│   └── shared/                    # Endpoints que ambos usam
+│       ├── profile.py
+│       └── notifications.py
+```
+
+### 3.4 Navegação por Tipo de Usuário
+
+```typescript
+// mobile/src/navigation/RootNavigator.tsx
+const RootNavigator = () => {
+  const { user } = useAuth();
+
+  if (!user) return <AuthStack />;
+
+  // Navegação condicional baseada no tipo de usuário
+  return user.userType === 'instructor' 
+    ? <InstructorTabNavigator /> 
+    : <StudentTabNavigator />;
+};
+```
+
+**Tab Navigators:**
+
+| StudentTabNavigator | InstructorTabNavigator |
+|---------------------|------------------------|
+| Home                | Dashboard              |
+| Buscar Instrutores  | Agenda                 |
+| Meus Agendamentos   | Meus Alunos            |
+| Perfil              | Perfil                 |
+
+### 3.5 Guards de Permissão (Backend)
+
+Criar dependencies para validar o tipo de usuário nos endpoints:
+
+```python
+# backend/src/interface/api/dependencies.py
+from fastapi import Depends, HTTPException, status
+
+def require_student(current_user: User = Depends(get_current_user)) -> User:
+    """Garante que apenas alunos acessem este endpoint."""
+    if current_user.user_type != "student":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Acesso permitido apenas para alunos"
+        )
+    return current_user
+
+def require_instructor(current_user: User = Depends(get_current_user)) -> User:
+    """Garante que apenas instrutores acessem este endpoint."""
+    if current_user.user_type != "instructor":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Acesso permitido apenas para instrutores"
+        )
+    return current_user
+```
+
+**Uso nos routers:**
+```python
+@router.get("/earnings")
+async def get_earnings(
+    instructor: User = Depends(require_instructor)
+):
+    # Apenas instrutores chegam aqui
+    ...
+```
+
 ---
 
 ## 4. Regras de Codificação (Coding Standards)

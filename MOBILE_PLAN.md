@@ -1,6 +1,11 @@
 # Plano de Desenvolvimento Mobile - GoDrive (UDrive)
 
-> **Foco:** Telas do Usuário Aluno | **Target:** React Native (Expo) + NativeWind
+> **Target:** React Native (Expo) + NativeWind  
+> **Escopo:** Interfaces para **Aluno** e **Instrutor**
+
+> [!IMPORTANT]
+> Este plano segue as diretrizes de separação por tipo de usuário definidas no `PROJECT_GUIDELINES.md`.
+> Telas exclusivas do aluno ficam em `student-app/`, do instrutor em `instructor-app/`, e compartilhadas em `shared-features/`.
 
 ---
 
@@ -67,19 +72,30 @@ As imagens de referência estabelecem um padrão visual consistente que deve ser
 - [ ] **SearchBar.tsx** - Barra de busca com ícone e placeholder
 - [ ] **FilterChip.tsx** - Chips de filtro selecionáveis (Categoria, Preço, Avaliação)
 
-### Etapa M1.3: Navegação Principal do Aluno
+### Etapa M1.3: Navegação por Tipo de Usuário
 
-**Estrutura:** `mobile/src/navigation/`
+**Estrutura:** `mobile/src/navigation/` e `mobile/src/features/*/navigation/`
 
-- [ ] Criar `StudentTabNavigator.tsx` com Bottom Tab Bar
+- [x] Criar `RootNavigator.tsx` em `navigation/`
+  - Verificar `user.userType` após autenticação
+  - Redirecionar para `StudentTabNavigator` ou `InstructorTabNavigator`
+
+- [x] Criar `StudentTabNavigator.tsx` em `features/student-app/navigation/`
   - Tab "Início" (Home)
   - Tab "Buscar" (Search/Map)
   - Tab "Aprender" (Learning)
   - Tab "Aulas" (Scheduling)
   - Tab "Perfil" (Profile)
-- [ ] Configurar ícones e labels das tabs
+
+- [x] Criar `InstructorTabNavigator.tsx` em `features/instructor-app/navigation/`
+  - Tab "Dashboard" (Home)
+  - Tab "Agenda" (Schedule)
+  - Tab "Alunos" (Students)
+  - Tab "Perfil" (Profile)
+
+- [ ] Configurar ícones e labels das tabs para ambos os navigators
 - [ ] Implementar navegação aninhada (Stack dentro de cada Tab)
-- [ ] Integrar com `App.tsx` baseado em estado de autenticação
+- [ ] Garantir que `App.tsx` use `RootNavigator` como ponto de entrada
 
 ---
 
@@ -89,7 +105,7 @@ As imagens de referência estabelecem um padrão visual consistente que deve ser
 
 ### Etapa M2.1: Tela Home do Aluno
 
-**Estrutura:** `mobile/src/features/home/`
+**Estrutura:** `mobile/src/features/student-app/home/`
 
 - [ ] **Criar feature `home/`**
   - `screens/HomeScreen.tsx`
@@ -106,7 +122,7 @@ As imagens de referência estabelecem um padrão visual consistente que deve ser
 
 ### Etapa M2.2: Tela de Busca de Instrutores
 
-**Estrutura:** `mobile/src/features/search/`
+**Estrutura:** `mobile/src/features/student-app/search/`
 
 - [ ] **Criar feature `search/`**
   - `screens/InstructorSearchScreen.tsx`
@@ -136,7 +152,7 @@ As imagens de referência estabelecem um padrão visual consistente que deve ser
 
 ### Etapa M2.3: Integração com Mapa
 
-**Estrutura:** `mobile/src/features/map/`
+**Estrutura:** `mobile/src/features/student-app/map/`
 
 - [ ] Configurar `react-native-maps` com estilo customizado
 - [ ] Criar marcadores personalizados para instrutores
@@ -150,9 +166,12 @@ As imagens de referência estabelecem um padrão visual consistente que deve ser
 
 **Objetivo:** Permitir ao aluno visualizar detalhes do instrutor e iniciar agendamento.
 
-### Etapa M3.1: Tela de Perfil do Instrutor (Visualização)
+### Etapa M3.1: Tela de Perfil do Instrutor (Visualização pelo Aluno)
 
-**Estrutura:** `mobile/src/features/instructor/`
+**Estrutura:** `mobile/src/features/student-app/instructor-view/`
+
+> [!NOTE]
+> Esta feature é a visualização do perfil do instrutor **pelo aluno**. Não confundir com `instructor-app/` que contém as telas **do instrutor**.
 
 - [ ] **Criar feature `instructor/`**
   - `screens/InstructorProfileScreen.tsx`
@@ -175,7 +194,10 @@ As imagens de referência estabelecem um padrão visual consistente que deve ser
 
 ### Etapa M3.2: Fluxo de Agendamento
 
-**Estrutura:** `mobile/src/features/scheduling/`
+**Estrutura:** `mobile/src/features/shared-features/scheduling/`
+
+> [!NOTE]
+> Agendamento é uma feature compartilhada: alunos fazem booking, instrutores confirmam/gerenciam.
 
 - [ ] **Telas do fluxo:**
   - `screens/SelectDateTimeScreen.tsx` - Seleção de data e horário
@@ -200,7 +222,7 @@ As imagens de referência estabelecem um padrão visual consistente que deve ser
 
 ### Etapa M4.1: Tela Principal do Centro de Aprendizado
 
-**Estrutura:** `mobile/src/features/learning/`
+**Estrutura:** `mobile/src/features/student-app/learning/`
 
 - [ ] **Criar feature `learning/`**
   - `screens/LearningCenterScreen.tsx`
@@ -310,7 +332,10 @@ As imagens de referência estabelecem um padrão visual consistente que deve ser
 
 ### Etapa M6.1: Tela de Perfil Principal
 
-**Estrutura:** `mobile/src/features/profile/`
+**Estrutura:** `mobile/src/features/shared-features/profile/`
+
+> [!NOTE]
+> Perfil é uma feature compartilhada com algumas variações entre aluno e instrutor.
 
 - [ ] **ProfileScreen.tsx (Atualizar conforme imagem de referência):**
   - Header com avatar grande (com badge de câmera para editar foto)
@@ -394,68 +419,135 @@ As imagens de referência estabelecem um padrão visual consistente que deve ser
 - [ ] Tamanhos de toque mínimos (44x44)
 - [ ] Suporte a fontes do sistema (acessibilidade)
 
+## Fase M8: Interface do Instrutor (instructor-app)
+
+**Objetivo:** Implementar todas as telas exclusivas do instrutor.
+
+> [!IMPORTANT]
+> Todas as telas desta fase ficam em `mobile/src/features/instructor-app/`
+
+### Etapa M8.1: Dashboard do Instrutor
+
+**Estrutura:** `mobile/src/features/instructor-app/screens/`
+
+- [x] **InstructorDashboardScreen.tsx:**
+  - Resumo de ganhos do mês
+  - Próximas aulas agendadas
+  - Estatísticas (total de alunos, avaliação média)
+  - Alertas de pendências (aulas a confirmar)
+
+### Etapa M8.2: Gestão de Agenda
+
+**Estrutura:** `mobile/src/features/instructor-app/screens/`
+
+- [ ] **InstructorScheduleScreen.tsx:**
+  - Calendário visual com aulas marcadas
+  - Lista de aulas do dia selecionado
+  - Ações: confirmar, cancelar, reagendar
+
+- [ ] **InstructorAvailabilityScreen.tsx:**
+  - Configuração de dias e horários disponíveis
+  - Bloqueio de datas específicas
+  - Horário de início e fim de expediente
+
+### Etapa M8.3: Gestão de Alunos
+
+**Estrutura:** `mobile/src/features/instructor-app/screens/`
+
+- [ ] **InstructorStudentsScreen.tsx:**
+  - Lista de alunos atendidos
+  - Filtro por status (ativos, concluídos)
+  - Histórico de aulas por aluno
+
+- [ ] **StudentDetailScreen.tsx:**
+  - Informações do aluno
+  - Histórico de aulas realizadas
+  - Notas e observações
+
+### Etapa M8.4: Dashboard Financeiro
+
+**Estrutura:** `mobile/src/features/instructor-app/screens/`
+
+- [ ] **InstructorEarningsScreen.tsx:**
+  - Resumo de ganhos (semana, mês, total)
+  - Gráfico de evolução
+  - Lista de transações
+  - Informações de repasse (Stripe Connect)
+
+### Etapa M8.5: Perfil do Instrutor (Edição)
+
+**Estrutura:** `mobile/src/features/instructor-app/screens/`
+
+- [x] **InstructorProfileScreen.tsx:**
+  - Visualização do perfil público
+  - Link para edição
+
+- [ ] **InstructorEditProfileScreen.tsx:**
+  - Edição de dados profissionais
+  - Foto de perfil e galeria do veículo
+  - Biografia e experiência
+  - Categoria de CNH
+  - Valor da hora/aula
+  - Dados do veículo (modelo, ano, placa)
+
 ---
 
 ## Resumo de Arquivos e Estrutura Final
 
 ```text
 mobile/src/
-├── app/                          # Expo Router
+├── app/                              # Expo Router
 ├── features/
-│   ├── auth/                     # ✅ Existente
-│   ├── home/                     # 🆕 Fase M2
+│   ├── auth/                         # ✅ Compartilhado (login, registro)
 │   │   ├── screens/
 │   │   ├── components/
 │   │   ├── hooks/
-│   │   └── api/
-│   ├── search/                   # 🆕 Fase M2
-│   │   ├── screens/
+│   │   ├── api/
+│   │   └── navigation/
+│   ├── student-app/                  # 🎓 Telas exclusivas do ALUNO
+│   │   ├── home/                     # HomeScreen
+│   │   ├── search/                   # InstructorSearchScreen
+│   │   ├── map/                      # MapView
+│   │   ├── learning/                 # LearningCenterScreen
+│   │   ├── instructor-view/          # Visualização do perfil do instrutor
+│   │   └── navigation/
+│   │       └── StudentTabNavigator.tsx
+│   ├── instructor-app/               # 🚗 Telas exclusivas do INSTRUTOR
+│   │   ├── screens/                  # Dashboard, Agenda, Alunos, Ganhos
 │   │   ├── components/
 │   │   ├── hooks/
-│   │   └── api/
-│   ├── instructor/               # 🆕 Fase M3
-│   │   ├── screens/
-│   │   ├── components/
-│   │   ├── hooks/
-│   │   └── api/
-│   ├── learning/                 # 🆕 Fase M4
-│   │   ├── screens/
-│   │   ├── components/
-│   │   ├── hooks/
-│   │   └── api/
-│   ├── scheduling/               # 🔄 Atualizar
-│   │   ├── screens/
-│   │   ├── components/
-│   │   ├── hooks/
-│   │   └── api/
-│   ├── profile/                  # 🔄 Atualizar
-│   │   ├── screens/
-│   │   ├── components/
-│   │   ├── hooks/
-│   │   └── api/
-│   └── map/                      # 🔄 Atualizar
+│   │   ├── api/
+│   │   └── navigation/
+│   │       └── InstructorTabNavigator.tsx
+│   └── shared-features/              # 🔄 Features COMPARTILHADAS
+│       ├── scheduling/               # Agendamento (booking e confirmação)
+│       ├── profile/                  # Perfil (aluno e instrutor)
+│       └── chat/                     # Mensagens (futuro)
 ├── shared/
-│   ├── components/               # 🔄 Expandir
-│   └── index.ts
-├── lib/                          # Configs (axios, query, zustand)
-└── navigation/                   # 🆕 StudentTabNavigator
+│   ├── components/                   # UI components reutilizáveis
+│   ├── hooks/                        # Hooks compartilhados
+│   └── theme.ts                      # Tokens de design
+├── lib/                              # Configs (axios, query, zustand)
+└── navigation/
+    └── RootNavigator.tsx             # Ponto de entrada (decide por user_type)
 ```
 
 ---
 
 ## Cronograma Estimado
 
-| Fase | Duração | Dependências |
-|------|---------|--------------|
-| M1: Design System | 1-2 semanas | - |
-| M2: Home e Busca | 2-3 semanas | M1 |
-| M3: Perfil Instrutor e Agendamento | 2-3 semanas | M2, Backend Fase 4 |
-| M4: Centro de Aprendizado | 2-3 semanas | M1 |
-| M5: Gestão de Aulas | 1-2 semanas | M3, Backend Fase 4 |
-| M6: Perfil do Aluno | 1-2 semanas | M1 |
-| M7: Integrações e Polimento | 2 semanas | M1-M6 |
+| Fase | Descrição | Duração | Dependências |
+|------|-----------|---------|--------------|
+| M1 | Design System e Componentes | 1-2 semanas | - |
+| M2 | Home e Busca (Aluno) | 2-3 semanas | M1 |
+| M3 | Perfil Instrutor e Agendamento | 2-3 semanas | M2, Backend |
+| M4 | Centro de Aprendizado | 2-3 semanas | M1 |
+| M5 | Gestão de Aulas (Aluno) | 1-2 semanas | M3 |
+| M6 | Perfil do Aluno | 1-2 semanas | M1 |
+| M7 | Integrações e Polimento | 2 semanas | M1-M6 |
+| **M8** | **Interface do Instrutor** | **3-4 semanas** | M1, Backend |
 
-**Total estimado: 10-16 semanas**
+**Total estimado: 14-21 semanas**
 
 ---
 
