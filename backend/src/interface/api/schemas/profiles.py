@@ -79,10 +79,10 @@ class InstructorProfileResponse(BaseModel):
     rating: float
     total_reviews: int
     is_available: bool
-    full_name: str
-    phone: str | None
-    cpf: str | None
-    birth_date: date | None
+    full_name: str | None = None
+    phone: str | None = None
+    cpf: str | None = None
+    birth_date: date | None = None
     location: LocationResponse | None = None
     distance_km: float | None = None
 

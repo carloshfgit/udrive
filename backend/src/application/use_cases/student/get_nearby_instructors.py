@@ -103,16 +103,29 @@ class GetNearbyInstructorsUseCase:
                 )
 
         # Cache miss - buscar no banco
-        profiles = await self.instructor_repository.search_by_location(
+        # 1. Buscar instrutores COM localização (ordenados por distância)
+        profiles_with_location = await self.instructor_repository.search_by_location(
             center=center,
             radius_km=dto.radius_km,
             only_available=dto.only_available,
             limit=dto.limit,
         )
 
-        # Montar resposta
+        # 2. Buscar TODOS os instrutores disponíveis (inclui os sem localização)
+        all_available = await self.instructor_repository.get_available_instructors(
+            limit=dto.limit,
+        )
+
+        # 3. Identificar instrutores sem localização (não incluídos na busca espacial)
+        ids_with_location = {p.id for p in profiles_with_location}
+        profiles_without_location = [
+            p for p in all_available
+            if p.id not in ids_with_location and p.location is None
+        ]
+
+        # Montar resposta - instrutores com localização primeiro
         instructors = []
-        for profile in profiles:
+        for profile in profiles_with_location:
             location_dto = None
             distance = None
 
@@ -136,6 +149,24 @@ class GetNearbyInstructorsUseCase:
                     is_available=profile.is_available,
                     location=location_dto,
                     distance_km=round(distance, 2) if distance else None,
+                )
+            )
+
+        # Adicionar instrutores SEM localização ao final
+        for profile in profiles_without_location:
+            instructors.append(
+                InstructorProfileResponseDTO(
+                    id=profile.id,
+                    user_id=profile.user_id,
+                    bio=profile.bio,
+                    vehicle_type=profile.vehicle_type,
+                    license_category=profile.license_category,
+                    hourly_rate=profile.hourly_rate,
+                    rating=profile.rating,
+                    total_reviews=profile.total_reviews,
+                    is_available=profile.is_available,
+                    location=None,  # Sem localização
+                    distance_km=None,  # Distância desconhecida
                 )
             )
 

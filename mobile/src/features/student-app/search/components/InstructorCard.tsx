@@ -32,10 +32,15 @@ function InstructorCardComponent({ instructor, onViewProfile }: InstructorCardPr
         license_category,
         hourly_rate,
         avatar_url,
+        distance_km,
+        location,
     } = instructor;
 
     // Fallback para nome se não vier da API
     const displayName = name || 'Instrutor';
+
+    // Verifica se o instrutor tem localização disponível
+    const hasLocation = location !== null && distance_km !== null;
 
     return (
         <View className="mx-4 my-2">
@@ -60,6 +65,19 @@ function InstructorCardComponent({ instructor, onViewProfile }: InstructorCardPr
                         <Text className="text-neutral-500 text-sm">
                             {vehicle_type} • Categoria {license_category}
                         </Text>
+
+                        {/* Distância ou indicador de localização indisponível */}
+                        {hasLocation ? (
+                            <Text className="text-primary-500 text-xs font-medium">
+                                📍 {distance_km?.toFixed(1)} km de distância
+                            </Text>
+                        ) : (
+                            <View className="flex-row items-center gap-1 mt-1">
+                                <Text className="text-amber-600 text-xs font-medium">
+                                    ⚠️ Localização indisponível
+                                </Text>
+                            </View>
+                        )}
                     </View>
 
                     {/* Preço e botão */}
@@ -67,7 +85,7 @@ function InstructorCardComponent({ instructor, onViewProfile }: InstructorCardPr
                         <View className="flex-row items-baseline gap-0.5">
                             <Text className="text-primary-600 text-sm font-bold">R$</Text>
                             <Text className="text-primary-600 text-xl font-bold">
-                                {hourly_rate.toFixed(0)}
+                                {Number(hourly_rate).toFixed(0)}
                             </Text>
                             <Text className="text-neutral-400 text-xs">/hora</Text>
                         </View>
