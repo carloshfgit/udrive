@@ -7,6 +7,7 @@ Implementação concreta do repositório de instrutores com suporte a PostGIS.
 from uuid import UUID
 
 from sqlalchemy import func as geo_func, select, update
+from sqlalchemy.orm import joinedload
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.domain.entities.instructor_profile import InstructorProfile
@@ -136,6 +137,7 @@ class InstructorRepositoryImpl(IInstructorRepository):
                     radius_m,
                 ),
             )
+            .options(joinedload(InstructorProfileModel.user))
             .order_by("distance")
             .limit(limit)
         )
@@ -164,6 +166,7 @@ class InstructorRepositoryImpl(IInstructorRepository):
                 rating=float(model.rating),
                 total_reviews=model.total_reviews,
                 is_available=model.is_available,
+                full_name=model.user.full_name if model.user else None,
                 created_at=model.created_at,
                 updated_at=model.updated_at,
             )
@@ -195,6 +198,7 @@ class InstructorRepositoryImpl(IInstructorRepository):
                 geo_func.ST_Y(InstructorProfileModel.location).label("lat"),
             )
             .where(InstructorProfileModel.is_available.is_(True))
+            .options(joinedload(InstructorProfileModel.user))
             .order_by(InstructorProfileModel.rating.desc())
             .limit(limit)
         )
@@ -219,6 +223,7 @@ class InstructorRepositoryImpl(IInstructorRepository):
                 rating=float(model.rating),
                 total_reviews=model.total_reviews,
                 is_available=model.is_available,
+                full_name=model.user.full_name if model.user else None,
                 created_at=model.created_at,
                 updated_at=model.updated_at,
             )

@@ -26,6 +26,7 @@ function InstructorCardComponent({ instructor, onViewProfile }: InstructorCardPr
     const {
         id,
         name,
+        full_name,
         rating,
         total_reviews,
         vehicle_type,
@@ -37,7 +38,8 @@ function InstructorCardComponent({ instructor, onViewProfile }: InstructorCardPr
     } = instructor;
 
     // Fallback para nome se não vier da API
-    const displayName = name || 'Instrutor';
+    // A busca retorna full_name, os detalhes retornam name
+    const displayName = full_name || name || 'Instrutor';
 
     // Verifica se o instrutor tem localização disponível
     const hasLocation = location !== null && distance_km !== null;

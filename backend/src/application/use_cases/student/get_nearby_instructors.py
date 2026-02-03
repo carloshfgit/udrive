@@ -123,6 +123,14 @@ class GetNearbyInstructorsUseCase:
             if p.id not in ids_with_location and p.location is None
         ]
 
+        def format_name(full_name: str | None) -> str:
+            if not full_name:
+                return "Instrutor"
+            parts = full_name.split()
+            if len(parts) >= 2:
+                return f"{parts[0]} {parts[-1]}"
+            return full_name
+
         # Montar resposta - instrutores com localização primeiro
         instructors = []
         for profile in profiles_with_location:
@@ -147,6 +155,7 @@ class GetNearbyInstructorsUseCase:
                     rating=profile.rating,
                     total_reviews=profile.total_reviews,
                     is_available=profile.is_available,
+                    full_name=format_name(profile.full_name),
                     location=location_dto,
                     distance_km=round(distance, 2) if distance is not None else None,
                 )
@@ -165,6 +174,7 @@ class GetNearbyInstructorsUseCase:
                     rating=profile.rating,
                     total_reviews=profile.total_reviews,
                     is_available=profile.is_available,
+                    full_name=format_name(profile.full_name),
                     location=None,  # Sem localização
                     distance_km=None,  # Distância desconhecida
                 )

@@ -27,6 +27,7 @@ export interface Instructor {
     distance_km: number | null;
     // Campos adicionais para exibição (derivados de User)
     name?: string;
+    full_name?: string;
     avatar_url?: string;
 }
 
