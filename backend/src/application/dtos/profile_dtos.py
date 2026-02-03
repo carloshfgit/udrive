@@ -43,6 +43,7 @@ class UpdateStudentProfileDTO:
     phone: str | None = None
     cpf: str | None = None
     birth_date: date | None = None
+    full_name: str | None = None
 
 
 @dataclass(frozen=True)
@@ -112,6 +113,7 @@ class StudentProfileResponseDTO:
     phone: str
     cpf: str
     birth_date: date | None
+    full_name: str | None
 
 
 @dataclass

@@ -49,6 +49,7 @@ async def get_current_student_profile(
         phone=current_user.phone or "",
         cpf=current_user.cpf or "",
         birth_date=current_user.birth_date,
+        full_name=current_user.full_name or "",
     )
 
 
@@ -79,6 +80,7 @@ async def update_student_profile(
         phone=request.phone,
         cpf=request.cpf,
         birth_date=request.birth_date,
+        full_name=request.full_name,
     )
 
     try:

@@ -29,6 +29,7 @@ export interface UpdateStudentProfileRequest {
     phone?: string;
     cpf?: string;
     birth_date?: string | null; // ISO date format YYYY-MM-DD
+    full_name?: string;
 }
 
 export interface LocationData {

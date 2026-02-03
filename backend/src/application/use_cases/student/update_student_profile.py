@@ -81,6 +81,8 @@ class UpdateStudentProfileUseCase:
             user.cpf = dto.cpf
         if dto.birth_date is not None:
             user.birth_date = dto.birth_date
+        if dto.full_name is not None:
+            user.full_name = dto.full_name
         
         # Persistir usuário
         await self.user_repository.update(user)
@@ -102,4 +104,5 @@ class UpdateStudentProfileUseCase:
             phone=user.phone or "",
             cpf=user.cpf or "",
             birth_date=user.birth_date,
+            full_name=user.full_name or "",
         )

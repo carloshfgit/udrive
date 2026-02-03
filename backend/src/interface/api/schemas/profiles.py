@@ -39,6 +39,7 @@ class UpdateStudentProfileRequest(BaseModel):
     phone: str | None = Field(None, max_length=20, description="Telefone de contato")
     cpf: str | None = Field(None, max_length=14, description="CPF do aluno")
     birth_date: date | None = Field(None, description="Data de nascimento")
+    full_name: str | None = Field(None, min_length=2, description="Nome completo")
 
 
 class UpdateLocationRequest(BaseModel):
@@ -99,6 +100,10 @@ class StudentProfileResponse(BaseModel):
     learning_stage: str
     notes: str
     total_lessons: int
+    full_name: str | None = None
+    phone: str | None = None
+    cpf: str | None = None
+    birth_date: date | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

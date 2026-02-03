@@ -191,6 +191,7 @@ export function PersonalInfoScreen() {
             const isoDate = convertDateToISO(birthDate);
 
             await updateProfile.mutateAsync({
+                full_name: name || undefined,
                 phone: phone || undefined,
                 cpf: cpf || undefined,
                 birth_date: isoDate,
