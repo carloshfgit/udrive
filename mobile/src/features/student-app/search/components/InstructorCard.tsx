@@ -48,7 +48,7 @@ function InstructorCardComponent({ instructor, onViewProfile }: InstructorCardPr
         <View className="mx-4 my-2">
             <View className="flex-row items-stretch justify-between gap-4 rounded-xl bg-white p-4 shadow-sm border border-neutral-100">
                 {/* Conteúdo à esquerda */}
-                <View className="flex-1 justify-between">
+                <View className="flex-1 justify-between pr-2">
                     {/* Rating */}
                     <View className="flex-col gap-1">
                         <View className="flex-row items-center gap-1">
@@ -59,12 +59,12 @@ function InstructorCardComponent({ instructor, onViewProfile }: InstructorCardPr
                         </View>
 
                         {/* Nome */}
-                        <Text className="text-neutral-900 text-lg font-bold leading-tight">
+                        <Text className="text-neutral-900 text-lg font-bold leading-tight" numberOfLines={2}>
                             {displayName}
                         </Text>
 
                         {/* Veículo + Categoria */}
-                        <Text className="text-neutral-500 text-sm">
+                        <Text className="text-neutral-500 text-sm" numberOfLines={1}>
                             {vehicle_type} • Categoria {license_category}
                         </Text>
 
@@ -82,41 +82,43 @@ function InstructorCardComponent({ instructor, onViewProfile }: InstructorCardPr
                         )}
                     </View>
 
-                    {/* Preço e botão */}
-                    <View className="mt-3 flex-row items-center justify-between">
-                        <View className="flex-row items-baseline gap-0.5">
-                            <Text className="text-primary-600 text-sm font-bold">R$</Text>
-                            <Text className="text-primary-600 text-xl font-bold">
-                                {Number(hourly_rate).toFixed(0)}
-                            </Text>
-                            <Text className="text-neutral-400 text-xs">/hora</Text>
-                        </View>
-
-                        <TouchableOpacity
-                            onPress={() => onViewProfile(id)}
-                            className="bg-primary-100 px-3 py-1.5 rounded-lg"
-                            activeOpacity={0.7}
-                        >
-                            <Text className="text-primary-600 text-sm font-bold">Ver Perfil</Text>
-                        </TouchableOpacity>
+                    {/* Preço apenas */}
+                    <View className="mt-3 flex-row items-baseline gap-0.5">
+                        <Text className="text-primary-600 text-sm font-bold">R$</Text>
+                        <Text className="text-primary-600 text-xl font-bold">
+                            {Number(hourly_rate).toFixed(0)}
+                        </Text>
+                        <Text className="text-neutral-400 text-xs">/hora</Text>
                     </View>
                 </View>
 
-                {/* Avatar à direita */}
-                <View className="w-24 h-24 rounded-xl overflow-hidden bg-neutral-200">
-                    {avatar_url ? (
-                        <Image
-                            source={{ uri: avatar_url }}
-                            className="w-full h-full"
-                            resizeMode="cover"
-                        />
-                    ) : (
-                        <View className="w-full h-full items-center justify-center bg-primary-100">
-                            <Text className="text-primary-600 text-2xl font-bold">
-                                {displayName.charAt(0).toUpperCase()}
-                            </Text>
-                        </View>
-                    )}
+                {/* Coluna Direita: Avatar + Botão */}
+                <View className="items-center justify-between gap-3">
+                    {/* Avatar */}
+                    <View className="w-24 h-24 rounded-xl overflow-hidden bg-neutral-200">
+                        {avatar_url ? (
+                            <Image
+                                source={{ uri: avatar_url }}
+                                className="w-full h-full"
+                                resizeMode="cover"
+                            />
+                        ) : (
+                            <View className="w-full h-full items-center justify-center bg-primary-100">
+                                <Text className="text-primary-600 text-2xl font-bold">
+                                    {displayName.charAt(0).toUpperCase()}
+                                </Text>
+                            </View>
+                        )}
+                    </View>
+
+                    {/* Botão Ver Perfil Centralizado */}
+                    <TouchableOpacity
+                        onPress={() => onViewProfile(id)}
+                        className="bg-primary-100 px-3 py-2 rounded-lg w-24 items-center justify-center"
+                        activeOpacity={0.7}
+                    >
+                        <Text className="text-primary-600 text-xs font-bold text-center">Ver Perfil</Text>
+                    </TouchableOpacity>
                 </View>
             </View>
         </View>
