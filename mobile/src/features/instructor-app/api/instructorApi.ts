@@ -22,6 +22,7 @@ export interface InstructorProfile {
     phone?: string | null;
     cpf?: string | null;
     birth_date?: string | null;
+    biological_sex?: 'male' | 'female' | null;
     location: LocationData | null;
     distance_km?: number;
 }
@@ -41,6 +42,7 @@ export interface UpdateInstructorProfileRequest {
     phone?: string;
     cpf?: string;
     birth_date?: string | null;
+    biological_sex?: 'male' | 'female';
     latitude?: number;
     longitude?: number;
 }

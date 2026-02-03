@@ -29,6 +29,7 @@ class UpdateInstructorProfileDTO:
     phone: str | None = None
     cpf: str | None = None
     birth_date: date | None = None
+    biological_sex: str | None = None
 
 
 @dataclass(frozen=True)
@@ -95,6 +96,7 @@ class InstructorProfileResponseDTO:
     phone: str | None = None
     cpf: str | None = None
     birth_date: date | None = None
+    biological_sex: str | None = None
     location: LocationResponseDTO | None = None
     distance_km: float | None = None  # Preenchido em buscas por localização
 

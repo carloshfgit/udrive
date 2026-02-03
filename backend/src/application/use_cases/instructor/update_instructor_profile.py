@@ -101,6 +101,9 @@ class UpdateInstructorProfileUseCase:
         if dto.birth_date is not None:
             user.birth_date = dto.birth_date
             user_updated = True
+        if dto.biological_sex is not None:
+            user.biological_sex = dto.biological_sex
+            user_updated = True
 
         if user_updated:
             user.updated_at = datetime.utcnow()
@@ -134,5 +137,6 @@ class UpdateInstructorProfileUseCase:
             phone=user.phone,
             cpf=user.cpf,
             birth_date=user.birth_date,
+            biological_sex=user.biological_sex,
             location=location_dto,
         )

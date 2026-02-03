@@ -61,6 +61,10 @@ class UserModel(Base):
         Date,
         nullable=True,
     )
+    biological_sex: Mapped[str | None] = mapped_column(
+        String(10),
+        nullable=True,
+    )
 
     # Tipo e status
     user_type: Mapped[str] = mapped_column(
@@ -143,6 +147,7 @@ class UserModel(Base):
             phone=self.phone,
             cpf=self.cpf,
             birth_date=self.birth_date,
+            biological_sex=self.biological_sex,
             user_type=UserType(self.user_type),
             is_active=self.is_active,
             is_verified=self.is_verified,
@@ -161,6 +166,7 @@ class UserModel(Base):
             phone=user.phone,
             cpf=user.cpf,
             birth_date=user.birth_date,
+            biological_sex=user.biological_sex,
             user_type=user.user_type.value,
             is_active=user.is_active,
             is_verified=user.is_verified,

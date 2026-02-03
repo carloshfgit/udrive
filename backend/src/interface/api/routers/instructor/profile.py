@@ -59,6 +59,7 @@ async def get_current_instructor_profile(
         phone=current_user.phone,
         cpf=current_user.cpf,
         birth_date=current_user.birth_date,
+        biological_sex=current_user.biological_sex,
     )
 
 
@@ -91,6 +92,7 @@ async def update_instructor_profile(
         phone=request.phone,
         cpf=request.cpf,
         birth_date=request.birth_date,
+        biological_sex=request.biological_sex,
         latitude=request.latitude,
         longitude=request.longitude,
     )

@@ -139,6 +139,62 @@ function CNHSelector({ selected, onSelect }: CNHSelectorProps) {
     );
 }
 
+// Componente de seleção de sexo biológico
+interface BiologicalSexSelectorProps {
+    selected: 'male' | 'female' | null;
+    onSelect: (sex: 'male' | 'female') => void;
+}
+
+function BiologicalSexSelector({ selected, onSelect }: BiologicalSexSelectorProps) {
+    return (
+        <View className="mb-4">
+            <Text className="text-sm font-medium text-gray-600 mb-2">
+                Sexo Biológico
+            </Text>
+            <View className="flex-row gap-3">
+                <TouchableOpacity
+                    onPress={() => onSelect('female')}
+                    className={`
+                        flex-1 py-3.5 rounded-xl border-2 items-center
+                        ${selected === 'female'
+                            ? 'bg-pink-500 border-pink-500'
+                            : 'bg-white border-gray-200'
+                        }
+                    `}
+                >
+                    <Text
+                        className={`
+                            text-base font-semibold
+                            ${selected === 'female' ? 'text-white' : 'text-gray-700'}
+                        `}
+                    >
+                        Feminino
+                    </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    onPress={() => onSelect('male')}
+                    className={`
+                        flex-1 py-3.5 rounded-xl border-2 items-center
+                        ${selected === 'male'
+                            ? 'bg-blue-600 border-blue-600'
+                            : 'bg-white border-gray-200'
+                        }
+                    `}
+                >
+                    <Text
+                        className={`
+                            text-base font-semibold
+                            ${selected === 'male' ? 'text-white' : 'text-gray-700'}
+                        `}
+                    >
+                        Masculino
+                    </Text>
+                </TouchableOpacity>
+            </View>
+        </View>
+    );
+}
+
 export function EditInstructorProfileScreen() {
     const navigation = useNavigation();
     const { user } = useAuthStore();
@@ -160,6 +216,7 @@ export function EditInstructorProfileScreen() {
     const [licenseCategory, setLicenseCategory] = useState('B');
     const [hourlyRate, setHourlyRate] = useState('');
     const [isAvailable, setIsAvailable] = useState(true);
+    const [biologicalSex, setBiologicalSex] = useState<'male' | 'female' | null>(null);
 
     // Location state
     const [locationAddress, setLocationAddress] = useState<string | null>(null);
@@ -184,6 +241,11 @@ export function EditInstructorProfileScreen() {
             if (profile.birth_date) {
                 const [year, month, day] = profile.birth_date.split('-');
                 setBirthDate(`${day}/${month}/${year}`);
+            }
+
+            // Carregar sexo biológico
+            if (profile.biological_sex) {
+                setBiologicalSex(profile.biological_sex as 'male' | 'female');
             }
         }
     }, [profile]);
@@ -361,6 +423,7 @@ export function EditInstructorProfileScreen() {
                 license_category: licenseCategory,
                 hourly_rate: rate,
                 is_available: isAvailable,
+                biological_sex: biologicalSex || undefined,
                 latitude: latitude || undefined,
                 longitude: longitude || undefined,
             });
@@ -474,6 +537,12 @@ export function EditInstructorProfileScreen() {
                         onChangeText={(text) => setBirthDate(formatDate(text))}
                         placeholder="DD/MM/AAAA"
                         keyboardType="numeric"
+                    />
+
+                    {/* Sexo Biológico */}
+                    <BiologicalSexSelector
+                        selected={biologicalSex}
+                        onSelect={setBiologicalSex}
                     />
 
                     {/* Seção de Localização */}

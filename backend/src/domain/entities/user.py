@@ -31,6 +31,7 @@ class User:
     phone: str | None = None
     cpf: str | None = None
     birth_date: date | None = None
+    biological_sex: str | None = None
 
     def __post_init__(self) -> None:
         """Valida campos após inicialização."""
