@@ -118,10 +118,10 @@ async def get_instructor_by_id(
     user_name = user.full_name if user else "Instrutor"
 
     location = None
-    if instructor.latitude and instructor.longitude:
+    if instructor.location:
         location = LocationData(
-            latitude=instructor.latitude,
-            longitude=instructor.longitude,
+            latitude=instructor.location.latitude,
+            longitude=instructor.location.longitude,
         )
 
     return InstructorDetailResponse(

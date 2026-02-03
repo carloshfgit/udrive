@@ -4,7 +4,7 @@ import { Home, Search, BookOpen, Calendar, User } from 'lucide-react-native';
 
 // Student-specific screens (same level)
 import { HomeScreen } from '../home/screens/HomeScreen';
-import { InstructorSearchScreen } from '../search/screens/InstructorSearchScreen';
+import { SearchStackNavigator } from '../search/navigation/SearchStackNavigator';
 import { LearningCenterScreen } from '../learning/screens/LearningCenterScreen';
 
 // Shared features (different directory)
@@ -43,7 +43,7 @@ export function StudentTabNavigator() {
             />
             <Tab.Screen
                 name="Search"
-                component={InstructorSearchScreen}
+                component={SearchStackNavigator}
                 options={{
                     tabBarLabel: 'Buscar',
                     tabBarIcon: ({ color, size }) => <Search color={color} size={size} />,

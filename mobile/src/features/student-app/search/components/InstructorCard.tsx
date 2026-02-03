@@ -25,6 +25,7 @@ interface InstructorCardProps {
 function InstructorCardComponent({ instructor, onViewProfile }: InstructorCardProps) {
     const {
         id,
+        user_id,
         name,
         full_name,
         rating,
@@ -113,7 +114,7 @@ function InstructorCardComponent({ instructor, onViewProfile }: InstructorCardPr
 
                     {/* Botão Ver Perfil Centralizado */}
                     <TouchableOpacity
-                        onPress={() => onViewProfile(id)}
+                        onPress={() => onViewProfile(user_id)}
                         className="bg-primary-100 px-3 py-2 rounded-lg w-24 items-center justify-center"
                         activeOpacity={0.7}
                     >

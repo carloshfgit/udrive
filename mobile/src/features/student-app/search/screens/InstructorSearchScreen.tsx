@@ -1,9 +1,3 @@
-/**
- * GoDrive Mobile - InstructorSearchScreen
- *
- * Tela principal de busca de instrutores.
- */
-
 import React, { useState, useCallback } from 'react';
 import {
     View,
@@ -15,6 +9,8 @@ import {
     ActivityIndicator,
     RefreshControl,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SearchBar, TabSegment, EmptyState, LoadingState } from '../../../../shared/components';
 import { InstructorCard } from '../components/InstructorCard';
 import { FilterModal } from '../components/FilterModal';
@@ -26,6 +22,7 @@ import {
     SearchFilters,
 } from '../hooks/useInstructorSearch';
 import { Instructor } from '../api/searchApi';
+import { SearchStackParamList } from '../navigation/SearchStackNavigator';
 
 // Opções do TabSegment
 const VIEW_OPTIONS = [
@@ -40,10 +37,15 @@ const FILTER_CHIPS = [
     { key: 'rating', label: 'Avaliação', icon: '★' },
 ];
 
+// Tipo de navegação
+type SearchScreenNavigationProp = NativeStackNavigationProp<SearchStackParamList, 'InstructorSearch'>;
+
 /**
  * Tela principal de busca de instrutores.
  */
 export function InstructorSearchScreen() {
+    const navigation = useNavigation<SearchScreenNavigationProp>();
+
     // Estado de view (lista ou mapa)
     const [viewMode, setViewMode] = useState<string>('list');
 
@@ -77,9 +79,8 @@ export function InstructorSearchScreen() {
 
     // Handlers
     const handleViewProfile = useCallback((instructorId: string) => {
-        // TODO: Navegar para perfil do instrutor
-        console.log('Ver perfil:', instructorId);
-    }, []);
+        navigation.navigate('InstructorProfile', { instructorId });
+    }, [navigation]);
 
     const handleFilterChipPress = useCallback((chipKey: string) => {
         setActiveFilterChip(chipKey);
