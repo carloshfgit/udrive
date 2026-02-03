@@ -13,10 +13,8 @@ import { searchInstructors, SearchInstructorsParams, SearchInstructorsResponse, 
 
 export interface SearchFilters {
     category?: string;
-    minRating?: number;
-    minPrice?: number;
-    maxPrice?: number;
     radiusKm?: number;
+    biological_sex?: string;
 }
 
 export interface UserLocation {
@@ -99,9 +97,7 @@ export function useInstructorSearch(
             longitude: location.longitude,
             radiusKm: filters.radiusKm || 10,
             category: filters.category,
-            minRating: filters.minRating,
-            minPrice: filters.minPrice,
-            maxPrice: filters.maxPrice,
+            biological_sex: filters.biological_sex,
         }
         : null;
 

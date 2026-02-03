@@ -54,6 +54,8 @@ class InstructorSearchDTO:
     latitude: float
     longitude: float
     radius_km: float = 10.0
+    biological_sex: str | None = None
+    license_category: str | None = None
     only_available: bool = True
     limit: int = 50
 

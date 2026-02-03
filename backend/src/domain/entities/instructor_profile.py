@@ -41,6 +41,7 @@ class InstructorProfile:
     total_reviews: int = 0
     is_available: bool = True
     full_name: str | None = None
+    biological_sex: str | None = None
     stripe_account_id: str | None = None  # ID da conta Stripe Connect
     id: UUID = field(default_factory=uuid4)
     created_at: datetime = field(default_factory=datetime.utcnow)

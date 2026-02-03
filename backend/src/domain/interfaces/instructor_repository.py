@@ -88,6 +88,8 @@ class IInstructorRepository(ABC):
         self,
         center: Location,
         radius_km: float = 10.0,
+        biological_sex: str | None = None,
+        license_category: str | None = None,
         only_available: bool = True,
         limit: int = 50,
     ) -> list[InstructorProfile]:
@@ -122,7 +124,12 @@ class IInstructorRepository(ABC):
         ...
 
     @abstractmethod
-    async def get_available_instructors(self, limit: int = 100) -> list[InstructorProfile]:
+    async def get_available_instructors(
+        self,
+        biological_sex: str | None = None,
+        license_category: str | None = None,
+        limit: int = 100,
+    ) -> list[InstructorProfile]:
         """
         Lista instrutores disponíveis.
 

@@ -102,6 +102,7 @@ class UserRepositoryImpl:
         model.phone = user.phone
         model.cpf = user.cpf
         model.birth_date = user.birth_date
+        model.biological_sex = user.biological_sex
 
         await self._session.flush()
         await self._session.refresh(model)

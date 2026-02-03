@@ -33,8 +33,7 @@ const VIEW_OPTIONS = [
 // Chips de filtro
 const FILTER_CHIPS = [
     { key: 'category', label: 'Categoria', icon: '▼' },
-    { key: 'price', label: 'Preço', icon: '▼' },
-    { key: 'rating', label: 'Avaliação', icon: '★' },
+    { key: 'biological_sex', label: 'Gênero', icon: '▼' },
 ];
 
 // Tipo de navegação
@@ -116,7 +115,11 @@ export function InstructorSearchScreen() {
             {/* Filter Chips */}
             <View className="flex-row px-4 py-2 gap-2">
                 {FILTER_CHIPS.map((chip, index) => {
-                    const isActive = index === 0 && hasActiveFilters; // Primeiro chip ativo se há filtros
+                    const isActive = chip.key === 'category'
+                        ? !!filters.category
+                        : chip.key === 'biological_sex'
+                            ? !!filters.biological_sex
+                            : false;
                     return (
                         <TouchableOpacity
                             key={chip.key}

@@ -37,9 +37,7 @@ export interface SearchInstructorsParams {
     radiusKm?: number;
     limit?: number;
     category?: string;
-    minRating?: number;
-    maxPrice?: number;
-    minPrice?: number;
+    biological_sex?: string;
 }
 
 export interface SearchInstructorsResponse {
@@ -58,7 +56,7 @@ export interface SearchInstructorsResponse {
 export async function searchInstructors(
     params: SearchInstructorsParams
 ): Promise<SearchInstructorsResponse> {
-    const { latitude, longitude, radiusKm = 10, limit = 50 } = params;
+    const { latitude, longitude, radiusKm = 10, limit = 50, biological_sex, category } = params;
 
     const response = await api.get<SearchInstructorsResponse>(`${STUDENT_API}/instructors/search`, {
         params: {
@@ -66,6 +64,8 @@ export async function searchInstructors(
             longitude,
             radius_km: radiusKm,
             limit,
+            biological_sex,
+            license_category: category,
         },
     });
 

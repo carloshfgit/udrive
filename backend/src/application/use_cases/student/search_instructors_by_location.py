@@ -61,6 +61,7 @@ class SearchInstructorsByLocationUseCase:
         profiles = await self.instructor_repository.search_by_location(
             center=center,
             radius_km=dto.radius_km,
+            biological_sex=dto.biological_sex,
             only_available=dto.only_available,
             limit=dto.limit,
         )

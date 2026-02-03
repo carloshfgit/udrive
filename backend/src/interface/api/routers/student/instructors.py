@@ -29,6 +29,8 @@ async def search_instructors(
     instructor_repo: InstructorRepo,
     _current_student: CurrentStudent,  # Guard: Apenas alunos podem buscar
     radius_km: float = 10.0,
+    biological_sex: str | None = None,
+    license_category: str | None = None,
     limit: int = 50,
 ) -> InstructorSearchResponse:
     """Busca instrutores por proximidade."""
@@ -41,6 +43,8 @@ async def search_instructors(
         latitude=latitude,
         longitude=longitude,
         radius_km=radius_km,
+        biological_sex=biological_sex,
+        license_category=license_category,
         only_available=True,
         limit=limit,
     )

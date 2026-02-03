@@ -107,12 +107,16 @@ class GetNearbyInstructorsUseCase:
         profiles_with_location = await self.instructor_repository.search_by_location(
             center=center,
             radius_km=dto.radius_km,
+            biological_sex=dto.biological_sex,
+            license_category=dto.license_category,
             only_available=dto.only_available,
             limit=dto.limit,
         )
 
         # 2. Buscar TODOS os instrutores disponíveis (inclui os sem localização)
         all_available = await self.instructor_repository.get_available_instructors(
+            biological_sex=dto.biological_sex,
+            license_category=dto.license_category,
             limit=dto.limit,
         )
 

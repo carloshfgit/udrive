@@ -18,7 +18,13 @@ interface FilterModalProps {
 
 const CATEGORIES = ['A', 'B', 'AB', 'C', 'D', 'E'];
 const RATINGS = [4.5, 4.0, 3.5, 3.0];
-const DISTANCE_OPTIONS = [5, 10, 20, 50];
+const DISTANCE_OPTIONS = [
+    { value: 5, label: '5 km' },
+    { value: 10, label: '10 km' },
+    { value: 20, label: '20 km' },
+    { value: 50, label: '50 km' },
+    { value: undefined, label: 'Qualquer' },
+];
 
 /**
  * Modal de filtros usando BottomSheet.
@@ -73,34 +79,33 @@ export function FilterModal({ visible, onClose, filters, onApply }: FilterModalP
                     </View>
                 </View>
 
-                {/* Avaliação mínima */}
+                {/* Gênero do Instrutor */}
                 <View className="mb-6">
                     <Text className="text-neutral-900 text-base font-semibold mb-3">
-                        Avaliação mínima
+                        Gênero do Instrutor
                     </Text>
-                    <View className="flex-row flex-wrap gap-2">
-                        {RATINGS.map(rating => (
+                    <View className="flex-row gap-2">
+                        {['Masculino', 'Feminino'].map(gender => (
                             <TouchableOpacity
-                                key={rating}
+                                key={gender}
                                 onPress={() =>
                                     setLocalFilters(prev => ({
                                         ...prev,
-                                        minRating: prev.minRating === rating ? undefined : rating,
+                                        biological_sex: prev.biological_sex === gender ? undefined : gender,
                                     }))
                                 }
-                                className={`px-4 py-2 rounded-full border flex-row items-center ${localFilters.minRating === rating
+                                className={`px-4 py-2 rounded-full border ${localFilters.biological_sex === gender
                                     ? 'bg-primary-500 border-primary-500'
                                     : 'bg-white border-neutral-200'
                                     }`}
                             >
-                                <Text className="text-yellow-500 mr-1">★</Text>
                                 <Text
-                                    className={`text-sm font-medium ${localFilters.minRating === rating
+                                    className={`text-sm font-medium ${localFilters.biological_sex === gender
                                         ? 'text-white'
                                         : 'text-neutral-700'
                                         }`}
                                 >
-                                    {rating}+
+                                    {gender}
                                 </Text>
                             </TouchableOpacity>
                         ))}
@@ -113,27 +118,27 @@ export function FilterModal({ visible, onClose, filters, onApply }: FilterModalP
                         Distância máxima
                     </Text>
                     <View className="flex-row flex-wrap gap-2">
-                        {DISTANCE_OPTIONS.map(distance => (
+                        {DISTANCE_OPTIONS.map(option => (
                             <TouchableOpacity
-                                key={distance}
+                                key={String(option.value)}
                                 onPress={() =>
                                     setLocalFilters(prev => ({
                                         ...prev,
-                                        radiusKm: prev.radiusKm === distance ? undefined : distance,
+                                        radiusKm: option.value,
                                     }))
                                 }
-                                className={`px-4 py-2 rounded-full border ${localFilters.radiusKm === distance
+                                className={`px-4 py-2 rounded-full border ${localFilters.radiusKm === option.value
                                     ? 'bg-primary-500 border-primary-500'
                                     : 'bg-white border-neutral-200'
                                     }`}
                             >
                                 <Text
-                                    className={`text-sm font-medium ${localFilters.radiusKm === distance
+                                    className={`text-sm font-medium ${localFilters.radiusKm === option.value
                                         ? 'text-white'
                                         : 'text-neutral-700'
                                         }`}
                                 >
-                                    {distance} km
+                                    {option.label}
                                 </Text>
                             </TouchableOpacity>
                         ))}

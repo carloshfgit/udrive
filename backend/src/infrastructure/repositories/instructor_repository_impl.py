@@ -16,6 +16,20 @@ from src.domain.interfaces.instructor_repository import IInstructorRepository
 from src.infrastructure.db.models.instructor_profile_model import InstructorProfileModel
 
 
+# Mapeamento de valores de gênero (frontend -> banco)
+GENDER_MAPPING = {
+    'Masculino': 'male',
+    'Feminino': 'female',
+}
+
+
+def _normalize_gender(value: str | None) -> str | None:
+    """Converte valor de gênero do frontend para formato do banco."""
+    if value is None:
+        return None
+    return GENDER_MAPPING.get(value, value)
+
+
 class InstructorRepositoryImpl(IInstructorRepository):
     """
     Implementação do repositório de instrutores usando SQLAlchemy e PostGIS.
@@ -101,6 +115,8 @@ class InstructorRepositoryImpl(IInstructorRepository):
         self,
         center: Location,
         radius_km: float = 10.0,
+        biological_sex: str | None = None,
+        license_category: str | None = None,
         only_available: bool = True,
         limit: int = 50,
     ) -> list[InstructorProfile]:
@@ -119,6 +135,7 @@ class InstructorRepositoryImpl(IInstructorRepository):
         )
 
         # Query com busca espacial
+        # Fazendo join explícito se precisar filtrar por campos de User (como sex)
         stmt = (
             select(
                 InstructorProfileModel,
@@ -129,6 +146,7 @@ class InstructorRepositoryImpl(IInstructorRepository):
                 geo_func.ST_X(InstructorProfileModel.location).label("lon"),
                 geo_func.ST_Y(InstructorProfileModel.location).label("lat"),
             )
+            .join(InstructorProfileModel.user)
             .where(
                 InstructorProfileModel.location.isnot(None),
                 geo_func.ST_DWithin(
@@ -144,6 +162,15 @@ class InstructorRepositoryImpl(IInstructorRepository):
 
         if only_available:
             stmt = stmt.where(InstructorProfileModel.is_available.is_(True))
+
+        if biological_sex:
+            # Normalizar valor de gênero do frontend para formato do banco
+            normalized_sex = _normalize_gender(biological_sex)
+            from src.infrastructure.db.models.user_model import UserModel
+            stmt = stmt.where(UserModel.biological_sex == normalized_sex)
+
+        if license_category:
+            stmt = stmt.where(InstructorProfileModel.license_category == license_category)
 
         result = await self._session.execute(stmt)
         rows = result.all()
@@ -167,6 +194,7 @@ class InstructorRepositoryImpl(IInstructorRepository):
                 total_reviews=model.total_reviews,
                 is_available=model.is_available,
                 full_name=model.user.full_name if model.user else None,
+                biological_sex=model.user.biological_sex if model.user else None,
                 created_at=model.created_at,
                 updated_at=model.updated_at,
             )
@@ -189,19 +217,34 @@ class InstructorRepositoryImpl(IInstructorRepository):
 
         return result.rowcount > 0
 
-    async def get_available_instructors(self, limit: int = 100) -> list[InstructorProfile]:
-        """Lista instrutores disponíveis."""
+    async def get_available_instructors(
+        self,
+        biological_sex: str | None = None,
+        license_category: str | None = None,
+        limit: int = 100,
+    ) -> list[InstructorProfile]:
+        """Lista instrutores disponíveis com filtros opcionais."""
         stmt = (
             select(
                 InstructorProfileModel,
                 geo_func.ST_X(InstructorProfileModel.location).label("lon"),
                 geo_func.ST_Y(InstructorProfileModel.location).label("lat"),
             )
+            .join(InstructorProfileModel.user)
             .where(InstructorProfileModel.is_available.is_(True))
             .options(joinedload(InstructorProfileModel.user))
             .order_by(InstructorProfileModel.rating.desc())
             .limit(limit)
         )
+
+        if biological_sex:
+            # Normalizar valor de gênero do frontend para formato do banco
+            normalized_sex = _normalize_gender(biological_sex)
+            from src.infrastructure.db.models.user_model import UserModel
+            stmt = stmt.where(UserModel.biological_sex == normalized_sex)
+
+        if license_category:
+            stmt = stmt.where(InstructorProfileModel.license_category == license_category)
 
         result = await self._session.execute(stmt)
         rows = result.all()
