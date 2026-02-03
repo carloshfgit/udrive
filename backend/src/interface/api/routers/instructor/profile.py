@@ -91,6 +91,8 @@ async def update_instructor_profile(
         phone=request.phone,
         cpf=request.cpf,
         birth_date=request.birth_date,
+        latitude=request.latitude,
+        longitude=request.longitude,
     )
 
     try:

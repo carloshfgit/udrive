@@ -27,6 +27,8 @@ class UpdateInstructorProfileRequest(BaseModel):
     phone: str | None = Field(None, max_length=20, description="Telefone de contato")
     cpf: str | None = Field(None, max_length=14, description="CPF")
     birth_date: date | None = Field(None, description="Data de nascimento")
+    latitude: float | None = Field(None, ge=-90, le=90, description="Latitude da localização")
+    longitude: float | None = Field(None, ge=-180, le=180, description="Longitude da localização")
 
 
 class UpdateStudentProfileRequest(BaseModel):

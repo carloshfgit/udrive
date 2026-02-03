@@ -91,7 +91,7 @@ class SearchInstructorsByLocationUseCase:
                     total_reviews=profile.total_reviews,
                     is_available=profile.is_available,
                     location=location_dto,
-                    distance_km=round(distance, 2) if distance else None,
+                    distance_km=round(distance, 2) if distance is not None else None,
                 )
             )
 

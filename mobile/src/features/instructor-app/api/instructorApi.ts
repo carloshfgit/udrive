@@ -41,6 +41,8 @@ export interface UpdateInstructorProfileRequest {
     phone?: string;
     cpf?: string;
     birth_date?: string | null;
+    latitude?: number;
+    longitude?: number;
 }
 
 // ============= API Functions =============

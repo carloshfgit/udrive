@@ -361,6 +361,8 @@ export function EditInstructorProfileScreen() {
                 license_category: licenseCategory,
                 hourly_rate: rate,
                 is_available: isAvailable,
+                latitude: latitude || undefined,
+                longitude: longitude || undefined,
             });
 
             Alert.alert('Sucesso', 'Perfil atualizado com sucesso!');
