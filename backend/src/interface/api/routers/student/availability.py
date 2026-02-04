@@ -145,7 +145,11 @@ async def get_available_time_slots(
 
     # Gerar slots de horário baseados na disponibilidade
     time_slots: list[TimeSlotResponse] = []
-    now = datetime.now()
+    
+    # Usar timezone local para comparação correta com agendamentos salvos
+    from zoneinfo import ZoneInfo
+    local_tz = ZoneInfo("America/Sao_Paulo")
+    now = datetime.now(local_tz)
 
     for availability in day_availabilities:
         # Gerar slots de hora em hora dentro do período de disponibilidade
@@ -153,8 +157,8 @@ async def get_available_time_slots(
         slot_duration = timedelta(minutes=duration_minutes)
 
         while True:
-            # Calcular fim do slot
-            slot_start_dt = datetime.combine(target_date, current_time)
+            # Calcular fim do slot - usar timezone local para comparação correta
+            slot_start_dt = datetime.combine(target_date, current_time, tzinfo=local_tz)
             slot_end_dt = slot_start_dt + slot_duration
             slot_end_time = slot_end_dt.time()
 
