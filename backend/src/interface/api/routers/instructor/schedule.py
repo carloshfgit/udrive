@@ -124,6 +124,7 @@ async def confirm_scheduling(
     scheduling_id: UUID,
     current_user: CurrentInstructor,
     scheduling_repo: SchedulingRepo,
+    user_repo: UserRepo,
 ) -> SchedulingResponse:
     """Confirma um agendamento pendente."""
     # Verificar permissão
@@ -140,7 +141,7 @@ async def confirm_scheduling(
             detail="Apenas o instrutor pode confirmar",
         )
 
-    use_case = ConfirmSchedulingUseCase(scheduling_repo)
+    use_case = ConfirmSchedulingUseCase(scheduling_repo, user_repo)
     from src.application.dtos.scheduling_dtos import ConfirmSchedulingDTO
     dto = ConfirmSchedulingDTO(
         scheduling_id=scheduling_id,

@@ -5,7 +5,7 @@ Entidade de domínio representando um agendamento de aula.
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from uuid import UUID, uuid4
 
@@ -64,7 +64,7 @@ class Scheduling:
         Returns:
             Percentual de reembolso (0-100).
         """
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         time_until_lesson = self.scheduled_datetime - now
         hours_until_lesson = time_until_lesson.total_seconds() / 3600
 
