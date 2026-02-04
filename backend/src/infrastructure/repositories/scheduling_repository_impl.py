@@ -200,3 +200,35 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
 
         result = await self._session.execute(stmt)
         return [row.to_entity() for row in result.scalars().all()]
+
+    async def get_scheduling_dates_for_month(
+        self,
+        instructor_id: UUID,
+        year: int,
+        month: int,
+    ) -> Sequence["date"]:
+        """Retorna lista de datas únicas com agendamentos no mês."""
+        from calendar import monthrange
+        from datetime import date, datetime
+
+        # Primeiro e último dia do mês
+        first_day = datetime(year, month, 1)
+        last_day_num = monthrange(year, month)[1]
+        last_day = datetime(year, month, last_day_num, 23, 59, 59)
+
+        # Buscar datas distintas com agendamentos não cancelados
+        stmt = (
+            select(func.date(SchedulingModel.scheduled_datetime).label("date"))
+            .where(
+                SchedulingModel.instructor_id == instructor_id,
+                SchedulingModel.scheduled_datetime >= first_day,
+                SchedulingModel.scheduled_datetime <= last_day,
+                SchedulingModel.status != SchedulingStatus.CANCELLED,
+            )
+            .distinct()
+            .order_by(func.date(SchedulingModel.scheduled_datetime))
+        )
+
+        result = await self._session.execute(stmt)
+        return [row[0] for row in result.all()]
+

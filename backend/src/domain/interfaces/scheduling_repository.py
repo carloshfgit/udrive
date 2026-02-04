@@ -190,3 +190,24 @@ class ISchedulingRepository(ABC):
             Lista de agendamentos do dia ordenados por hora.
         """
         ...
+
+    @abstractmethod
+    async def get_scheduling_dates_for_month(
+        self,
+        instructor_id: UUID,
+        year: int,
+        month: int,
+    ) -> list["date"]:
+        """
+        Retorna lista de datas únicas com agendamentos no mês.
+
+        Args:
+            instructor_id: ID do instrutor.
+            year: Ano.
+            month: Mês (1-12).
+
+        Returns:
+            Lista de datas que possuem agendamentos (não cancelados).
+        """
+        ...
+

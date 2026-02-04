@@ -9,10 +9,19 @@ from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Query, status
 
-from src.application.use_cases.scheduling import CompleteSchedulingUseCase, ConfirmSchedulingUseCase
+from src.application.dtos.scheduling_dtos import CancelSchedulingDTO
+from src.application.use_cases.scheduling import (
+    CancelSchedulingUseCase,
+    CompleteSchedulingUseCase,
+    ConfirmSchedulingUseCase,
+)
 from src.domain.entities.scheduling_status import SchedulingStatus
-from src.interface.api.dependencies import CurrentInstructor, SchedulingRepo
-from src.interface.api.schemas.scheduling_schemas import SchedulingListResponse, SchedulingResponse
+from src.interface.api.dependencies import CurrentInstructor, SchedulingRepo, UserRepo
+from src.interface.api.schemas.scheduling_schemas import (
+    CancellationResultResponse,
+    SchedulingListResponse,
+    SchedulingResponse,
+)
 
 router = APIRouter(prefix="/schedule", tags=["Instructor - Schedule"])
 
@@ -170,3 +179,78 @@ async def complete_scheduling(
     use_case = CompleteSchedulingUseCase(scheduling_repo)
     result = await use_case.execute(scheduling_id)
     return SchedulingResponse.model_validate(result)
+
+
+@router.post(
+    "/{scheduling_id}/cancel",
+    response_model=CancellationResultResponse,
+    summary="Cancelar agendamento",
+    description="Cancela um agendamento pendente ou confirmado.",
+)
+async def cancel_scheduling(
+    scheduling_id: UUID,
+    current_user: CurrentInstructor,
+    scheduling_repo: SchedulingRepo,
+    user_repo: UserRepo,
+    reason: str | None = Query(None, description="Motivo do cancelamento"),
+) -> CancellationResultResponse:
+    """Cancela um agendamento."""
+    # Verificar permissão
+    scheduling = await scheduling_repo.get_by_id(scheduling_id)
+    if scheduling is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Agendamento não encontrado",
+        )
+
+    if scheduling.instructor_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Acesso não autorizado a este agendamento",
+        )
+
+    try:
+        use_case = CancelSchedulingUseCase(scheduling_repo, user_repo)
+        dto = CancelSchedulingDTO(
+            scheduling_id=scheduling_id,
+            cancelled_by=current_user.id,
+            reason=reason,
+        )
+        result = await use_case.execute(dto)
+        return CancellationResultResponse(
+            scheduling_id=result.scheduling_id,
+            status=result.status,
+            refund_percentage=result.refund_percentage,
+            refund_amount=result.refund_amount,
+            cancelled_at=result.cancelled_at,
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+
+
+@router.get(
+    "/dates-with-schedulings",
+    summary="Listar datas com aulas",
+    description="Retorna lista de datas que possuem agendamentos no mês.",
+)
+async def get_scheduling_dates(
+    current_user: CurrentInstructor,
+    scheduling_repo: SchedulingRepo,
+    year: int = Query(..., ge=2020, le=2050, description="Ano"),
+    month: int = Query(..., ge=1, le=12, description="Mês (1-12)"),
+) -> dict:
+    """Lista datas com agendamentos no mês."""
+    dates = await scheduling_repo.get_scheduling_dates_for_month(
+        instructor_id=current_user.id,
+        year=year,
+        month=month,
+    )
+    return {
+        "dates": [d.isoformat() for d in dates],
+        "year": year,
+        "month": month,
+    }
+

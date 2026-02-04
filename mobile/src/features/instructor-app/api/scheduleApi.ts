@@ -106,6 +106,55 @@ export async function completeScheduling(schedulingId: string): Promise<Scheduli
     return response.data;
 }
 
+/**
+ * Resultado do cancelamento de agendamento.
+ */
+export interface CancellationResult {
+    scheduling_id: string;
+    status: SchedulingStatus;
+    refund_percentage: number;
+    refund_amount: number;
+    cancelled_at: string;
+}
+
+/**
+ * Cancela um agendamento pendente ou confirmado.
+ */
+export async function cancelScheduling(
+    schedulingId: string,
+    reason?: string
+): Promise<CancellationResult> {
+    const response = await api.post<CancellationResult>(
+        `${INSTRUCTOR_API}/schedule/${schedulingId}/cancel`,
+        null,
+        { params: { reason } }
+    );
+    return response.data;
+}
+
+/**
+ * Resposta da busca de datas com agendamentos.
+ */
+export interface SchedulingDatesResponse {
+    dates: string[];  // Array de datas no formato 'YYYY-MM-DD'
+    year: number;
+    month: number;
+}
+
+/**
+ * Busca datas com agendamentos para um mês específico.
+ */
+export async function getSchedulingDates(
+    year: number,
+    month: number
+): Promise<SchedulingDatesResponse> {
+    const response = await api.get<SchedulingDatesResponse>(
+        `${INSTRUCTOR_API}/schedule/dates-with-schedulings`,
+        { params: { year, month } }
+    );
+    return response.data;
+}
+
 // ============= Availability API Functions =============
 
 /**
@@ -137,3 +186,4 @@ export async function createAvailability(
 export async function deleteAvailability(availabilityId: string): Promise<void> {
     await api.delete(`${INSTRUCTOR_API}/availability/${availabilityId}`);
 }
+

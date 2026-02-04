@@ -10,6 +10,8 @@ import {
     getInstructorSchedule,
     confirmScheduling,
     completeScheduling,
+    cancelScheduling,
+    getSchedulingDates,
     SchedulingStatus,
 } from '../api/scheduleApi';
 
@@ -72,3 +74,32 @@ export function useCompleteScheduling() {
         },
     });
 }
+
+/**
+ * Hook para cancelar um agendamento.
+ */
+export function useCancelScheduling() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({ schedulingId, reason }: { schedulingId: string; reason?: string }) =>
+            cancelScheduling(schedulingId, reason),
+        onSuccess: () => {
+            // Invalidar cache da agenda para recarregar
+            queryClient.invalidateQueries({ queryKey: INSTRUCTOR_SCHEDULE_QUERY_KEY });
+        },
+    });
+}
+
+/**
+ * Hook para buscar datas com agendamentos no mês.
+ */
+export function useSchedulingDates(year: number, month: number) {
+    return useQuery({
+        queryKey: [...INSTRUCTOR_SCHEDULE_QUERY_KEY, 'dates', year, month],
+        queryFn: () => getSchedulingDates(year, month),
+        staleTime: 5 * 60 * 1000, // 5 minutos
+        enabled: year > 0 && month > 0,
+    });
+}
+

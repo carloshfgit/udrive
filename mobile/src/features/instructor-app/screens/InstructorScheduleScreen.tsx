@@ -22,6 +22,7 @@ import {
     Check,
     CheckCircle,
     User,
+    XCircle,
 } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -31,6 +32,8 @@ import {
     useScheduleByDate,
     useConfirmScheduling,
     useCompleteScheduling,
+    useCancelScheduling,
+    useSchedulingDates,
 } from '../hooks/useInstructorSchedule';
 import { Scheduling, SchedulingStatus } from '../api/scheduleApi';
 import type { InstructorScheduleStackParamList } from '../navigation/InstructorScheduleStack';
@@ -78,16 +81,20 @@ interface ScheduleCardProps {
     scheduling: Scheduling;
     onConfirm: (id: string) => void;
     onComplete: (id: string) => void;
+    onCancel: (id: string) => void;
     isConfirming: boolean;
     isCompleting: boolean;
+    isCancelling: boolean;
 }
 
 function ScheduleCard({
     scheduling,
     onConfirm,
     onComplete,
+    onCancel,
     isConfirming,
     isCompleting,
+    isCancelling,
 }: ScheduleCardProps) {
     const scheduledTime = new Date(scheduling.scheduled_datetime);
     const timeStr = scheduledTime.toLocaleTimeString('pt-BR', {
@@ -128,8 +135,23 @@ function ScheduleCard({
             'Concluir Aula',
             `Deseja marcar a aula das ${timeStr} como concluída?`,
             [
-                { text: 'Cancelar', style: 'cancel' },
+                { text: 'Voltar', style: 'cancel' },
                 { text: 'Concluir', onPress: () => onComplete(scheduling.id) },
+            ]
+        );
+    };
+
+    const handleCancel = () => {
+        Alert.alert(
+            'Cancelar Aula',
+            `Deseja realmente cancelar a aula das ${timeStr}?\n\nEsta ação não pode ser desfeita.`,
+            [
+                { text: 'Voltar', style: 'cancel' },
+                {
+                    text: 'Cancelar Aula',
+                    style: 'destructive',
+                    onPress: () => onCancel(scheduling.id),
+                },
             ]
         );
     };
@@ -168,7 +190,7 @@ function ScheduleCard({
                 <View className="flex-row items-center justify-between py-2 border-t border-gray-100">
                     <Text className="text-sm text-gray-500">Valor da aula</Text>
                     <Text className="text-base font-semibold text-gray-900">
-                        R$ {scheduling.price.toFixed(2)}
+                        R$ {Number(scheduling.price).toFixed(2)}
                     </Text>
                 </View>
 
@@ -216,6 +238,30 @@ function ScheduleCard({
                         )}
                     </TouchableOpacity>
                 )}
+
+                {/* Botão de Cancelar - para pending e confirmed */}
+                {(scheduling.status === 'pending' || scheduling.status === 'confirmed') && (
+                    <TouchableOpacity
+                        onPress={handleCancel}
+                        disabled={isCancelling}
+                        className={`
+                            flex-row items-center justify-center py-3 rounded-xl mt-2
+                            border-2 border-red-500
+                            ${isCancelling ? 'bg-red-100' : 'bg-white active:bg-red-50'}
+                        `}
+                    >
+                        {isCancelling ? (
+                            <ActivityIndicator size="small" color="#ef4444" />
+                        ) : (
+                            <>
+                                <XCircle size={18} color="#ef4444" />
+                                <Text className="text-red-500 font-semibold ml-2">
+                                    Cancelar Aula
+                                </Text>
+                            </>
+                        )}
+                    </TouchableOpacity>
+                )}
             </View>
         </Card>
     );
@@ -233,6 +279,7 @@ export function InstructorScheduleScreen() {
     // Estado de mutações em andamento
     const [confirmingId, setConfirmingId] = useState<string | null>(null);
     const [completingId, setCompletingId] = useState<string | null>(null);
+    const [cancellingId, setCancellingId] = useState<string | null>(null);
 
     // Formatar data selecionada para API
     const formattedDate = formatDateForAPI(selectedDate);
@@ -241,6 +288,22 @@ export function InstructorScheduleScreen() {
     const { data, isLoading, isError, refetch } = useScheduleByDate(formattedDate);
     const confirmMutation = useConfirmScheduling();
     const completeMutation = useCompleteScheduling();
+    const cancelMutation = useCancelScheduling();
+
+    // Buscar datas com agendamentos para o mês atual (mês é 1-indexed na API)
+    const { data: schedulingDatesData } = useSchedulingDates(currentYear, currentMonth + 1);
+
+    // Set para lookup rápido de datas com agendamentos
+    const schedulingDates = useMemo(() => {
+        if (!schedulingDatesData?.dates) return new Set<string>();
+        return new Set(schedulingDatesData.dates);
+    }, [schedulingDatesData]);
+
+    // Verificar se uma data tem agendamentos
+    const hasSchedulings = (date: Date) => {
+        const dateStr = formatDateForAPI(date);
+        return schedulingDates.has(dateStr);
+    };
 
     // Gerar dias do mês atual
     const daysInMonth = useMemo(
@@ -298,6 +361,20 @@ export function InstructorScheduleScreen() {
             Alert.alert('Erro', 'Não foi possível concluir a aula.');
         } finally {
             setCompletingId(null);
+        }
+    };
+
+    // Cancelar aula
+    const handleCancel = async (id: string) => {
+        setCancellingId(id);
+        try {
+            await cancelMutation.mutateAsync({ schedulingId: id });
+            Alert.alert('Sucesso', 'Aula cancelada!');
+        } catch (error) {
+            console.error('[InstructorScheduleScreen] Cancel error:', error);
+            Alert.alert('Erro', 'Não foi possível cancelar a aula.');
+        } finally {
+            setCancellingId(null);
         }
     };
 
@@ -417,6 +494,10 @@ export function InstructorScheduleScreen() {
                                     >
                                         {date.getDate()}
                                     </Text>
+                                    {/* Indicador de agendamentos */}
+                                    {hasSchedulings(date) && !selected && (
+                                        <View className="absolute bottom-0.5 w-1.5 h-1.5 rounded-full bg-green-500" />
+                                    )}
                                 </View>
                             </TouchableOpacity>
                         );
@@ -457,8 +538,10 @@ export function InstructorScheduleScreen() {
                                 scheduling={scheduling}
                                 onConfirm={handleConfirm}
                                 onComplete={handleComplete}
+                                onCancel={handleCancel}
                                 isConfirming={confirmingId === scheduling.id}
                                 isCompleting={completingId === scheduling.id}
+                                isCancelling={cancellingId === scheduling.id}
                             />
                         ))
                     ) : (

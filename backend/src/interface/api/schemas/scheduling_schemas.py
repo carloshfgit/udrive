@@ -93,7 +93,7 @@ class CreateSchedulingRequest(BaseModel):
 class CancelSchedulingRequest(BaseModel):
     """Schema para cancelar agendamento."""
 
-    reason: str = Field(..., min_length=5, max_length=500)
+    reason: str | None = Field(None, max_length=500, description="Motivo do cancelamento (opcional)")
 
 
 class SchedulingResponse(BaseModel):
@@ -136,4 +136,5 @@ class CancellationResultResponse(BaseModel):
     status: str
     refund_percentage: int
     refund_amount: Decimal
-    message: str
+    cancelled_at: datetime
+
