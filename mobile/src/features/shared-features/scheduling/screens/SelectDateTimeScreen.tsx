@@ -205,8 +205,8 @@ export function SelectDateTimeScreen() {
                     onPress={handleContinue}
                     disabled={!canContinue}
                     className={`py-4 rounded-xl items-center ${canContinue
-                            ? 'bg-primary-600 active:bg-primary-700'
-                            : 'bg-neutral-200'
+                        ? 'bg-primary-600 active:bg-primary-700'
+                        : 'bg-neutral-200'
                         }`}
                     accessibilityLabel="Avançar"
                 >

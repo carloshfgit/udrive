@@ -50,11 +50,27 @@ export function ConfirmBookingScreen() {
     const dateObj = new Date(selectedDate);
 
     // Criar datetime para o backend
+    // Envia com offset local para preservar o horário selecionado
     const createScheduledDatetime = (): string => {
         const [hours, minutes] = selectedSlot.start_time.split(':').map(Number);
         const scheduledDate = new Date(dateObj);
         scheduledDate.setHours(hours, minutes, 0, 0);
-        return scheduledDate.toISOString();
+
+        // Formatar como ISO 8601 com offset local (não UTC)
+        // Isso garante que 17:00 local seja enviado como 17:00-03:00, não 20:00Z
+        const pad = (n: number) => n.toString().padStart(2, '0');
+        const tzOffset = -scheduledDate.getTimezoneOffset(); // em minutos
+        const tzSign = tzOffset >= 0 ? '+' : '-';
+        const tzHours = pad(Math.floor(Math.abs(tzOffset) / 60));
+        const tzMinutes = pad(Math.abs(tzOffset) % 60);
+
+        const year = scheduledDate.getFullYear();
+        const month = pad(scheduledDate.getMonth() + 1);
+        const day = pad(scheduledDate.getDate());
+        const hour = pad(scheduledDate.getHours());
+        const minute = pad(scheduledDate.getMinutes());
+
+        return `${year}-${month}-${day}T${hour}:${minute}:00${tzSign}${tzHours}:${tzMinutes}`;
     };
 
     // Handler para confirmar

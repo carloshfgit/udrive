@@ -22,9 +22,17 @@ export function useCreateBooking() {
         onSuccess: (data) => {
             // Invalidar lista de agendamentos do aluno
             queryClient.invalidateQueries({ queryKey: ['student', 'lessons'] });
-            // Invalidar horários disponíveis do instrutor
+            // Invalidar TODOS os horários disponíveis do instrutor (qualquer data/duração)
             queryClient.invalidateQueries({
-                queryKey: ['instructor', 'available-slots', data.instructor_id],
+                predicate: (query) => {
+                    const key = query.queryKey;
+                    return (
+                        Array.isArray(key) &&
+                        key[0] === 'instructor' &&
+                        key[1] === 'available-slots' &&
+                        key[2] === data.instructor_id
+                    );
+                },
             });
         },
     });
