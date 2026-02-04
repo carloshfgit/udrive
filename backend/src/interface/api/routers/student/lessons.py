@@ -11,7 +11,13 @@ from fastapi import APIRouter, HTTPException, Query, status
 from src.application.dtos.scheduling_dtos import CancelSchedulingDTO, CreateSchedulingDTO
 from src.application.use_cases.scheduling import CancelSchedulingUseCase, CreateSchedulingUseCase
 from src.domain.entities.scheduling_status import SchedulingStatus
-from src.interface.api.dependencies import AvailabilityRepo, CurrentStudent, SchedulingRepo
+from src.interface.api.dependencies import (
+    AvailabilityRepo,
+    CurrentStudent,
+    InstructorRepo,
+    SchedulingRepo,
+    UserRepo,
+)
 from src.interface.api.schemas.scheduling_schemas import (
     CancellationResultResponse,
     CancelSchedulingRequest,
@@ -35,9 +41,16 @@ async def create_scheduling(
     current_user: CurrentStudent,
     scheduling_repo: SchedulingRepo,
     availability_repo: AvailabilityRepo,
+    user_repo: UserRepo,
+    instructor_repo: InstructorRepo,
 ) -> SchedulingResponse:
     """Solicita um novo agendamento de aula."""
-    use_case = CreateSchedulingUseCase(scheduling_repo, availability_repo)
+    use_case = CreateSchedulingUseCase(
+        user_repository=user_repo,
+        instructor_repository=instructor_repo,
+        scheduling_repository=scheduling_repo,
+        availability_repository=availability_repo,
+    )
 
     dto = CreateSchedulingDTO(
         student_id=current_user.id,

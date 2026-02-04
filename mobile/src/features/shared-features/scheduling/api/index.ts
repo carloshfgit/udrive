@@ -1,7 +1,5 @@
 /**
- * Scheduling Feature - API
- *
- * Funções de fetch específicas para agendamento.
+ * GoDrive Mobile - Scheduling API Exports
  */
 
-// Funções de API serão adicionadas na Fase 4
+export * from './schedulingApi';

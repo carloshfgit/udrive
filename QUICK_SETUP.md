@@ -20,7 +20,7 @@ A maneira mais fácil de iniciar a infraestrutura base (PostgreSQL + PostGIS e R
 1. **Subir os serviços**:
    Na raiz do projeto, execute:
    ```bash
-   docker-compose up -d --build
+   docker compose up -d --build
    ```
 
    Isso iniciará:
@@ -49,7 +49,7 @@ O aplicativo mobile deve ser executado localmente fora do Docker para facilitar 
 
 3. **Inicie o servidor de desenvolvimento**:
    ```bash
-   npx expo start
+   npx expo start -c
    ```
    
    - Pressione `a` para abrir no emulador Android.

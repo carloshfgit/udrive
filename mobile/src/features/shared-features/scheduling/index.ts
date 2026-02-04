@@ -4,6 +4,7 @@
  * Módulo de agendamento de aulas.
  */
 
-// export * from './hooks';
-// export * from './components';
-// export * from './api';
+export * from './hooks';
+export * from './api';
+export * from './components';
+

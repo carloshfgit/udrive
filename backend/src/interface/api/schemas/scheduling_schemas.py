@@ -61,6 +61,23 @@ class AvailabilityListResponse(BaseModel):
     total_count: int
 
 
+class TimeSlotResponse(BaseModel):
+    """Schema para um horário disponível."""
+
+    start_time: str = Field(..., description="Horário de início (HH:MM)")
+    end_time: str = Field(..., description="Horário de término (HH:MM)")
+    is_available: bool = Field(..., description="Se o horário está livre")
+
+
+class AvailableTimeSlotsResponse(BaseModel):
+    """Schema de horários disponíveis para uma data específica."""
+
+    instructor_id: UUID
+    date: str = Field(..., description="Data consultada (YYYY-MM-DD)")
+    time_slots: list[TimeSlotResponse]
+    total_available: int = Field(..., description="Quantidade de horários disponíveis")
+
+
 # =============================================================================
 # Scheduling Schemas
 # =============================================================================

@@ -13,14 +13,15 @@ import {
     TouchableOpacity,
     SafeAreaView,
     ActivityIndicator,
-    Alert,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ChevronLeft, Calendar } from 'lucide-react-native';
 
 import { useInstructorProfile } from '../hooks/useInstructorProfile';
 import { ProfileHeader, AboutSection, VehicleSection } from '../components';
 import { EmptyState } from '../../../../shared/components';
+import { SearchStackParamList } from '../../search/navigation/SearchStackNavigator';
 
 // Tipo para as rotas
 type InstructorProfileRouteParams = {
@@ -29,21 +30,28 @@ type InstructorProfileRouteParams = {
     };
 };
 
+type NavigationProp = NativeStackNavigationProp<SearchStackParamList, 'InstructorProfile'>;
+
 export function InstructorProfileScreen() {
-    const navigation = useNavigation();
+    const navigation = useNavigation<NavigationProp>();
     const route = useRoute<RouteProp<InstructorProfileRouteParams, 'InstructorProfile'>>();
     const { instructorId } = route.params;
 
     // Buscar dados do instrutor
     const { data: instructor, isLoading, isError, refetch } = useInstructorProfile(instructorId);
 
-    // Handler para agendar aula (placeholder para M3.2)
+    // Handler para agendar aula
     const handleScheduleLesson = () => {
-        Alert.alert(
-            'Em breve',
-            'A funcionalidade de agendamento será implementada na próxima etapa.',
-            [{ text: 'OK' }]
-        );
+        if (!instructor) return;
+
+        navigation.navigate('SelectDateTime', {
+            instructorId,
+            instructorName: instructor.name || 'Instrutor',
+            instructorAvatar: instructor.avatar_url,
+            hourlyRate: instructor.hourly_rate,
+            licenseCategory: instructor.license_category,
+            rating: instructor.rating,
+        });
     };
 
     // Estado de loading
