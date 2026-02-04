@@ -79,6 +79,28 @@ class AvailabilityRepositoryImpl(IAvailabilityRepository):
         result = await self._session.execute(stmt)
         return [row.to_entity() for row in result.scalars().all()]
 
+    async def get_by_instructor_and_day(
+        self,
+        instructor_id: UUID,
+        day_of_week: int,
+        only_active: bool = True,
+    ) -> Sequence[Availability]:
+        """Lista slots de um instrutor para um dia específico da semana."""
+        stmt = (
+            select(AvailabilityModel)
+            .where(
+                AvailabilityModel.instructor_id == instructor_id,
+                AvailabilityModel.day_of_week == day_of_week,
+            )
+            .order_by(AvailabilityModel.start_time)
+        )
+
+        if only_active:
+            stmt = stmt.where(AvailabilityModel.is_active.is_(True))
+
+        result = await self._session.execute(stmt)
+        return [row.to_entity() for row in result.scalars().all()]
+
     async def check_overlap(
         self,
         instructor_id: UUID,

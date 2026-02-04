@@ -15,10 +15,10 @@ import { Home, Calendar, BarChart2, User } from 'lucide-react-native';
 // Instructor-specific screens (same feature)
 import {
     InstructorHomeScreen,
-    InstructorScheduleScreen,
     InstructorDashboardScreen,
 } from '../screens';
 import { InstructorProfileStack } from './InstructorProfileStack';
+import { InstructorScheduleStack } from './InstructorScheduleStack';
 
 const Tab = createBottomTabNavigator();
 
@@ -52,7 +52,7 @@ export function InstructorTabNavigator() {
             />
             <Tab.Screen
                 name="InstructorSchedule"
-                component={InstructorScheduleScreen}
+                component={InstructorScheduleStack}
                 options={{
                     tabBarLabel: 'Agenda',
                     tabBarIcon: ({ color, size }) => <Calendar color={color} size={size} />,

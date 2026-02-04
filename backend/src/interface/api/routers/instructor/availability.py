@@ -13,11 +13,65 @@ from src.application.dtos.scheduling_dtos import CreateAvailabilityDTO
 from src.application.use_cases.scheduling import ManageAvailabilityUseCase
 from src.interface.api.dependencies import AvailabilityRepo, CurrentInstructor, UserRepo
 from src.interface.api.schemas.scheduling_schemas import (
+    AvailabilityListResponse,
     AvailabilityResponse,
     CreateAvailabilityRequest,
 )
 
 router = APIRouter(prefix="/availability", tags=["Instructor - Availability"])
+
+
+def _availability_to_response(availability) -> AvailabilityResponse:
+    """Converte entidade Availability para AvailabilityResponse.
+    
+    Faz a conversão de objetos time para strings no formato HH:MM.
+    Lida com casos onde os valores já são strings.
+    """
+    # Converter start_time se necessário
+    if hasattr(availability.start_time, 'strftime'):
+        start_time_str = availability.start_time.strftime("%H:%M")
+    else:
+        start_time_str = str(availability.start_time)[:5]  # Já é string, pegar HH:MM
+    
+    # Converter end_time se necessário
+    if hasattr(availability.end_time, 'strftime'):
+        end_time_str = availability.end_time.strftime("%H:%M")
+    else:
+        end_time_str = str(availability.end_time)[:5]  # Já é string, pegar HH:MM
+    
+    return AvailabilityResponse(
+        id=availability.id,
+        instructor_id=availability.instructor_id,
+        day_of_week=availability.day_of_week,
+        day_name=availability.day_name,
+        start_time=start_time_str,
+        end_time=end_time_str,
+        is_active=availability.is_active,
+        duration_minutes=availability.duration_minutes,
+    )
+
+
+@router.get(
+    "",
+    response_model=AvailabilityListResponse,
+    summary="Listar disponibilidades",
+    description="Lista todas as disponibilidades configuradas do instrutor.",
+)
+async def list_availability(
+    current_user: CurrentInstructor,
+    availability_repo: AvailabilityRepo,
+) -> AvailabilityListResponse:
+    """Lista todas as disponibilidades do instrutor."""
+    availabilities = await availability_repo.list_by_instructor(
+        current_user.id, only_active=False
+    )
+    return AvailabilityListResponse(
+        availabilities=[
+            _availability_to_response(a) for a in availabilities
+        ],
+        instructor_id=current_user.id,
+        total_count=len(availabilities),
+    )
 
 
 @router.post(
@@ -57,7 +111,7 @@ async def create_availability(
     )
 
     result = await use_case.create(dto)
-    return AvailabilityResponse.model_validate(result)
+    return _availability_to_response(result)
 
 
 @router.delete(

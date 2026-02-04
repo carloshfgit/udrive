@@ -4,6 +4,7 @@ Instructor Schedule Router
 Endpoints para gerenciamento de agenda do instrutor.
 """
 
+from datetime import date, datetime
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Query, status
@@ -48,6 +49,31 @@ async def list_instructor_schedule(
         limit=limit,
         offset=offset,
         has_more=(offset + limit) < total,
+    )
+
+
+@router.get(
+    "/by-date",
+    response_model=SchedulingListResponse,
+    summary="Listar agenda por data",
+    description="Lista agendamentos do instrutor para uma data específica.",
+)
+async def list_schedule_by_date(
+    current_user: CurrentInstructor,
+    scheduling_repo: SchedulingRepo,
+    target_date: date = Query(..., alias="date", description="Data no formato YYYY-MM-DD"),
+) -> SchedulingListResponse:
+    """Lista agendamentos para uma data específica."""
+    schedulings = await scheduling_repo.list_by_instructor_and_date(
+        instructor_id=current_user.id,
+        target_date=target_date,
+    )
+    return SchedulingListResponse(
+        schedulings=[SchedulingResponse.model_validate(s) for s in schedulings],
+        total_count=len(schedulings),
+        limit=len(schedulings),
+        offset=0,
+        has_more=False,
     )
 
 

@@ -172,3 +172,21 @@ class ISchedulingRepository(ABC):
             Contagem de agendamentos.
         """
         ...
+
+    @abstractmethod
+    async def list_by_instructor_and_date(
+        self,
+        instructor_id: UUID,
+        date: "date",
+    ) -> list[Scheduling]:
+        """
+        Lista agendamentos de um instrutor para uma data específica.
+
+        Args:
+            instructor_id: ID do instrutor.
+            date: Data para filtrar agendamentos.
+
+        Returns:
+            Lista de agendamentos do dia ordenados por hora.
+        """
+        ...

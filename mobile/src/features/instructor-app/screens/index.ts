@@ -6,6 +6,7 @@
 
 export { InstructorHomeScreen } from './InstructorHomeScreen';
 export { InstructorScheduleScreen } from './InstructorScheduleScreen';
+export { InstructorAvailabilityScreen } from './InstructorAvailabilityScreen';
 export { InstructorDashboardScreen } from './InstructorDashboardScreen';
 export { InstructorProfileScreen } from './InstructorProfileScreen';
 export { EditInstructorProfileScreen } from './EditInstructorProfileScreen';

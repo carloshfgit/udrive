@@ -66,6 +66,19 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
         await self._session.refresh(model)
         return model.to_entity()
 
+    async def delete(self, scheduling_id: UUID) -> bool:
+        """Remove um agendamento."""
+        stmt = select(SchedulingModel).where(SchedulingModel.id == scheduling_id)
+        result = await self._session.execute(stmt)
+        model = result.scalar_one_or_none()
+
+        if not model:
+            return False
+
+        await self._session.delete(model)
+        await self._session.commit()
+        return True
+
     async def list_by_student(
         self,
         student_id: UUID,
@@ -162,3 +175,28 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
 
         result = await self._session.execute(stmt)
         return result.first() is not None
+
+    async def list_by_instructor_and_date(
+        self,
+        instructor_id: UUID,
+        target_date: "date",
+    ) -> Sequence[Scheduling]:
+        """Lista agendamentos do instrutor para uma data específica."""
+        from datetime import datetime, timedelta
+
+        # Início e fim do dia
+        start_of_day = datetime.combine(target_date, datetime.min.time())
+        end_of_day = datetime.combine(target_date, datetime.max.time())
+
+        stmt = (
+            select(SchedulingModel)
+            .where(
+                SchedulingModel.instructor_id == instructor_id,
+                SchedulingModel.scheduled_datetime >= start_of_day,
+                SchedulingModel.scheduled_datetime <= end_of_day,
+            )
+            .order_by(SchedulingModel.scheduled_datetime.asc())
+        )
+
+        result = await self._session.execute(stmt)
+        return [row.to_entity() for row in result.scalars().all()]
