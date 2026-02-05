@@ -152,6 +152,8 @@ class SchedulingModel(Base):
             completed_at=self.completed_at,
             created_at=self.created_at,
             updated_at=self.updated_at,
+            student_name=self.student.full_name if self.student else None,
+            instructor_name=self.instructor.full_name if self.instructor else None,
         )
 
     @classmethod

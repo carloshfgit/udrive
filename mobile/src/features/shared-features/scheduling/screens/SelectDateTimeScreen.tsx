@@ -139,7 +139,7 @@ export function SelectDateTimeScreen() {
                             {instructorName}
                         </Text>
                         <View className="flex-row items-center mt-0.5">
-                            {rating && (
+                            {!!rating && (
                                 <View className="flex-row items-center mr-2">
                                     <Star size={14} color="#F59E0B" fill="#F59E0B" />
                                     <Text className="text-sm text-gray-600 ml-1">
@@ -147,7 +147,7 @@ export function SelectDateTimeScreen() {
                                     </Text>
                                 </View>
                             )}
-                            {licenseCategory && (
+                            {!!licenseCategory && (
                                 <Text className="text-sm text-gray-500">
                                     Categoria {licenseCategory}
                                 </Text>

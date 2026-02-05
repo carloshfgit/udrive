@@ -35,11 +35,10 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
         stmt = (
             select(SchedulingModel)
             .where(SchedulingModel.id == scheduling_id)
-            # Carregar relacionamentos para evitar N+1 queries se necessário depois
-            # .options(joinedload(SchedulingModel.student), joinedload(SchedulingModel.instructor))
+            .options(joinedload(SchedulingModel.student), joinedload(SchedulingModel.instructor))
         )
         result = await self._session.execute(stmt)
-        model = result.scalar_one_or_none()
+        model = result.unique().scalar_one_or_none()
         return model.to_entity() if model else None
 
     async def update(self, scheduling: Scheduling) -> Scheduling:
@@ -93,13 +92,14 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
             .order_by(SchedulingModel.scheduled_datetime.desc())
             .limit(limit)
             .offset(offset)
+            .options(joinedload(SchedulingModel.student), joinedload(SchedulingModel.instructor))
         )
 
         if status:
             stmt = stmt.where(SchedulingModel.status == status)
 
         result = await self._session.execute(stmt)
-        return [row.to_entity() for row in result.scalars().all()]
+        return [row.to_entity() for row in result.unique().scalars().all()]
 
     async def count_by_student(
         self, student_id: UUID, status: SchedulingStatus | None = None
@@ -125,13 +125,14 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
             .order_by(SchedulingModel.scheduled_datetime.desc())
             .limit(limit)
             .offset(offset)
+            .options(joinedload(SchedulingModel.student), joinedload(SchedulingModel.instructor))
         )
 
         if status:
             stmt = stmt.where(SchedulingModel.status == status)
 
         result = await self._session.execute(stmt)
-        return [row.to_entity() for row in result.scalars().all()]
+        return [row.to_entity() for row in result.unique().scalars().all()]
 
     async def count_by_instructor(
         self, instructor_id: UUID, status: SchedulingStatus | None = None
@@ -203,10 +204,11 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
                 SchedulingModel.scheduled_datetime <= end_of_day_utc,
             )
             .order_by(SchedulingModel.scheduled_datetime.asc())
+            .options(joinedload(SchedulingModel.student), joinedload(SchedulingModel.instructor))
         )
 
         result = await self._session.execute(stmt)
-        return [row.to_entity() for row in result.scalars().all()]
+        return [row.to_entity() for row in result.unique().scalars().all()]
 
     async def get_scheduling_dates_for_month(
         self,

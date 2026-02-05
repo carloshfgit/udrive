@@ -43,6 +43,8 @@ class Scheduling:
     id: UUID = field(default_factory=uuid4)
     created_at: datetime = field(default_factory=datetime.utcnow)
     updated_at: datetime | None = None
+    student_name: str | None = None
+    instructor_name: str | None = None
 
     def __post_init__(self) -> None:
         """Valida campos após inicialização."""
