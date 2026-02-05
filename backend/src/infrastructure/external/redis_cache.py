@@ -20,7 +20,7 @@ class RedisCacheService:
     """
 
     def __init__(self, redis_url: str | None = None) -> None:
-        self._redis_url = redis_url or settings.REDIS_URL
+        self._redis_url = redis_url or settings.redis_url
         self._client: redis.Redis | None = None
 
     async def connect(self) -> None:

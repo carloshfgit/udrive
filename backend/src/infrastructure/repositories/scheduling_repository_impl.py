@@ -27,7 +27,7 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
     async def create(self, scheduling: Scheduling) -> Scheduling:
         model = SchedulingModel.from_entity(scheduling)
         self._session.add(model)
-        await self._session.commit()
+        await self._session.flush()
         
         # Reload with relationships to avoid MissingGreenlet error
         # during to_entity() conversion (which accesses .student/.instructor)
@@ -68,7 +68,7 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
         model.updated_at = scheduling.updated_at
 
         # Commit da transação
-        await self._session.commit()
+        await self._session.flush()
         
         # Recarregar o modelo com os relacionamentos necessários para to_entity()
         # Não usamos refresh() simples pois precisamos dos relacionamentos
@@ -85,7 +85,7 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
             return False
 
         await self._session.delete(model)
-        await self._session.commit()
+        await self._session.flush()
         return True
 
     async def list_by_student(

@@ -25,7 +25,7 @@ class AvailabilityRepositoryImpl(IAvailabilityRepository):
     async def create(self, availability: Availability) -> Availability:
         model = AvailabilityModel.from_entity(availability)
         self._session.add(model)
-        await self._session.commit()
+        await self._session.flush()
         await self._session.refresh(model)
         return model.to_entity()
 
@@ -42,7 +42,7 @@ class AvailabilityRepositoryImpl(IAvailabilityRepository):
         model.is_active = availability.is_active
         model.updated_at = availability.updated_at
 
-        await self._session.commit()
+        await self._session.flush()
         await self._session.refresh(model)
         return model.to_entity()
 
@@ -55,7 +55,7 @@ class AvailabilityRepositoryImpl(IAvailabilityRepository):
             return False
 
         await self._session.delete(model)
-        await self._session.commit()
+        await self._session.flush()
         return True
 
     async def get_by_id(self, availability_id: UUID) -> Availability | None:

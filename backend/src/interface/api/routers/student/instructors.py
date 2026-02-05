@@ -11,7 +11,7 @@ from src.application.use_cases.student.get_nearby_instructors import (
     GetNearbyInstructorsUseCase,
 )
 from src.domain.exceptions import InvalidLocationException
-from src.interface.api.dependencies import CurrentStudent, InstructorRepo
+from src.interface.api.dependencies import CacheService, CurrentStudent, InstructorRepo
 from src.interface.api.schemas.profiles import InstructorSearchResponse
 
 router = APIRouter(prefix="/instructors", tags=["Student - Instructors"])
@@ -27,6 +27,7 @@ async def search_instructors(
     latitude: float,
     longitude: float,
     instructor_repo: InstructorRepo,
+    cache_service: CacheService,
     _current_student: CurrentStudent,  # Guard: Apenas alunos podem buscar
     radius_km: float = 10.0,
     biological_sex: str | None = None,
@@ -36,7 +37,7 @@ async def search_instructors(
     """Busca instrutores por proximidade."""
     use_case = GetNearbyInstructorsUseCase(
         instructor_repository=instructor_repo,
-        cache_service=None,
+        cache_service=cache_service,
     )
 
     dto = InstructorSearchDTO(

@@ -44,6 +44,7 @@ from src.infrastructure.repositories.token_repository_impl import TokenRepositor
 from src.infrastructure.repositories.user_repository_impl import UserRepositoryImpl
 from src.infrastructure.services.auth_service_impl import AuthServiceImpl
 from src.infrastructure.services.location_service_impl import LocationServiceImpl
+from src.infrastructure.external.redis_cache import RedisCacheService, cache_service
 
 
 # =============================================================================
@@ -103,6 +104,11 @@ def get_location_service(
 ) -> ILocationService:
     """Fornece uma instância do serviço de geolocalização."""
     return LocationServiceImpl(instructor_repo)
+
+
+def get_cache_service() -> RedisCacheService:
+    """Fornece a instância global do serviço de cache."""
+    return cache_service
 
 
 # =============================================================================
@@ -215,6 +221,7 @@ SchedulingRepo = Annotated[ISchedulingRepository, Depends(get_scheduling_reposit
 AvailabilityRepo = Annotated[IAvailabilityRepository, Depends(get_availability_repository)]
 AuthService = Annotated[IAuthService, Depends(get_auth_service)]
 LocationService = Annotated[ILocationService, Depends(get_location_service)]
+CacheService = Annotated[RedisCacheService, Depends(get_cache_service)]
 
 CurrentUser = Annotated[User, Depends(get_current_active_user)]
 CurrentStudent = Annotated[User, Depends(require_student)]

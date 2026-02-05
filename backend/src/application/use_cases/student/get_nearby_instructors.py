@@ -103,8 +103,8 @@ class GetNearbyInstructorsUseCase:
                 )
 
         # Cache miss - buscar no banco
-        # 1. Buscar instrutores COM localização (ordenados por distância)
-        profiles_with_location = await self.instructor_repository.search_by_location(
+        # A query agora retorna tanto próximos quanto sem localização em uma única chamada
+        profiles = await self.instructor_repository.search_by_location(
             center=center,
             radius_km=dto.radius_km,
             biological_sex=dto.biological_sex,
@@ -112,20 +112,6 @@ class GetNearbyInstructorsUseCase:
             only_available=dto.only_available,
             limit=dto.limit,
         )
-
-        # 2. Buscar TODOS os instrutores disponíveis (inclui os sem localização)
-        all_available = await self.instructor_repository.get_available_instructors(
-            biological_sex=dto.biological_sex,
-            license_category=dto.license_category,
-            limit=dto.limit,
-        )
-
-        # 3. Identificar instrutores sem localização (não incluídos na busca espacial)
-        ids_with_location = {p.id for p in profiles_with_location}
-        profiles_without_location = [
-            p for p in all_available
-            if p.id not in ids_with_location and p.location is None
-        ]
 
         def format_name(full_name: str | None) -> str:
             if not full_name:
@@ -135,9 +121,9 @@ class GetNearbyInstructorsUseCase:
                 return f"{parts[0]} {parts[-1]}"
             return full_name
 
-        # Montar resposta - instrutores com localização primeiro
+        # Montar resposta
         instructors = []
-        for profile in profiles_with_location:
+        for profile in profiles:
             location_dto = None
             distance = None
 
@@ -162,25 +148,6 @@ class GetNearbyInstructorsUseCase:
                     full_name=format_name(profile.full_name),
                     location=location_dto,
                     distance_km=round(distance, 2) if distance is not None else None,
-                )
-            )
-
-        # Adicionar instrutores SEM localização ao final
-        for profile in profiles_without_location:
-            instructors.append(
-                InstructorProfileResponseDTO(
-                    id=profile.id,
-                    user_id=profile.user_id,
-                    bio=profile.bio,
-                    vehicle_type=profile.vehicle_type,
-                    license_category=profile.license_category,
-                    hourly_rate=profile.hourly_rate,
-                    rating=profile.rating,
-                    total_reviews=profile.total_reviews,
-                    is_available=profile.is_available,
-                    full_name=format_name(profile.full_name),
-                    location=None,  # Sem localização
-                    distance_km=None,  # Distância desconhecida
                 )
             )
 

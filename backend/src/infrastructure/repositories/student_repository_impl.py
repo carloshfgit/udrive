@@ -26,7 +26,7 @@ class StudentRepositoryImpl(IStudentRepository):
         """Cria um novo perfil de aluno."""
         model = StudentProfileModel.from_entity(profile)
         self._session.add(model)
-        await self._session.commit()
+        await self._session.flush()
         await self._session.refresh(model)
         return model.to_entity()
 
@@ -67,7 +67,7 @@ class StudentRepositoryImpl(IStudentRepository):
         model.total_lessons = profile.total_lessons
         model.total_lessons = profile.total_lessons
 
-        await self._session.commit()
+        await self._session.flush()
         await self._session.refresh(model)
         return model.to_entity()
 
@@ -83,5 +83,5 @@ class StudentRepositoryImpl(IStudentRepository):
             return False
 
         await self._session.delete(model)
-        await self._session.commit()
+        await self._session.flush()
         return True

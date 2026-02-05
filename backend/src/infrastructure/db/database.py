@@ -8,7 +8,7 @@ Pool de conexões otimizado conforme PROJECT_GUIDELINES.md.
 from collections.abc import AsyncGenerator
 from typing import Annotated
 
-from fastapi import Depends
+from fastapi import Depends, Request
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
@@ -45,7 +45,7 @@ AsyncSessionLocal = async_sessionmaker(
 )
 
 
-async def get_db() -> AsyncGenerator[AsyncSession, None]:
+async def get_db(request: Request) -> AsyncGenerator[AsyncSession, None]:
     """
     Dependency que fornece uma sessão de banco de dados.
 
@@ -55,7 +55,9 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
     async with AsyncSessionLocal() as session:
         try:
             yield session
-            await session.commit()
+            # Commit apenas para métodos que alteram dados
+            if request.method in ("POST", "PUT", "PATCH", "DELETE"):
+                await session.commit()
         except Exception:
             await session.rollback()
             raise

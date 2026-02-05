@@ -6,8 +6,8 @@ Implementação concreta do repositório de instrutores com suporte a PostGIS.
 
 from uuid import UUID
 
-from sqlalchemy import func as geo_func, select, update
-from sqlalchemy.orm import joinedload
+from sqlalchemy import func as geo_func, select, update, or_
+from sqlalchemy.orm import joinedload, contains_eager
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.domain.entities.instructor_profile import InstructorProfile
@@ -44,7 +44,7 @@ class InstructorRepositoryImpl(IInstructorRepository):
         """Cria um novo perfil de instrutor."""
         model = InstructorProfileModel.from_entity(profile)
         self._session.add(model)
-        await self._session.commit()
+        await self._session.flush()
         await self._session.refresh(model)
         return self._model_to_entity(model)
 
@@ -92,7 +92,7 @@ class InstructorRepositoryImpl(IInstructorRepository):
         else:
             model.location = None
 
-        await self._session.commit()
+        await self._session.flush()
         await self._session.refresh(model)
         return self._model_to_entity(model)
 
@@ -108,7 +108,7 @@ class InstructorRepositoryImpl(IInstructorRepository):
             return False
 
         await self._session.delete(model)
-        await self._session.commit()
+        await self._session.flush()
         return True
 
     async def search_by_location(
@@ -134,8 +134,7 @@ class InstructorRepositoryImpl(IInstructorRepository):
             4326,
         )
 
-        # Query com busca espacial
-        # Fazendo join explícito se precisar filtrar por campos de User (como sex)
+        # Query com busca espacial e suporte a globais (sem localização)
         stmt = (
             select(
                 InstructorProfileModel,
@@ -147,18 +146,31 @@ class InstructorRepositoryImpl(IInstructorRepository):
                 geo_func.ST_Y(InstructorProfileModel.location).label("lat"),
             )
             .join(InstructorProfileModel.user)
-            .where(
-                InstructorProfileModel.location.isnot(None),
-                geo_func.ST_DWithin(
-                    geo_func.ST_Transform(InstructorProfileModel.location, 3857),
-                    geo_func.ST_Transform(center_point, 3857),
-                    radius_m,
-                ),
-            )
-            .options(joinedload(InstructorProfileModel.user))
-            .order_by("distance")
-            .limit(limit)
+            .options(contains_eager(InstructorProfileModel.user))
         )
+
+        # Filtro: (Dentro do raio) OU (Sem localização)
+        spatial_filter = geo_func.ST_DWithin(
+            geo_func.ST_Transform(InstructorProfileModel.location, 3857),
+            geo_func.ST_Transform(center_point, 3857),
+            radius_m,
+        )
+
+        stmt = stmt.where(
+            or_(
+                spatial_filter,
+                InstructorProfileModel.location.is_(None)
+            )
+        )
+
+        # Ordenação: Localizados primeiro, por distância; depois Sem Localização por rating
+        stmt = stmt.order_by(
+            InstructorProfileModel.location.is_(None).asc(),
+            "distance",
+            InstructorProfileModel.rating.desc()
+        )
+
+        stmt = stmt.limit(limit)
 
         if only_available:
             stmt = stmt.where(InstructorProfileModel.is_available.is_(True))
@@ -213,7 +225,7 @@ class InstructorRepositoryImpl(IInstructorRepository):
         )
 
         result = await self._session.execute(stmt)
-        await self._session.commit()
+        await self._session.flush()
 
         return result.rowcount > 0
 
@@ -232,7 +244,7 @@ class InstructorRepositoryImpl(IInstructorRepository):
             )
             .join(InstructorProfileModel.user)
             .where(InstructorProfileModel.is_available.is_(True))
-            .options(joinedload(InstructorProfileModel.user))
+            .options(contains_eager(InstructorProfileModel.user))
             .order_by(InstructorProfileModel.rating.desc())
             .limit(limit)
         )
