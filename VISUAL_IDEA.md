@@ -33,3 +33,5 @@ O aplicativo foi projetado com uma estética **Clean e Profissional**, utilizan
 
 - **Conceito**: Central de Configurações e Status.
 - **Elementos**: Resumo do perfil do aluno (nome e categoria pretendida), seguido por uma lista de opções de navegação (Pagamentos, Documentação, Ajuda). A **Barra de Navegação Inferior** (Tab Bar) é fixa nesta e em outras telas principais, permitindo o trânsito rápido entre as funções de busca, aprendizado e perfil.
+
+-
