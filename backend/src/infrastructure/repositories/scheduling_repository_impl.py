@@ -15,6 +15,7 @@ from src.domain.entities.scheduling import Scheduling
 from src.domain.entities.scheduling_status import SchedulingStatus
 from src.domain.interfaces.scheduling_repository import ISchedulingRepository
 from src.infrastructure.db.models.scheduling_model import SchedulingModel
+from src.core.helpers.timezone_utils import DEFAULT_TIMEZONE
 
 
 class SchedulingRepositoryImpl(ISchedulingRepository):
@@ -182,18 +183,24 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
         target_date: "date",
     ) -> Sequence[Scheduling]:
         """Lista agendamentos do instrutor para uma data específica."""
-        from datetime import datetime, timedelta
+        from datetime import datetime, timezone
 
-        # Início e fim do dia
-        start_of_day = datetime.combine(target_date, datetime.min.time())
-        end_of_day = datetime.combine(target_date, datetime.max.time())
+        # Criar datetime aware no timezone padrão (Brasília)
+        # 00:00:00 do dia alvo em SP
+        start_of_day_local = datetime.combine(target_date, datetime.min.time(), tzinfo=DEFAULT_TIMEZONE)
+        # 23:59:59.999999 do dia alvo em SP
+        end_of_day_local = datetime.combine(target_date, datetime.max.time(), tzinfo=DEFAULT_TIMEZONE)
+
+        # Converter para UTC para consulta no banco
+        start_of_day_utc = start_of_day_local.astimezone(timezone.utc)
+        end_of_day_utc = end_of_day_local.astimezone(timezone.utc)
 
         stmt = (
             select(SchedulingModel)
             .where(
                 SchedulingModel.instructor_id == instructor_id,
-                SchedulingModel.scheduled_datetime >= start_of_day,
-                SchedulingModel.scheduled_datetime <= end_of_day,
+                SchedulingModel.scheduled_datetime >= start_of_day_utc,
+                SchedulingModel.scheduled_datetime <= end_of_day_utc,
             )
             .order_by(SchedulingModel.scheduled_datetime.asc())
         )
@@ -209,24 +216,37 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
     ) -> Sequence["date"]:
         """Retorna lista de datas únicas com agendamentos no mês."""
         from calendar import monthrange
-        from datetime import date, datetime
+        from datetime import datetime, timezone
 
-        # Primeiro e último dia do mês
-        first_day = datetime(year, month, 1)
+        # Definir limites do mês no timezone local (Brasília)
+        # Dia 1 00:00:00 BRT
+        first_day_local = datetime(year, month, 1, 0, 0, 0, tzinfo=DEFAULT_TIMEZONE)
+        
         last_day_num = monthrange(year, month)[1]
-        last_day = datetime(year, month, last_day_num, 23, 59, 59)
+        # Último dia 23:59:59 BRT
+        last_day_local = datetime(year, month, last_day_num, 23, 59, 59, tzinfo=DEFAULT_TIMEZONE)
 
-        # Buscar datas distintas com agendamentos não cancelados
+        # Converter limites para UTC para o filtro WHERE (performance)
+        first_day_utc = first_day_local.astimezone(timezone.utc)
+        last_day_utc = last_day_local.astimezone(timezone.utc)
+
+        # Para extrair a data correta, precisamos converter o timestamp do banco (UTC)
+        # para o timezone local (BRT) ANTES de extrair a data.
+        # Postgres: timezone('America/Sao_Paulo', scheduled_datetime)
+        
+        # O campo é timestamptz. timezone('Zone', timestamptz) retorna timestamp (naive) naquele timezone.
+        local_ts = func.timezone(DEFAULT_TIMEZONE.key, SchedulingModel.scheduled_datetime)
+        
         stmt = (
-            select(func.date(SchedulingModel.scheduled_datetime).label("date"))
+            select(func.date(local_ts).label("date"))
             .where(
                 SchedulingModel.instructor_id == instructor_id,
-                SchedulingModel.scheduled_datetime >= first_day,
-                SchedulingModel.scheduled_datetime <= last_day,
+                SchedulingModel.scheduled_datetime >= first_day_utc,
+                SchedulingModel.scheduled_datetime <= last_day_utc,
                 SchedulingModel.status != SchedulingStatus.CANCELLED,
             )
             .distinct()
-            .order_by(func.date(SchedulingModel.scheduled_datetime))
+            .order_by(func.date(local_ts))
         )
 
         result = await self._session.execute(stmt)
