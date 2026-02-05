@@ -28,8 +28,14 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
         model = SchedulingModel.from_entity(scheduling)
         self._session.add(model)
         await self._session.commit()
-        await self._session.refresh(model)
-        return model.to_entity()
+        
+        # Reload with relationships to avoid MissingGreenlet error
+        # during to_entity() conversion (which accesses .student/.instructor)
+        created = await self.get_by_id(model.id)
+        if not created:
+            # Should not happen after commit
+            return model.to_entity()
+        return created
 
     async def get_by_id(self, scheduling_id: UUID) -> Scheduling | None:
         stmt = (
