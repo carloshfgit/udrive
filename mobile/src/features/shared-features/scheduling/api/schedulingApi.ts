@@ -57,6 +57,14 @@ export interface BookingResponse {
     instructor_name?: string;
 }
 
+export interface SchedulingListResponse {
+    schedulings: BookingResponse[];
+    total_count: number;
+    limit: number;
+    offset: number;
+    has_more: boolean;
+}
+
 // === Funções de API ===
 
 /**
@@ -100,6 +108,27 @@ export async function createBooking(
     const response = await api.post<BookingResponse>(
         `${STUDENT_API}/lessons`,
         data
+    );
+    return response.data;
+}
+
+/**
+ * Busca a lista de agendamentos do aluno logado.
+ */
+export async function getStudentSchedulings(
+    status?: string,
+    page: number = 1,
+    limit: number = 10
+): Promise<SchedulingListResponse> {
+    const response = await api.get<SchedulingListResponse>(
+        `${STUDENT_API}/lessons`,
+        {
+            params: {
+                status_filter: status,
+                page,
+                limit,
+            },
+        }
     );
     return response.data;
 }

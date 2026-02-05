@@ -5,3 +5,4 @@
 export * from './CalendarPicker';
 export * from './TimeSlotPicker';
 export * from './BookingSummary';
+export * from './StudentLessonCard';

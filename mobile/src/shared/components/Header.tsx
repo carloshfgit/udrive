@@ -14,6 +14,8 @@ interface HeaderProps {
     onBack?: () => void;
     /** Mostrar botão voltar */
     showBack?: boolean;
+    /** Botão/Elemento à direita */
+    rightElement?: React.ReactNode;
     /** Estilo customizado */
     style?: ViewStyle;
 }
@@ -22,6 +24,7 @@ export function Header({
     title,
     onBack,
     showBack = true,
+    rightElement,
     style,
 }: HeaderProps) {
     return (
@@ -42,8 +45,11 @@ export function Header({
 
             <Text style={styles.title}>{title}</Text>
 
-            {/* Placeholder para manter o título centralizado */}
-            <View style={styles.placeholder} />
+            {rightElement ? (
+                <View style={styles.placeholder}>{rightElement}</View>
+            ) : (
+                <View style={styles.placeholder} />
+            )}
         </View>
     );
 }

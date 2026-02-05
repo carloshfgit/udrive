@@ -301,7 +301,7 @@ As imagens de referência estabelecem um padrão visual consistente que deve ser
   - Nome e foto do instrutor
   - Localização com link para mapa
   - Status (confirmada, pendente, concluída, cancelada)
-  - Ações: cancelar, reagendar, avaliar
+  - Ações: cancelar, avaliar
 
 ### Etapa M5.2: Detalhes da Aula
 
