@@ -58,6 +58,19 @@ class IInstructorRepository(ABC):
         ...
 
     @abstractmethod
+    async def get_public_profile_by_user_id(self, user_id: UUID) -> InstructorProfile | None:
+        """
+        Busca apenas dados públicos do perfil do instrutor.
+
+        Args:
+            user_id: ID do usuário associado.
+
+        Returns:
+            Perfil encontrado ou None.
+        """
+        ...
+
+    @abstractmethod
     async def update(self, profile: InstructorProfile) -> InstructorProfile:
         """
         Atualiza um perfil existente.

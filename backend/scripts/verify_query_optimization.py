@@ -92,12 +92,26 @@ def verify_query():
     
     status, body = make_request("GET", f"{API_URL}/api/v1/student/instructors/search?{params}", None, headers)
     
-    if status == 200:
-        print("Search successful (200 OK). Query executed.")
-        return True
-    else:
+    if status != 200:
         print(f"Search failed: {status} {body}")
         return False
+    
+    print("Search successful (200 OK). Query executed.")
+    
+    data = json.loads(body)
+    if data["instructors"]:
+        instructor_id = data["instructors"][0]["user_id"]
+        print(f"Triggering Detail for instructor {instructor_id}...")
+        status, body = make_request("GET", f"{API_URL}/api/v1/shared/instructors/{instructor_id}", None, headers)
+        if status == 200:
+            print("Detail successful (200 OK). Query executed.")
+        else:
+            print(f"Detail failed: {status} {body}")
+            return False
+    else:
+        print("No instructors found in search, skipping detail check.")
+
+    return True
 
 if __name__ == "__main__":
     success = verify_query()

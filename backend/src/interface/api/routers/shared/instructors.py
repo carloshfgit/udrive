@@ -11,7 +11,7 @@ from uuid import UUID
 from fastapi import APIRouter, HTTPException, Query, status
 from pydantic import BaseModel
 
-from src.interface.api.dependencies import AvailabilityRepo, InstructorRepo, UserRepo
+from src.interface.api.dependencies import AvailabilityRepo, InstructorRepo
 from src.interface.api.schemas.scheduling_schemas import AvailabilityListResponse, AvailabilityResponse
 
 router = APIRouter(prefix="/instructors", tags=["Shared - Instructors"])
@@ -103,19 +103,16 @@ async def list_instructor_availability(
 async def get_instructor_by_id(
     instructor_id: UUID,
     instructor_repo: InstructorRepo,
-    user_repo: UserRepo,
 ) -> InstructorDetailResponse:
     """Obtém detalhes públicos de um instrutor."""
-    instructor = await instructor_repo.get_by_user_id(instructor_id)
+    instructor = await instructor_repo.get_public_profile_by_user_id(instructor_id)
     if instructor is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Instrutor não encontrado",
         )
 
-    # Buscar nome do usuário
-    user = await user_repo.get_by_id(instructor_id)
-    user_name = user.full_name if user else "Instrutor"
+    user_name = instructor.full_name or "Instrutor"
 
     location = None
     if instructor.location:

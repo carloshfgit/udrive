@@ -141,7 +141,7 @@ async def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         ) from None
 
-    user = await user_repo.get_by_id(user_id)
+    user = await user_repo.get_essential_by_id(user_id)
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

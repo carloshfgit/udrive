@@ -44,6 +44,18 @@ class IUserRepository(Protocol):
         """
         ...
 
+    async def get_essential_by_id(self, user_id: UUID) -> User | None:
+        """
+        Busca apenas campos essenciais do usuário por ID (sem senha).
+
+        Args:
+            user_id: UUID do usuário.
+
+        Returns:
+            User | None: Usuário encontrado ou None.
+        """
+        ...
+
     async def get_by_email(self, email: str) -> User | None:
         """
         Busca usuário por email.

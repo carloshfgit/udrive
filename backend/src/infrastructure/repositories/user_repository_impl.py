@@ -7,6 +7,7 @@ Implementação concreta do repositório de usuários usando SQLAlchemy.
 from uuid import UUID
 
 from sqlalchemy import select
+from sqlalchemy.orm import load_only
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.domain.entities.user import User
@@ -56,6 +57,35 @@ class UserRepositoryImpl:
             User | None: Usuário encontrado ou None.
         """
         stmt = select(UserModel).where(UserModel.id == user_id)
+        result = await self._session.execute(stmt)
+        model = result.scalar_one_or_none()
+        return model.to_entity() if model else None
+
+    async def get_essential_by_id(self, user_id: UUID) -> User | None:
+        """
+        Busca apenas campos essenciais do usuário por ID (sem senha).
+        """
+        stmt = (
+            select(UserModel)
+            .where(UserModel.id == user_id)
+            .options(
+                load_only(
+                    UserModel.id,
+                    UserModel.email,
+                    UserModel.hashed_password,
+                    UserModel.full_name,
+                    UserModel.user_type,
+                    UserModel.is_active,
+                    UserModel.is_verified,
+                    UserModel.phone,
+                    UserModel.cpf,
+                    UserModel.birth_date,
+                    UserModel.biological_sex,
+                    UserModel.created_at,
+                    UserModel.updated_at,
+                )
+            )
+        )
         result = await self._session.execute(stmt)
         model = result.scalar_one_or_none()
         return model.to_entity() if model else None

@@ -7,13 +7,14 @@ Implementação concreta do repositório de instrutores com suporte a PostGIS.
 from uuid import UUID
 
 from sqlalchemy import func as geo_func, select, update, or_
-from sqlalchemy.orm import joinedload, contains_eager
+from sqlalchemy.orm import joinedload, contains_eager, load_only
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.domain.entities.instructor_profile import InstructorProfile
 from src.domain.entities.location import Location
 from src.domain.interfaces.instructor_repository import IInstructorRepository
 from src.infrastructure.db.models.instructor_profile_model import InstructorProfileModel
+from src.infrastructure.db.models.user_model import UserModel
 
 
 # Mapeamento de valores de gênero (frontend -> banco)
@@ -65,6 +66,59 @@ class InstructorRepositoryImpl(IInstructorRepository):
         result = await self._session.execute(stmt)
         model = result.scalar_one_or_none()
         return self._model_to_entity(model) if model else None
+
+    async def get_public_profile_by_user_id(self, user_id: UUID) -> InstructorProfile | None:
+        """Busca apenas dados públicos do perfil do instrutor."""
+        stmt = (
+            select(
+                InstructorProfileModel,
+                geo_func.ST_X(InstructorProfileModel.location).label("lon"),
+                geo_func.ST_Y(InstructorProfileModel.location).label("lat"),
+            )
+            .join(InstructorProfileModel.user)
+            .where(InstructorProfileModel.user_id == user_id)
+            .options(
+                contains_eager(InstructorProfileModel.user).load_only(
+                    UserModel.id, UserModel.full_name, UserModel.biological_sex
+                ),
+                load_only(
+                    InstructorProfileModel.id,
+                    InstructorProfileModel.user_id,
+                    InstructorProfileModel.bio,
+                    InstructorProfileModel.hourly_rate,
+                    InstructorProfileModel.rating,
+                    InstructorProfileModel.total_reviews,
+                    InstructorProfileModel.vehicle_type,
+                    InstructorProfileModel.license_category,
+                    InstructorProfileModel.is_available,
+                    InstructorProfileModel.created_at,
+                    InstructorProfileModel.updated_at,
+                ),
+            )
+        )
+        result = await self._session.execute(stmt)
+        row = result.first()
+        
+        if row:
+            model = row[0]
+            profile = InstructorProfile(
+                id=model.id,
+                user_id=model.user_id,
+                bio=model.bio,
+                vehicle_type=model.vehicle_type,
+                license_category=model.license_category,
+                hourly_rate=model.hourly_rate,
+                location=Location(latitude=row.lat, longitude=row.lon) if row.lat and row.lon else None,
+                rating=float(model.rating),
+                total_reviews=model.total_reviews,
+                is_available=model.is_available,
+                full_name=model.user.full_name if model.user else None,
+                biological_sex=model.user.biological_sex if model.user else None,
+                created_at=model.created_at,
+                updated_at=model.updated_at,
+            )
+            return profile
+        return None
 
     async def update(self, profile: InstructorProfile) -> InstructorProfile:
         """Atualiza um perfil existente."""
@@ -146,7 +200,23 @@ class InstructorRepositoryImpl(IInstructorRepository):
                 geo_func.ST_Y(InstructorProfileModel.location).label("lat"),
             )
             .join(InstructorProfileModel.user)
-            .options(contains_eager(InstructorProfileModel.user))
+            .options(
+                contains_eager(InstructorProfileModel.user).load_only(
+                    UserModel.id, UserModel.full_name, UserModel.biological_sex
+                ),
+                load_only(
+                    InstructorProfileModel.id,
+                    InstructorProfileModel.user_id,
+                    InstructorProfileModel.hourly_rate,
+                    InstructorProfileModel.rating,
+                    InstructorProfileModel.total_reviews,
+                    InstructorProfileModel.vehicle_type,
+                    InstructorProfileModel.license_category,
+                    InstructorProfileModel.is_available,
+                    InstructorProfileModel.created_at,
+                    InstructorProfileModel.updated_at,
+                ),
+            )
         )
 
         # Filtro: (Dentro do raio) OU (Sem localização)
@@ -178,7 +248,6 @@ class InstructorRepositoryImpl(IInstructorRepository):
         if biological_sex:
             # Normalizar valor de gênero do frontend para formato do banco
             normalized_sex = _normalize_gender(biological_sex)
-            from src.infrastructure.db.models.user_model import UserModel
             stmt = stmt.where(UserModel.biological_sex == normalized_sex)
 
         if license_category:
@@ -197,7 +266,6 @@ class InstructorRepositoryImpl(IInstructorRepository):
             profile = InstructorProfile(
                 id=model.id,
                 user_id=model.user_id,
-                bio=model.bio,
                 vehicle_type=model.vehicle_type,
                 license_category=model.license_category,
                 hourly_rate=model.hourly_rate,
@@ -207,6 +275,7 @@ class InstructorRepositoryImpl(IInstructorRepository):
                 is_available=model.is_available,
                 full_name=model.user.full_name if model.user else None,
                 biological_sex=model.user.biological_sex if model.user else None,
+                bio="",  # Bio não é essencial na lista de busca
                 created_at=model.created_at,
                 updated_at=model.updated_at,
             )
@@ -244,7 +313,23 @@ class InstructorRepositoryImpl(IInstructorRepository):
             )
             .join(InstructorProfileModel.user)
             .where(InstructorProfileModel.is_available.is_(True))
-            .options(contains_eager(InstructorProfileModel.user))
+            .options(
+                contains_eager(InstructorProfileModel.user).load_only(
+                    UserModel.id, UserModel.full_name, UserModel.biological_sex
+                ),
+                load_only(
+                    InstructorProfileModel.id,
+                    InstructorProfileModel.user_id,
+                    InstructorProfileModel.hourly_rate,
+                    InstructorProfileModel.rating,
+                    InstructorProfileModel.total_reviews,
+                    InstructorProfileModel.vehicle_type,
+                    InstructorProfileModel.license_category,
+                    InstructorProfileModel.is_available,
+                    InstructorProfileModel.created_at,
+                    InstructorProfileModel.updated_at,
+                ),
+            )
             .order_by(InstructorProfileModel.rating.desc())
             .limit(limit)
         )
@@ -252,7 +337,6 @@ class InstructorRepositoryImpl(IInstructorRepository):
         if biological_sex:
             # Normalizar valor de gênero do frontend para formato do banco
             normalized_sex = _normalize_gender(biological_sex)
-            from src.infrastructure.db.models.user_model import UserModel
             stmt = stmt.where(UserModel.biological_sex == normalized_sex)
 
         if license_category:
@@ -270,7 +354,6 @@ class InstructorRepositoryImpl(IInstructorRepository):
             profile = InstructorProfile(
                 id=model.id,
                 user_id=model.user_id,
-                bio=model.bio,
                 vehicle_type=model.vehicle_type,
                 license_category=model.license_category,
                 hourly_rate=model.hourly_rate,
@@ -279,6 +362,8 @@ class InstructorRepositoryImpl(IInstructorRepository):
                 total_reviews=model.total_reviews,
                 is_available=model.is_available,
                 full_name=model.user.full_name if model.user else None,
+                biological_sex=model.user.biological_sex if model.user else None,
+                bio="",  # Bio não é essencial na lista de busca
                 created_at=model.created_at,
                 updated_at=model.updated_at,
             )
