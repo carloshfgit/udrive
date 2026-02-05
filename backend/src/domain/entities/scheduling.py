@@ -67,7 +67,13 @@ class Scheduling:
             Percentual de reembolso (0-100).
         """
         now = datetime.now(timezone.utc)
-        time_until_lesson = self.scheduled_datetime - now
+        if self.scheduled_datetime.tzinfo is None:
+            # Se for naive, assume UTC (convenção do projeto)
+            lesson_datetime = self.scheduled_datetime.replace(tzinfo=timezone.utc)
+        else:
+            lesson_datetime = self.scheduled_datetime
+
+        time_until_lesson = lesson_datetime - now
         hours_until_lesson = time_until_lesson.total_seconds() / 3600
 
         if hours_until_lesson > 24:

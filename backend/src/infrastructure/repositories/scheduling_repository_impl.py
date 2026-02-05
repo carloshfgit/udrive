@@ -63,8 +63,11 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
 
         # Commit da transação
         await self._session.commit()
-        await self._session.refresh(model)
-        return model.to_entity()
+        
+        # Recarregar o modelo com os relacionamentos necessários para to_entity()
+        # Não usamos refresh() simples pois precisamos dos relacionamentos
+        # O padrão é buscar novamente com as options
+        return (await self.get_by_id(scheduling.id)) or model.to_entity()
 
     async def delete(self, scheduling_id: UUID) -> bool:
         """Remove um agendamento."""
