@@ -85,6 +85,29 @@ async def list_schedule_by_date(
         has_more=False,
     )
 
+@router.get(
+    "/dates-with-schedulings",
+    summary="Listar datas com aulas",
+    description="Retorna lista de datas que possuem agendamentos no mês.",
+)
+async def get_scheduling_dates(
+    current_user: CurrentInstructor,
+    scheduling_repo: SchedulingRepo,
+    year: int = Query(..., ge=2020, le=2050, description="Ano"),
+    month: int = Query(..., ge=1, le=12, description="Mês (1-12)"),
+) -> dict:
+    """Lista datas com agendamentos no mês."""
+    dates = await scheduling_repo.get_scheduling_dates_for_month(
+        instructor_id=current_user.id,
+        year=year,
+        month=month,
+    )
+    return {
+        "dates": [d.isoformat() for d in dates],
+        "year": year,
+        "month": month,
+    }
+
 
 @router.get(
     "/{scheduling_id}",
@@ -230,28 +253,3 @@ async def cancel_scheduling(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
         )
-
-
-@router.get(
-    "/dates-with-schedulings",
-    summary="Listar datas com aulas",
-    description="Retorna lista de datas que possuem agendamentos no mês.",
-)
-async def get_scheduling_dates(
-    current_user: CurrentInstructor,
-    scheduling_repo: SchedulingRepo,
-    year: int = Query(..., ge=2020, le=2050, description="Ano"),
-    month: int = Query(..., ge=1, le=12, description="Mês (1-12)"),
-) -> dict:
-    """Lista datas com agendamentos no mês."""
-    dates = await scheduling_repo.get_scheduling_dates_for_month(
-        instructor_id=current_user.id,
-        year=year,
-        month=month,
-    )
-    return {
-        "dates": [d.isoformat() for d in dates],
-        "year": year,
-        "month": month,
-    }
-
