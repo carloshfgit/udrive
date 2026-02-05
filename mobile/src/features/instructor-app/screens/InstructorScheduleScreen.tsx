@@ -342,9 +342,10 @@ export function InstructorScheduleScreen() {
         try {
             await confirmMutation.mutateAsync(id);
             Alert.alert('Sucesso', 'Aula confirmada!');
-        } catch (error) {
+        } catch (error: any) {
             console.error('[InstructorScheduleScreen] Confirm error:', error);
-            Alert.alert('Erro', 'Não foi possível confirmar a aula.');
+            const message = error?.response?.data?.detail || 'Não foi possível confirmar a aula.';
+            Alert.alert('Erro', message);
         } finally {
             setConfirmingId(null);
         }
@@ -356,9 +357,10 @@ export function InstructorScheduleScreen() {
         try {
             await completeMutation.mutateAsync(id);
             Alert.alert('Sucesso', 'Aula marcada como concluída!');
-        } catch (error) {
+        } catch (error: any) {
             console.error('[InstructorScheduleScreen] Complete error:', error);
-            Alert.alert('Erro', 'Não foi possível concluir a aula.');
+            const message = error?.response?.data?.detail || 'Não foi possível concluir a aula.';
+            Alert.alert('Erro', message);
         } finally {
             setCompletingId(null);
         }
@@ -370,9 +372,10 @@ export function InstructorScheduleScreen() {
         try {
             await cancelMutation.mutateAsync({ schedulingId: id });
             Alert.alert('Sucesso', 'Aula cancelada!');
-        } catch (error) {
+        } catch (error: any) {
             console.error('[InstructorScheduleScreen] Cancel error:', error);
-            Alert.alert('Erro', 'Não foi possível cancelar a aula.');
+            const message = error?.response?.data?.detail || 'Não foi possível cancelar a aula.';
+            Alert.alert('Erro', message);
         } finally {
             setCancellingId(null);
         }

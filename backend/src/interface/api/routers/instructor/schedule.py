@@ -9,7 +9,11 @@ from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Query, status
 
-from src.application.dtos.scheduling_dtos import CancelSchedulingDTO
+from src.application.dtos.scheduling_dtos import (
+    CancelSchedulingDTO,
+    CompleteSchedulingDTO,
+    ConfirmSchedulingDTO,
+)
 from src.application.use_cases.scheduling import (
     CancelSchedulingUseCase,
     CompleteSchedulingUseCase,
@@ -165,7 +169,6 @@ async def confirm_scheduling(
         )
 
     use_case = ConfirmSchedulingUseCase(scheduling_repo, user_repo)
-    from src.application.dtos.scheduling_dtos import ConfirmSchedulingDTO
     dto = ConfirmSchedulingDTO(
         scheduling_id=scheduling_id,
         instructor_id=current_user.id,
@@ -184,6 +187,7 @@ async def complete_scheduling(
     scheduling_id: UUID,
     current_user: CurrentInstructor,
     scheduling_repo: SchedulingRepo,
+    user_repo: UserRepo,
 ) -> SchedulingResponse:
     """Marca um agendamento como concluído."""
     # Verificar permissão
@@ -200,8 +204,12 @@ async def complete_scheduling(
             detail="Apenas o instrutor pode concluir",
         )
 
-    use_case = CompleteSchedulingUseCase(scheduling_repo)
-    result = await use_case.execute(scheduling_id)
+    use_case = CompleteSchedulingUseCase(scheduling_repo, user_repo)
+    dto = CompleteSchedulingDTO(
+        scheduling_id=scheduling_id,
+        instructor_id=current_user.id,
+    )
+    result = await use_case.execute(dto)
     return SchedulingResponse.model_validate(result)
 
 

@@ -11,6 +11,7 @@ from src.application.dtos.scheduling_dtos import CompleteSchedulingDTO, Scheduli
 from src.domain.entities.scheduling_status import SchedulingStatus
 from src.domain.exceptions import (
     InvalidSchedulingStateException,
+    LessonNotFinishedException,
     SchedulingNotFoundException,
     UserNotFoundException,
 )
@@ -69,12 +70,20 @@ class CompleteSchedulingUseCase:
             )
 
         # 4. Validar que a aula já terminou
-        now = datetime.utcnow()
-        if now < scheduling.lesson_end_datetime:
-            raise InvalidSchedulingStateException(
-                current_state="aula ainda não terminou",
-                expected_state="aula concluída"
-            )
+        from datetime import timezone
+        from src.core.helpers.timezone_utils import DEFAULT_TIMEZONE
+        
+        now = datetime.now(timezone.utc)
+        lesson_end = scheduling.lesson_end_datetime
+        
+        # Garantir que lesson_end seja aware
+        if lesson_end.tzinfo is None:
+            lesson_end = lesson_end.replace(tzinfo=timezone.utc)
+
+        if now < lesson_end:
+            # Converter para horário local para a mensagem ficar amigável (Brasília)
+            local_end = lesson_end.astimezone(DEFAULT_TIMEZONE)
+            raise LessonNotFinishedException(local_end.strftime("%H:%M"))
 
         # 5. Completar
         scheduling.complete()

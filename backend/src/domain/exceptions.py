@@ -189,6 +189,16 @@ class InvalidSchedulingStateException(DomainException):
         super().__init__(message, "INVALID_SCHEDULING_STATE")
 
 
+class LessonNotFinishedException(DomainException):
+    """Exceção lançada quando tenta concluir uma aula que ainda não acabou."""
+
+    def __init__(self, end_time: str) -> None:
+        super().__init__(
+            f"A aula ainda não terminou. Você só poderá concluí-la após o horário de término previsto ({end_time}).",
+            "LESSON_NOT_FINISHED"
+        )
+
+
 # === Availability Exceptions ===
 
 

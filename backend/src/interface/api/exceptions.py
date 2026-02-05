@@ -17,6 +17,9 @@ from src.domain.exceptions import (
     UserAlreadyExistsException,
     UserInactiveException,
     UserNotFoundException,
+    InvalidSchedulingStateException,
+    LessonNotFinishedException,
+    SchedulingNotFoundException,
 )
 
 
@@ -97,7 +100,18 @@ async def token_revoked_handler(
 async def domain_exception_handler(
     request: Request, exc: DomainException
 ) -> JSONResponse:
-    """Handler genérico para exceções de domínio não tratadas → 400."""
+    """Handler genérico para exceções de domínio → 400.
+    Logamos o erro para visibilidade no terminal.
+    """
+    import structlog
+    logger = structlog.get_logger()
+    logger.warning(
+        "domain_exception",
+        path=request.url.path,
+        exception=exc.__class__.__name__,
+        message=str(exc),
+        code=exc.code
+    )
     return JSONResponse(
         status_code=status.HTTP_400_BAD_REQUEST,
         content={"detail": str(exc), "code": exc.code},
@@ -113,5 +127,8 @@ EXCEPTION_HANDLERS = {
     InvalidTokenException: invalid_token_handler,
     TokenExpiredException: token_expired_handler,
     TokenRevokedException: token_revoked_handler,
+    LessonNotFinishedException: domain_exception_handler,
+    InvalidSchedulingStateException: domain_exception_handler,
+    SchedulingNotFoundException: domain_exception_handler,
     DomainException: domain_exception_handler,
 }

@@ -41,7 +41,7 @@ class Scheduling:
     cancelled_at: datetime | None = None
     completed_at: datetime | None = None
     id: UUID = field(default_factory=uuid4)
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime | None = None
     student_name: str | None = None
     instructor_name: str | None = None
@@ -108,8 +108,13 @@ class Scheduling:
         if self.status != SchedulingStatus.CONFIRMED:
             return False
 
-        now = datetime.utcnow()
-        lesson_end = self.scheduled_datetime + timedelta(minutes=self.duration_minutes)
+        now = datetime.now(timezone.utc)
+        lesson_end = self.lesson_end_datetime
+        
+        # Garantir que lesson_end seja aware para comparação
+        if lesson_end.tzinfo is None:
+            lesson_end = lesson_end.replace(tzinfo=timezone.utc)
+        
         return now >= lesson_end
 
     def cancel(self, cancelled_by: UUID, reason: str | None = None) -> None:
@@ -131,8 +136,8 @@ class Scheduling:
         self.status = SchedulingStatus.CANCELLED
         self.cancelled_by = cancelled_by
         self.cancellation_reason = reason
-        self.cancelled_at = datetime.utcnow()
-        self.updated_at = datetime.utcnow()
+        self.cancelled_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(timezone.utc)
 
     def confirm(self) -> None:
         """
@@ -147,7 +152,7 @@ class Scheduling:
             )
 
         self.status = SchedulingStatus.CONFIRMED
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
 
     def complete(self) -> None:
         """
@@ -158,12 +163,12 @@ class Scheduling:
         """
         if not self.can_complete():
             raise ValueError(
-                f"Agendamento não pode ser concluído. Status: {self.status}"
+                f"Agendamento não pode ser concluído. Verifique se o status é CONFIRMED e se a aula já terminou. Status atual: {self.status}"
             )
 
         self.status = SchedulingStatus.COMPLETED
-        self.completed_at = datetime.utcnow()
-        self.updated_at = datetime.utcnow()
+        self.completed_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(timezone.utc)
 
     @property
     def is_pending(self) -> bool:
