@@ -111,3 +111,5 @@ logs/
 *.tmp
 *.temp
 .cache/
+
+create_admin.py
