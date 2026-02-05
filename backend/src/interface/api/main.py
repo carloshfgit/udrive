@@ -8,8 +8,11 @@ import structlog
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi.errors import RateLimitExceeded
+from starlette.middleware.sessions import SessionMiddleware
 
 from src.infrastructure.config import settings
+from src.infrastructure.db.database import engine
+from src.interface.admin import setup_admin
 from src.interface.api.exceptions import EXCEPTION_HANDLERS
 from src.interface.api.middleware.rate_limit import limiter, rate_limit_exceeded_handler
 from src.interface.api.middleware.security import SecurityHeadersMiddleware
@@ -52,6 +55,9 @@ app = FastAPI(
 # 1. Headers de segurança (executado por último na resposta)
 app.add_middleware(SecurityHeadersMiddleware)
 
+# 2. Session Middleware (necessário para o SQLAdmin)
+app.add_middleware(SessionMiddleware, secret_key=settings.jwt_secret_key)
+
 # 2. CORS (deve vir antes de outros middlewares)
 app.add_middleware(
     CORSMiddleware,
@@ -86,6 +92,13 @@ app.include_router(auth.router)
 app.include_router(student.router, prefix="/api/v1/student", tags=["Student"])
 app.include_router(instructor.router, prefix="/api/v1/instructor", tags=["Instructor"])
 app.include_router(shared.router, prefix="/api/v1/shared", tags=["Shared"])
+
+
+# =============================================================================
+# Admin Interface
+# =============================================================================
+
+setup_admin(app, engine)
 
 
 # =============================================================================

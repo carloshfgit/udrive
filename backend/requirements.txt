@@ -46,3 +46,7 @@ passlib[bcrypt]>=1.7.4
 
 # Financial
 stripe>=8.1.0
+
+# Admin
+sqladmin[full]>=0.16.0
+itsdangerous>=2.1.2

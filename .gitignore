@@ -32,6 +32,7 @@ venv/
 ENV/
 env/
 
+
 # pytest
 .pytest_cache/
 .coverage
@@ -79,6 +80,7 @@ web-build/
 .env.test.local
 .env.production.local
 *.local
+backend/src/infrastructure/config.py
 
 # ----------------------------------------
 # IDEs and Editors

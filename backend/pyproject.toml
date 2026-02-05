@@ -27,6 +27,8 @@ dependencies = [
     "structlog>=24.1.0",
     "httpx>=0.26.0",
     "stripe>=8.1.0",
+    "sqladmin[full]>=0.16.0",
+    "itsdangerous>=2.1.2",
 ]
 
 [project.optional-dependencies]
