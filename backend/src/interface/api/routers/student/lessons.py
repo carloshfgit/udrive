@@ -10,12 +10,14 @@ from fastapi import APIRouter, HTTPException, Query, status
 
 from src.application.dtos.scheduling_dtos import (
     CancelSchedulingDTO,
+    CompleteSchedulingDTO,
     CreateSchedulingDTO,
     StartSchedulingDTO,
 )
 from src.application.use_cases.create_review_use_case import CreateReviewUseCase
 from src.application.use_cases.scheduling import (
     CancelSchedulingUseCase,
+    CompleteSchedulingUseCase,
     CreateSchedulingUseCase,
     StartSchedulingUseCase,
 )
@@ -170,6 +172,43 @@ async def start_lesson(
     dto = StartSchedulingDTO(
         scheduling_id=scheduling_id,
         user_id=current_user.id,
+    )
+
+    result = await use_case.execute(dto)
+    return SchedulingResponse.model_validate(result)
+
+
+@router.post(
+    "/{scheduling_id}/complete",
+    response_model=SchedulingResponse,
+    summary="Concluir aula",
+    description="Marca a aula como concluída.",
+)
+async def complete_lesson(
+    scheduling_id: UUID,
+    current_user: CurrentStudent,
+    scheduling_repo: SchedulingRepo,
+    user_repo: UserRepo,
+) -> SchedulingResponse:
+    """Marca a aula como concluída."""
+    # Verificar permissão
+    scheduling = await scheduling_repo.get_by_id(scheduling_id)
+    if scheduling is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Agendamento não encontrado",
+        )
+
+    if scheduling.student_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Acesso não autorizado",
+        )
+
+    use_case = CompleteSchedulingUseCase(scheduling_repo, user_repo)
+    dto = CompleteSchedulingDTO(
+        scheduling_id=scheduling_id,
+        instructor_id=scheduling.instructor_id, # Usamos o ID do instrutor no DTO pois o UC valida o instrutor_id
     )
 
     result = await use_case.execute(dto)

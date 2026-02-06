@@ -1,21 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getStudentSchedulings, startBooking, completeBooking, cancelBooking } from '../api/schedulingApi';
+import { getStudentSchedulings, startBooking, completeBooking, cancelBooking, getBooking } from '../api/schedulingApi';
 
 export function useLessonDetails(schedulingId: string) {
     const queryClient = useQueryClient();
 
     const { data, isLoading, isError, refetch } = useQuery({
         queryKey: ['scheduling', schedulingId],
-        queryFn: async () => {
-            const response = await getStudentSchedulings();
-            const found = response.schedulings.find(s => s.id === schedulingId);
-            if (!found) {
-                // Try history if not found in active lessons
-                // (Optional, but good for robust navigation)
-            }
-            if (!found) throw new Error('Agendamento não encontrado');
-            return found;
-        }
+        queryFn: () => getBooking(schedulingId)
     });
 
     const startMutation = useMutation({

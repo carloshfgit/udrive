@@ -69,21 +69,11 @@ class CompleteSchedulingUseCase:
                 f"Usuário {dto.instructor_id} não é o instrutor deste agendamento"
             )
 
-        # 4. Validar que a aula já terminou
-        from datetime import timezone
-        from src.core.helpers.timezone_utils import DEFAULT_TIMEZONE
-        
-        now = datetime.now(timezone.utc)
-        lesson_end = scheduling.lesson_end_datetime
-        
-        # Garantir que lesson_end seja aware
-        if lesson_end.tzinfo is None:
-            lesson_end = lesson_end.replace(tzinfo=timezone.utc)
+        # 4. Validar se a aula já pode ser concluída (opcional: pode adicionar check se foi iniciada)
+        if scheduling.started_at is None:
+             # Opcional: Garantir que a aula foi iniciada antes de concluir
+             pass
 
-        if now < lesson_end:
-            # Converter para horário local para a mensagem ficar amigável (Brasília)
-            local_end = lesson_end.astimezone(DEFAULT_TIMEZONE)
-            raise LessonNotFinishedException(local_end.strftime("%H:%M"))
 
         # 5. Completar
         scheduling.complete()

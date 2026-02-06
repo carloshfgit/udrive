@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, SafeAreaView, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import { Calendar, Clock, User, ChevronRight, MessageSquare, AlertCircle } from 'lucide-react-native';
+import { Calendar, Clock, User, ChevronRight, MessageSquare, AlertCircle, CheckCircle2 } from 'lucide-react-native';
 import { Header } from '../../../../shared/components/Header';
 import { Button } from '../../../../shared/components/Button';
 import { Avatar } from '../../../../shared/components/Avatar';
@@ -172,6 +172,20 @@ export function LessonDetailsScreen() {
 
                 {/* Action Buttons Section */}
                 <View className="mb-10 mt-4 gap-4">
+                    {lesson.status.toLowerCase() === 'completed' && (
+                        <View className="bg-green-50 p-6 rounded-3xl items-center border border-green-100">
+                            <View className="bg-green-100 p-3 rounded-full mb-3">
+                                <CheckCircle2 size={32} color="#16A34A" />
+                            </View>
+                            <Text className="text-green-900 font-bold text-lg text-center">
+                                Parabéns! Você concluiu essa aula.
+                            </Text>
+                            <Text className="text-green-700 text-center mt-2">
+                                Esperamos que tenha sido um ótimo aprendizado!
+                            </Text>
+                        </View>
+                    )}
+
                     {lesson.status.toLowerCase() === 'pending' && (
                         <View className="bg-amber-50 p-4 rounded-2xl flex-row items-center mb-2 border border-amber-100">
                             <AlertCircle size={20} color="#D97706" />

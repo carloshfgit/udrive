@@ -4,7 +4,7 @@
  * Funções para consumir a API de agendamento de aulas.
  */
 
-import api, { STUDENT_API } from '../../../../lib/axios';
+import api, { STUDENT_API, SHARED_API } from '../../../../lib/axios';
 
 // === Tipos ===
 
@@ -131,6 +131,18 @@ export async function getStudentSchedulings(
                 limit,
             },
         }
+    );
+    return response.data;
+}
+
+/**
+ * Busca os detalhes de um agendamento específico.
+ */
+export async function getBooking(
+    schedulingId: string
+): Promise<BookingResponse> {
+    const response = await api.get<BookingResponse>(
+        `${STUDENT_API}/lessons/${schedulingId}`
     );
     return response.data;
 }

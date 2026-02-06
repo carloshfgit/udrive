@@ -13,11 +13,13 @@ from src.application.dtos.scheduling_dtos import (
     CancelSchedulingDTO,
     CompleteSchedulingDTO,
     ConfirmSchedulingDTO,
+    StartSchedulingDTO,
 )
 from src.application.use_cases.scheduling import (
     CancelSchedulingUseCase,
     CompleteSchedulingUseCase,
     ConfirmSchedulingUseCase,
+    StartSchedulingUseCase,
 )
 from src.domain.entities.scheduling_status import SchedulingStatus
 from src.interface.api.dependencies import CurrentInstructor, SchedulingRepo, UserRepo
@@ -173,6 +175,33 @@ async def confirm_scheduling(
         scheduling_id=scheduling_id,
         instructor_id=current_user.id,
     )
+    result = await use_case.execute(dto)
+    return SchedulingResponse.model_validate(result)
+
+
+@router.post(
+    "/{scheduling_id}/start",
+    response_model=SchedulingResponse,
+    summary="Iniciar aula",
+    description="Registra o início da aula.",
+)
+async def start_lesson(
+    scheduling_id: UUID,
+    current_user: CurrentInstructor,
+    scheduling_repo: SchedulingRepo,
+    user_repo: UserRepo,
+) -> SchedulingResponse:
+    """Registra o início da aula."""
+    use_case = StartSchedulingUseCase(
+        scheduling_repository=scheduling_repo,
+        user_repository=user_repo,
+    )
+
+    dto = StartSchedulingDTO(
+        scheduling_id=scheduling_id,
+        user_id=current_user.id,
+    )
+
     result = await use_case.execute(dto)
     return SchedulingResponse.model_validate(result)
 

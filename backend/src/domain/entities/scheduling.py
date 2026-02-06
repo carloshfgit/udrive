@@ -105,19 +105,12 @@ class Scheduling:
         Verifica se o agendamento pode ser marcado como concluído.
 
         Returns:
-            True se pode ser concluído (CONFIRMED e data já passou).
+            True se pode ser concluído (CONFIRMED e foi iniciado).
         """
         if self.status != SchedulingStatus.CONFIRMED:
             return False
 
-        now = datetime.now(timezone.utc)
-        lesson_end = self.lesson_end_datetime
-        
-        # Garantir que lesson_end seja aware para comparação
-        if lesson_end.tzinfo is None:
-            lesson_end = lesson_end.replace(tzinfo=timezone.utc)
-        
-        return now >= lesson_end
+        return self.started_at is not None
 
     def cancel(self, cancelled_by: UUID, reason: str | None = None) -> None:
         """
