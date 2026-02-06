@@ -12,11 +12,13 @@ import {
     SafeAreaView,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp, CommonActions } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { CheckCircle, Calendar, ArrowRight } from 'lucide-react-native';
 
 import { SchedulingStackParamList } from './SelectDateTimeScreen';
 
 type BookingSuccessRouteProp = RouteProp<SchedulingStackParamList, 'BookingSuccess'>;
+type BookingSuccessNavigationProp = NativeStackNavigationProp<SchedulingStackParamList, 'BookingSuccess'>;
 
 // Formatador de data
 const formatDateTimeBR = (isoString: string): string => {
@@ -32,48 +34,36 @@ const formatDateTimeBR = (isoString: string): string => {
 };
 
 export function BookingSuccessScreen() {
-    const navigation = useNavigation();
+    const navigation = useNavigation<BookingSuccessNavigationProp>();
     const route = useRoute<BookingSuccessRouteProp>();
-    const { instructorName, scheduledDatetime } = route.params;
+    const {
+        instructorName,
+        scheduledDatetime,
+        instructorId,
+        instructorAvatar,
+        hourlyRate,
+        licenseCategory,
+        rating
+    } = route.params;
 
     const formattedDateTime = formatDateTimeBR(scheduledDatetime);
 
     // Navegar para Meus Agendamentos
     const handleViewSchedulings = () => {
-        // Reset stack e ir para a tab de Aulas
-        navigation.dispatch(
-            CommonActions.reset({
-                index: 0,
-                routes: [
-                    {
-                        name: 'Main',
-                        state: {
-                            routes: [{ name: 'Scheduling' }],
-                            index: 0,
-                        },
-                    },
-                ],
-            })
-        );
+        // Vai para a tab de Aulas (Scheduling)
+        navigation.navigate('Scheduling' as any);
     };
 
-    // Voltar para a Home
-    const handleGoHome = () => {
-        // Reset stack e ir para Home
-        navigation.dispatch(
-            CommonActions.reset({
-                index: 0,
-                routes: [
-                    {
-                        name: 'Main',
-                        state: {
-                            routes: [{ name: 'Home' }],
-                            index: 0,
-                        },
-                    },
-                ],
-            })
-        );
+    // Agendar mais uma aula com o mesmo instrutor
+    const handleScheduleAnother = () => {
+        navigation.navigate('SelectDateTime', {
+            instructorId,
+            instructorName,
+            instructorAvatar,
+            hourlyRate,
+            licenseCategory,
+            rating,
+        });
     };
 
     return (
@@ -131,12 +121,12 @@ export function BookingSuccessScreen() {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                    onPress={handleGoHome}
+                    onPress={handleScheduleAnother}
                     className="py-4 mt-3 rounded-xl items-center bg-transparent border border-neutral-200 active:bg-neutral-50"
-                    accessibilityLabel="Voltar ao Início"
+                    accessibilityLabel="Agendar mais uma aula"
                 >
                     <Text className="text-base font-semibold text-gray-700">
-                        Voltar ao Início
+                        Agendar mais uma aula
                     </Text>
                 </TouchableOpacity>
             </View>

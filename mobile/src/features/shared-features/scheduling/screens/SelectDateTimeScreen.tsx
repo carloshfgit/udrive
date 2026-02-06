@@ -41,11 +41,17 @@ export type SchedulingStackParamList = {
         selectedDate: string; // ISO string
         selectedSlot: TimeSlot;
         durationMinutes: number;
+        rating?: number;
     };
     BookingSuccess: {
         schedulingId: string;
         instructorName: string;
         scheduledDatetime: string;
+        instructorId: string;
+        instructorAvatar?: string;
+        hourlyRate: number;
+        licenseCategory?: string;
+        rating?: number;
     };
 };
 
@@ -104,6 +110,7 @@ export function SelectDateTimeScreen() {
             selectedDate: selectedDate.toISOString(),
             selectedSlot,
             durationMinutes,
+            rating,
         });
     };
 

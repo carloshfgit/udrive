@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, FlatList, RefreshControl, Text, SafeAreaView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { History, Calendar } from 'lucide-react-native';
 import { Header } from '../../../../shared/components/Header';
 import { IconButton } from '../../../../shared/components/IconButton';
@@ -16,8 +16,14 @@ export function MyLessonsScreen() {
     const [refreshing, setRefreshing] = useState(false);
 
     // Fetch only pending/confirmed lessons for the main screen
-    // As per LESSONS_PLAN.md: "agendamentos ativos"
     const { data, isLoading, refetch, isError } = useStudentSchedulings();
+
+    // Atualizar dados ao focar na tela
+    useFocusEffect(
+        useCallback(() => {
+            refetch();
+        }, [refetch])
+    );
 
     // Ordenar as aulas por data e hora (as mais próximas primeiro)
     const sortedSchedulings = React.useMemo(() => {
@@ -114,7 +120,7 @@ export function MyLessonsScreen() {
                             action={
                                 <Button
                                     title="Buscar Instrutor"
-                                    onPress={() => console.log('Buscar')}
+                                    onPress={() => navigation.navigate('Search')}
                                     size="sm"
                                 />
                             }

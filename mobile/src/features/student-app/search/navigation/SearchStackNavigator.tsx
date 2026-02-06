@@ -41,11 +41,17 @@ export type SearchStackParamList = {
         selectedDate: string;
         selectedSlot: TimeSlot;
         durationMinutes: number;
+        rating?: number;
     };
     BookingSuccess: {
         schedulingId: string;
         instructorName: string;
         scheduledDatetime: string;
+        instructorId: string;
+        instructorAvatar?: string;
+        hourlyRate: number;
+        licenseCategory?: string;
+        rating?: number;
     };
 };
 

@@ -41,7 +41,11 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
         stmt = (
             select(SchedulingModel)
             .where(SchedulingModel.id == scheduling_id)
-            .options(joinedload(SchedulingModel.student), joinedload(SchedulingModel.instructor))
+            .options(
+                joinedload(SchedulingModel.student),
+                joinedload(SchedulingModel.instructor),
+                joinedload(SchedulingModel.review)
+            )
         )
         result = await self._session.execute(stmt)
         model = result.unique().scalar_one_or_none()
@@ -50,9 +54,17 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
     async def update(self, scheduling: Scheduling) -> Scheduling:
         # Busca o modelo existente para garantir que estamos anexados à sessão
         # e para atualizar apenas os campos que mudaram
-        stmt = select(SchedulingModel).where(SchedulingModel.id == scheduling.id)
+        stmt = (
+            select(SchedulingModel)
+            .where(SchedulingModel.id == scheduling.id)
+            .options(
+                joinedload(SchedulingModel.student),
+                joinedload(SchedulingModel.instructor),
+                joinedload(SchedulingModel.review)
+            )
+        )
         result = await self._session.execute(stmt)
-        model = result.scalar_one_or_none()
+        model = result.unique().scalar_one_or_none()
 
         if not model:
             # Se não encontrado, poderia lançar erro ou tentar criar
@@ -146,7 +158,11 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
             .order_by(SchedulingModel.scheduled_datetime.desc())
             .limit(limit)
             .offset(offset)
-            .options(joinedload(SchedulingModel.student), joinedload(SchedulingModel.instructor))
+            .options(
+                joinedload(SchedulingModel.student),
+                joinedload(SchedulingModel.instructor),
+                joinedload(SchedulingModel.review)
+            )
         )
 
         if status:
@@ -225,7 +241,11 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
                 SchedulingModel.scheduled_datetime <= end_of_day_utc,
             )
             .order_by(SchedulingModel.scheduled_datetime.asc())
-            .options(joinedload(SchedulingModel.student), joinedload(SchedulingModel.instructor))
+            .options(
+                joinedload(SchedulingModel.student),
+                joinedload(SchedulingModel.instructor),
+                joinedload(SchedulingModel.review)
+            )
         )
 
         result = await self._session.execute(stmt)

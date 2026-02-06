@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useQueryClient } from '@tanstack/react-query';
 import { ChevronLeft, AlertCircle, Info } from 'lucide-react-native';
 
 import { BookingSummary } from '../components';
@@ -37,10 +38,12 @@ export function ConfirmBookingScreen() {
         selectedDate,
         selectedSlot,
         durationMinutes,
+        rating,
     } = route.params;
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const createBookingMutation = useCreateBooking();
+    const queryClient = useQueryClient();
 
     // Calcular preço
     const hours = durationMinutes / 60;
@@ -86,11 +89,19 @@ export function ConfirmBookingScreen() {
                 duration_minutes: durationMinutes,
             });
 
+            // Invalida cache para garantir que a lista seja atualizada
+            queryClient.invalidateQueries({ queryKey: ['student-schedulings'] });
+
             // Navegar para tela de sucesso
             navigation.navigate('BookingSuccess', {
                 schedulingId: result.id,
                 instructorName,
                 scheduledDatetime,
+                instructorId,
+                instructorAvatar,
+                hourlyRate,
+                licenseCategory,
+                rating,
             });
         } catch (error: any) {
             const message = error?.response?.data?.detail || 'Erro ao criar agendamento. Tente novamente.';
