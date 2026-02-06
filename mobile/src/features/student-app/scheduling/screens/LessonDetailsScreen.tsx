@@ -54,7 +54,7 @@ export function LessonDetailsScreen() {
         const s = status.toLowerCase();
         if (s === 'confirmed') return 'success';
         if (s === 'pending') return 'warning';
-        if (s === 'completed') return 'success';
+        if (s === 'completed') return 'secondary';
         if (s === 'canceled' || s === 'cancelled') return 'error';
         return 'default';
     };

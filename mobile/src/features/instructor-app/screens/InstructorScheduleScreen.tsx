@@ -109,7 +109,7 @@ function ScheduleCard({
             case 'confirmed':
                 return { bg: 'bg-blue-100', text: 'text-blue-800', label: 'Confirmado' };
             case 'completed':
-                return { bg: 'bg-green-100', text: 'text-green-800', label: 'Concluído' };
+                return { bg: 'bg-secondary-100', text: 'text-secondary-800', label: 'Concluído' };
             case 'cancelled':
                 return { bg: 'bg-red-100', text: 'text-red-800', label: 'Cancelado' };
             default:

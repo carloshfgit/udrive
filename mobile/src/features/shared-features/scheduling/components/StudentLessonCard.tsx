@@ -39,7 +39,7 @@ export function StudentLessonCard({ scheduling, onPressDetails, onPressEvaluate 
         switch (s) {
             case 'confirmed': return 'success';
             case 'pending': return 'warning';
-            case 'completed': return 'success';
+            case 'completed': return 'secondary';
             case 'canceled':
             case 'cancelled':
                 return 'error';
