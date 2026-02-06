@@ -7,9 +7,11 @@ import { EmptyState } from '../../../../shared/components/EmptyState';
 import { StudentLessonCard } from '../../../shared-features/scheduling/components/StudentLessonCard';
 import { useStudentHistory } from '../../../shared-features/scheduling/hooks/useStudentHistory';
 import { BookingResponse } from '../../../shared-features/scheduling/api/schedulingApi';
+import { useNavigation } from '@react-navigation/native';
 import { LessonEvaluationModal } from '../components/LessonEvaluationModal';
 
 export function HistoryScreen() {
+    const navigation = useNavigation();
     const [refreshing, setRefreshing] = useState(false);
     const [selectedLesson, setSelectedLesson] = useState<BookingResponse | null>(null);
     const [modalVisible, setModalVisible] = useState(false);
@@ -52,7 +54,7 @@ export function HistoryScreen() {
     if (isError) {
         return (
             <SafeAreaView className="flex-1 bg-white">
-                <Header title="Histórico" />
+                <Header title="Histórico" onBack={() => navigation.goBack()} />
                 <EmptyState
                     title="Ops! Algo deu errado"
                     message="Não conseguimos carregar seu histórico no momento."
@@ -63,7 +65,7 @@ export function HistoryScreen() {
 
     return (
         <SafeAreaView className="flex-1 bg-white">
-            <Header title="Histórico" />
+            <Header title="Histórico" onBack={() => navigation.goBack()} />
 
             <FlatList
                 data={sortedSchedulings}
