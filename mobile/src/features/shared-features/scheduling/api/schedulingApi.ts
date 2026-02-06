@@ -56,6 +56,7 @@ export interface BookingResponse {
     student_name?: string;
     instructor_name?: string;
     has_review?: boolean;
+    started_at?: string;
 }
 
 export interface SchedulingListResponse {
@@ -130,6 +131,44 @@ export async function getStudentSchedulings(
                 limit,
             },
         }
+    );
+    return response.data;
+}
+
+/**
+ * Registra o início de uma aula.
+ */
+export async function startBooking(
+    schedulingId: string
+): Promise<BookingResponse> {
+    const response = await api.post<BookingResponse>(
+        `${STUDENT_API}/lessons/${schedulingId}/start`
+    );
+    return response.data;
+}
+
+/**
+ * Marca uma aula como concluída.
+ */
+export async function completeBooking(
+    schedulingId: string
+): Promise<BookingResponse> {
+    const response = await api.post<BookingResponse>(
+        `${STUDENT_API}/lessons/${schedulingId}/complete`
+    );
+    return response.data;
+}
+
+/**
+ * Cancela um agendamento.
+ */
+export async function cancelBooking(
+    schedulingId: string,
+    reason?: string
+): Promise<any> {
+    const response = await api.post(
+        `${STUDENT_API}/lessons/${schedulingId}/cancel`,
+        { reason }
     );
     return response.data;
 }

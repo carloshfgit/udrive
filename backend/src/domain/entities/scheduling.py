@@ -40,6 +40,7 @@ class Scheduling:
     cancelled_by: UUID | None = None
     cancelled_at: datetime | None = None
     completed_at: datetime | None = None
+    started_at: datetime | None = None
     id: UUID = field(default_factory=uuid4)
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime | None = None
@@ -169,6 +170,18 @@ class Scheduling:
 
         self.status = SchedulingStatus.COMPLETED
         self.completed_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(timezone.utc)
+
+    def start(self) -> None:
+        """
+        Registra o início da aula.
+        """
+        if self.status != SchedulingStatus.CONFIRMED:
+            raise ValueError(
+                f"Aula só pode ser iniciada se estiver confirmada. Status atual: {self.status}"
+            )
+        
+        self.started_at = datetime.now(timezone.utc)
         self.updated_at = datetime.now(timezone.utc)
 
     @property

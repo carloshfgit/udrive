@@ -110,6 +110,7 @@ class SchedulingResponse(BaseModel):
     cancelled_by: UUID | None = None
     cancelled_at: datetime | None = None
     completed_at: datetime | None = None
+    started_at: datetime | None = None
     created_at: datetime
     
     # Campos enriquecidos (opcionais, preenchidos se disponíveis)

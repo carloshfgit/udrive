@@ -89,6 +89,14 @@ class DeleteAvailabilityDTO:
     instructor_id: UUID
 
 
+@dataclass(frozen=True)
+class StartSchedulingDTO:
+    """DTO para iniciar um agendamento."""
+
+    scheduling_id: UUID
+    user_id: UUID
+
+
 # === Output DTOs ===
 
 
@@ -107,6 +115,7 @@ class SchedulingResponseDTO:
     cancelled_by: UUID | None = None
     cancelled_at: datetime | None = None
     completed_at: datetime | None = None
+    started_at: datetime | None = None
     created_at: datetime | None = None
 
     # Dados opcionais enriquecidos

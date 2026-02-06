@@ -35,8 +35,7 @@ export function MyLessonsScreen() {
     };
 
     const handlePressDetails = (scheduling: BookingResponse) => {
-        console.log('Ver detalhes:', scheduling.id);
-        // Próxima fase: navegar para Detalhes
+        navigation.navigate('LessonDetails', { schedulingId: scheduling.id });
     };
 
     const renderItem = ({ item }: { item: BookingResponse }) => (

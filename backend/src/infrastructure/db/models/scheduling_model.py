@@ -93,6 +93,10 @@ class SchedulingModel(Base):
         DateTime(timezone=True),
         nullable=True,
     )
+    started_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
 
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(
@@ -150,6 +154,7 @@ class SchedulingModel(Base):
             cancelled_by=self.cancelled_by,
             cancelled_at=self.cancelled_at,
             completed_at=self.completed_at,
+            started_at=self.started_at,
             created_at=self.created_at,
             updated_at=self.updated_at,
             student_name=self.student.full_name if self.student else None,
@@ -172,6 +177,7 @@ class SchedulingModel(Base):
             cancelled_by=scheduling.cancelled_by,
             cancelled_at=scheduling.cancelled_at,
             completed_at=scheduling.completed_at,
+            started_at=scheduling.started_at,
             created_at=scheduling.created_at,
             updated_at=scheduling.updated_at,
         )

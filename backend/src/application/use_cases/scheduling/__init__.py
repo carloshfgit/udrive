@@ -10,6 +10,7 @@ from .confirm_scheduling import ConfirmSchedulingUseCase
 from .create_scheduling import CreateSchedulingUseCase
 from .list_user_schedulings import ListUserSchedulingsUseCase
 from .manage_availability import ManageAvailabilityUseCase
+from .start_scheduling import StartSchedulingUseCase
 
 __all__ = [
     "CreateSchedulingUseCase",

@@ -8,10 +8,13 @@ import { StudentLessonCard } from '../../../shared-features/scheduling/component
 import { useStudentHistory } from '../../../shared-features/scheduling/hooks/useStudentHistory';
 import { BookingResponse } from '../../../shared-features/scheduling/api/schedulingApi';
 import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LessonEvaluationModal } from '../components/LessonEvaluationModal';
 
+import { SchedulingStackParamList } from '../navigation/SchedulingStackNavigator';
+
 export function HistoryScreen() {
-    const navigation = useNavigation();
+    const navigation = useNavigation<NativeStackNavigationProp<SchedulingStackParamList>>();
     const [refreshing, setRefreshing] = useState(false);
     const [selectedLesson, setSelectedLesson] = useState<BookingResponse | null>(null);
     const [modalVisible, setModalVisible] = useState(false);
@@ -34,8 +37,7 @@ export function HistoryScreen() {
     };
 
     const handlePressDetails = (scheduling: BookingResponse) => {
-        console.log('Ver detalhes:', scheduling.id);
-        // Próxima fase: navegar para Detalhes
+        navigation.navigate('LessonDetails', { schedulingId: scheduling.id });
     };
 
     const handlePressEvaluate = (scheduling: BookingResponse) => {
