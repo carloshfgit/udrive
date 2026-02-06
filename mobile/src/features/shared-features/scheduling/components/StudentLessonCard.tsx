@@ -8,6 +8,7 @@ import { BookingResponse } from '../api/schedulingApi';
 interface StudentLessonCardProps {
     scheduling: BookingResponse;
     onPressDetails: (scheduling: BookingResponse) => void;
+    onPressEvaluate?: (scheduling: BookingResponse) => void;
 }
 
 const WEEK_DAYS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
@@ -20,7 +21,7 @@ const MONTHS_FULL = [
     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
 ];
 
-export function StudentLessonCard({ scheduling, onPressDetails }: StudentLessonCardProps) {
+export function StudentLessonCard({ scheduling, onPressDetails, onPressEvaluate }: StudentLessonCardProps) {
     const scheduledDate = new Date(scheduling.scheduled_datetime);
 
     // Fallback for parsing ISO string if Date constructor fails in some RN versions
@@ -123,15 +124,29 @@ export function StudentLessonCard({ scheduling, onPressDetails }: StudentLessonC
                     </Text>
                 </View>
 
-                <TouchableOpacity
-                    onPress={() => onPressDetails(scheduling)}
-                    className="bg-primary-600 px-5 py-2.5 rounded-xl shadow-sm shadow-primary-200"
-                    activeOpacity={0.8}
-                >
-                    <Text className="text-white font-bold text-sm">
-                        Ver Detalhes
-                    </Text>
-                </TouchableOpacity>
+                <View className="flex-row">
+                    {scheduling.status.toLowerCase() === 'completed' && !scheduling.has_review && onPressEvaluate && (
+                        <TouchableOpacity
+                            onPress={() => onPressEvaluate(scheduling)}
+                            className="bg-primary-50 px-4 py-2.5 rounded-xl mr-3 border border-primary-100"
+                            activeOpacity={0.8}
+                        >
+                            <Text className="text-primary-700 font-bold text-sm">
+                                Avaliar Aula
+                            </Text>
+                        </TouchableOpacity>
+                    )}
+
+                    <TouchableOpacity
+                        onPress={() => onPressDetails(scheduling)}
+                        className="bg-primary-600 px-5 py-2.5 rounded-xl shadow-sm shadow-primary-200"
+                        activeOpacity={0.8}
+                    >
+                        <Text className="text-white font-bold text-sm">
+                            Ver Detalhes
+                        </Text>
+                    </TouchableOpacity>
+                </View>
             </View>
         </View>
     );

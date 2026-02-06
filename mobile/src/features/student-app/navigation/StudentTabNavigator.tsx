@@ -8,7 +8,7 @@ import { SearchStackNavigator } from '../search/navigation/SearchStackNavigator'
 import { LearningCenterScreen } from '../learning/screens/LearningCenterScreen';
 
 // Shared features (different directory)
-import { MyLessonsScreen } from '../../shared-features/scheduling/screens/MyLessonsScreen';
+import { SchedulingStackNavigator } from '../scheduling/navigation/SchedulingStackNavigator';
 import { ProfileStackNavigator } from '../../shared-features/profile/navigation/ProfileStackNavigator';
 
 const Tab = createBottomTabNavigator();
@@ -59,7 +59,7 @@ export function StudentTabNavigator() {
             />
             <Tab.Screen
                 name="Scheduling"
-                component={MyLessonsScreen}
+                component={SchedulingStackNavigator}
                 options={{
                     tabBarLabel: 'Aulas',
                     tabBarIcon: ({ color, size }) => <Calendar color={color} size={size} />,

@@ -9,19 +9,23 @@ from uuid import UUID
 from fastapi import APIRouter, HTTPException, Query, status
 
 from src.application.dtos.scheduling_dtos import CancelSchedulingDTO, CreateSchedulingDTO
+from src.application.use_cases.create_review_use_case import CreateReviewUseCase
 from src.application.use_cases.scheduling import CancelSchedulingUseCase, CreateSchedulingUseCase
 from src.domain.entities.scheduling_status import SchedulingStatus
 from src.interface.api.dependencies import (
     AvailabilityRepo,
     CurrentStudent,
     InstructorRepo,
+    ReviewRepo,
     SchedulingRepo,
     UserRepo,
 )
 from src.interface.api.schemas.scheduling_schemas import (
     CancellationResultResponse,
     CancelSchedulingRequest,
+    CreateReviewRequest,
     CreateSchedulingRequest,
+    ReviewResponse,
     SchedulingListResponse,
     SchedulingResponse,
 )
@@ -72,21 +76,32 @@ async def create_scheduling(
 async def list_student_schedulings(
     current_user: CurrentStudent,
     scheduling_repo: SchedulingRepo,
-    status_filter: SchedulingStatus | None = None,
+    status_filter: str | None = Query(None, description="Filter by status (comma-separated, e.g. 'completed,cancelled')"),
     page: int = Query(1, ge=1),
     limit: int = Query(10, ge=1, le=50),
 ) -> SchedulingListResponse:
     """Lista agendamentos do aluno."""
+    # Parse multiple statuses if provided
+    statuses = None
+    if status_filter:
+        try:
+            statuses = [SchedulingStatus(s.strip()) for s in status_filter.split(",")]
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid status in filter: {status_filter}",
+            )
+
     offset = (page - 1) * limit
     schedulings = await scheduling_repo.list_by_student(
         student_id=current_user.id,
-        status=status_filter,
+        status=statuses,
         limit=limit,
         offset=offset,
     )
     total = await scheduling_repo.count_by_student(
         student_id=current_user.id,
-        status=status_filter,
+        status=statuses,
     )
 
     return SchedulingListResponse(
@@ -167,3 +182,40 @@ async def cancel_scheduling(
         refund_amount=result.refund_amount if hasattr(result, 'refund_amount') else 0,
         message=f"Agendamento cancelado com sucesso.",
     )
+
+
+@router.post(
+    "/{scheduling_id}/review",
+    response_model=ReviewResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Avaliar aula",
+    description="Adiciona uma avaliação para uma aula concluída.",
+)
+async def evaluate_lesson(
+    scheduling_id: UUID,
+    request: CreateReviewRequest,
+    current_user: CurrentStudent,
+    review_repo: ReviewRepo,
+    scheduling_repo: SchedulingRepo,
+    instructor_repo: InstructorRepo,
+) -> ReviewResponse:
+    """Adiciona uma avaliação para uma aula concluída."""
+    use_case = CreateReviewUseCase(
+        review_repo=review_repo,
+        scheduling_repo=scheduling_repo,
+        instructor_repo=instructor_repo,
+    )
+
+    try:
+        result = await use_case.execute(
+            scheduling_id=scheduling_id,
+            student_id=current_user.id,
+            rating=request.rating,
+            comment=request.comment,
+        )
+        return ReviewResponse.model_validate(result)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )

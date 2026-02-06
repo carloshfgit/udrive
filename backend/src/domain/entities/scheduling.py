@@ -45,6 +45,7 @@ class Scheduling:
     updated_at: datetime | None = None
     student_name: str | None = None
     instructor_name: str | None = None
+    has_review: bool = False
 
     def __post_init__(self) -> None:
         """Valida campos após inicialização."""

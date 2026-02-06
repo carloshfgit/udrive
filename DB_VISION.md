@@ -165,11 +165,32 @@ A aplicação conecta ao banco exclusivamente de forma assíncrona.
 - **Session**: O uso de `AsyncSession` exige que todas as chamadas de banco sejam `await`ed. Lembre-se de usar `await session.commit()` e `await session.refresh()`.
 
 ### 4.2. Migrations (Alembic)
-Todas as alterações de schema SÃO versiondas via Alembic.
-- O arquivo `env.py` foi customizado para suportar execução assíncrona (`run_async_migrations`).
-- **Comandos Úteis**:
-    - Criar nova migration: `alembic revision --autogenerate -m "mensagem"`
-    - Aplicar migrations: `alembic upgrade head`
+
+### Regras
+- **Uma migration por feature branch.**
+- **Naming convention:** `{YYYY_MM_DD}_{descricao_snake_case}` (ex: `2024_01_15_criar_tabela_agendamentos`).
+- **Nunca editar migrations já mergeadas na main.**
+- **Sempre testar rollback:** `alembic downgrade -1` antes de merge.
+- **Migrations manuais:** Não usar `--autogenerate` para evitar código verbose e desnecessário.
+- **Executar dentro do docker.**
+
+### Comandos Padrão
+```bash
+# Criar nova migration (manual - sem autogenerate)
+alembic revision -m "descricao_da_mudanca"
+
+# Aplicar migrations
+alembic upgrade head
+
+# Rollback
+alembic downgrade -1
+
+# Verificar status atual
+alembic current
+
+# Histórico de migrations
+alembic history
+```
 
 ### 4.3. PostGIS e GeoAlchemy2
 O uso de dados espaciais requer atenção especial:

@@ -23,6 +23,7 @@ from src.domain.interfaces.auth_service import IAuthService
 from src.domain.interfaces.instructor_repository import IInstructorRepository
 from src.domain.interfaces.location_service import ILocationService
 from src.domain.interfaces.scheduling_repository import ISchedulingRepository
+from src.domain.interfaces.review_repository import IReviewRepository
 from src.domain.interfaces.availability_repository import IAvailabilityRepository
 from src.domain.interfaces.student_repository import IStudentRepository
 from src.domain.interfaces.token_repository import ITokenRepository
@@ -30,6 +31,9 @@ from src.domain.interfaces.user_repository import IUserRepository
 from src.infrastructure.db.database import get_db
 from src.infrastructure.repositories.instructor_repository_impl import (
     InstructorRepositoryImpl,
+)
+from src.infrastructure.repositories.review_repository_impl import (
+    ReviewRepositoryImpl,
 )
 from src.infrastructure.repositories.scheduling_repository_impl import (
     SchedulingRepositoryImpl,
@@ -87,6 +91,11 @@ def get_scheduling_repository(session: DBSession) -> ISchedulingRepository:
 def get_availability_repository(session: DBSession) -> IAvailabilityRepository:
     """Fornece uma instância do repositório de disponibilidade."""
     return AvailabilityRepositoryImpl(session)
+
+
+def get_review_repository(session: DBSession) -> IReviewRepository:
+    """Fornece uma instância do repositório de avaliações."""
+    return ReviewRepositoryImpl(session)
 
 
 # =============================================================================
@@ -219,6 +228,7 @@ InstructorRepo = Annotated[IInstructorRepository, Depends(get_instructor_reposit
 StudentRepo = Annotated[IStudentRepository, Depends(get_student_repository)]
 SchedulingRepo = Annotated[ISchedulingRepository, Depends(get_scheduling_repository)]
 AvailabilityRepo = Annotated[IAvailabilityRepository, Depends(get_availability_repository)]
+ReviewRepo = Annotated[IReviewRepository, Depends(get_review_repository)]
 AuthService = Annotated[IAuthService, Depends(get_auth_service)]
 LocationService = Annotated[ILocationService, Depends(get_location_service)]
 CacheService = Annotated[RedisCacheService, Depends(get_cache_service)]

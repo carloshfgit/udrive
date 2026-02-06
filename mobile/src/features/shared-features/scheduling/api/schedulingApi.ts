@@ -55,6 +55,7 @@ export interface BookingResponse {
     created_at: string;
     student_name?: string;
     instructor_name?: string;
+    has_review?: boolean;
 }
 
 export interface SchedulingListResponse {
@@ -129,6 +130,21 @@ export async function getStudentSchedulings(
                 limit,
             },
         }
+    );
+    return response.data;
+}
+
+/**
+ * Adiciona uma avaliação para uma aula concluída.
+ */
+export async function createReview(
+    schedulingId: string,
+    rating: number,
+    comment?: string
+): Promise<any> {
+    const response = await api.post(
+        `${STUDENT_API}/lessons/${schedulingId}/review`,
+        { rating, comment }
     );
     return response.data;
 }

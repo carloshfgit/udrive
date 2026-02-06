@@ -115,6 +115,7 @@ class SchedulingResponse(BaseModel):
     # Campos enriquecidos (opcionais, preenchidos se disponíveis)
     student_name: str | None = None
     instructor_name: str | None = None
+    has_review: bool = False
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -137,4 +138,29 @@ class CancellationResultResponse(BaseModel):
     refund_percentage: int
     refund_amount: Decimal
     cancelled_at: datetime
+
+
+# =============================================================================
+# Review Schemas
+# =============================================================================
+
+class CreateReviewRequest(BaseModel):
+    """Schema para criar avaliação de aula."""
+
+    rating: int = Field(..., ge=1, le=5, description="Nota de 1 a 5")
+    comment: str | None = Field(None, max_length=1000, description="Comentário opcional")
+
+
+class ReviewResponse(BaseModel):
+    """Schema de resposta para avaliação."""
+
+    id: UUID
+    scheduling_id: UUID
+    student_id: UUID
+    instructor_id: UUID
+    rating: int
+    comment: str | None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
 

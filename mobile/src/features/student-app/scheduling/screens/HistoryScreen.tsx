@@ -1,30 +1,27 @@
 import React, { useState } from 'react';
 import { View, FlatList, RefreshControl, Text, SafeAreaView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { History, Calendar } from 'lucide-react-native';
 import { Header } from '../../../../shared/components/Header';
-import { IconButton } from '../../../../shared/components/IconButton';
-import { Button } from '../../../../shared/components/Button';
 import { LoadingState } from '../../../../shared/components/LoadingState';
 import { EmptyState } from '../../../../shared/components/EmptyState';
-import { StudentLessonCard } from '../components/StudentLessonCard';
-import { useStudentSchedulings } from '../hooks/useStudentSchedulings';
-import { BookingResponse } from '../api/schedulingApi';
+import { StudentLessonCard } from '../../../shared-features/scheduling/components/StudentLessonCard';
+import { useStudentHistory } from '../../../shared-features/scheduling/hooks/useStudentHistory';
+import { BookingResponse } from '../../../shared-features/scheduling/api/schedulingApi';
+import { LessonEvaluationModal } from '../components/LessonEvaluationModal';
 
-export function MyLessonsScreen() {
-    const navigation = useNavigation<any>();
+export function HistoryScreen() {
     const [refreshing, setRefreshing] = useState(false);
+    const [selectedLesson, setSelectedLesson] = useState<BookingResponse | null>(null);
+    const [modalVisible, setModalVisible] = useState(false);
 
-    // Fetch only pending/confirmed lessons for the main screen
-    // As per LESSONS_PLAN.md: "agendamentos ativos"
-    const { data, isLoading, refetch, isError } = useStudentSchedulings();
+    // Fetch completed/cancelled lessons
+    const { data, isLoading, refetch, isError } = useStudentHistory();
 
-    // Ordenar as aulas por data e hora (as mais próximas primeiro)
     const sortedSchedulings = React.useMemo(() => {
         if (!data?.schedulings) return [];
 
         return [...data.schedulings].sort((a, b) => {
-            return new Date(a.scheduled_datetime).getTime() - new Date(b.scheduled_datetime).getTime();
+            return new Date(b.scheduled_datetime).getTime() - new Date(a.scheduled_datetime).getTime();
         });
     }, [data?.schedulings]);
 
@@ -39,36 +36,26 @@ export function MyLessonsScreen() {
         // Próxima fase: navegar para Detalhes
     };
 
+    const handlePressEvaluate = (scheduling: BookingResponse) => {
+        setSelectedLesson(scheduling);
+        setModalVisible(true);
+    };
+
     const renderItem = ({ item }: { item: BookingResponse }) => (
         <StudentLessonCard
             scheduling={item}
             onPressDetails={handlePressDetails}
-        />
-    );
-
-    const renderHeaderRight = () => (
-        <IconButton
-            icon={<History size={24} color="#111318" />}
-            onPress={() => navigation.navigate('History')}
-            variant="ghost"
-            size={44}
+            onPressEvaluate={handlePressEvaluate}
         />
     );
 
     if (isError) {
         return (
             <SafeAreaView className="flex-1 bg-white">
-                <Header title="Minhas Aulas" showBack={false} rightElement={renderHeaderRight()} />
+                <Header title="Histórico" />
                 <EmptyState
                     title="Ops! Algo deu errado"
-                    message="Não conseguimos carregar suas aulas no momento."
-                    action={
-                        <Button
-                            title="Tentar novamente"
-                            onPress={onRefresh}
-                            size="sm"
-                        />
-                    }
+                    message="Não conseguimos carregar seu histórico no momento."
                 />
             </SafeAreaView>
         );
@@ -76,11 +63,7 @@ export function MyLessonsScreen() {
 
     return (
         <SafeAreaView className="flex-1 bg-white">
-            <Header
-                title="Minhas Aulas"
-                showBack={false}
-                rightElement={renderHeaderRight()}
-            />
+            <Header title="Histórico" />
 
             <FlatList
                 data={sortedSchedulings}
@@ -95,7 +78,7 @@ export function MyLessonsScreen() {
                     sortedSchedulings.length > 0 ? (
                         <View className="mb-4">
                             <Text className="text-neutral-500 text-sm font-medium">
-                                Próximas aulas agendadas
+                                Aulas anteriores e canceladas
                             </Text>
                         </View>
                     ) : null
@@ -109,19 +92,19 @@ export function MyLessonsScreen() {
                         </View>
                     ) : (
                         <EmptyState
-                            icon={<Calendar size={32} color="#2563EB" />}
-                            title="Nenhuma aula ativa"
-                            message="Você ainda não possui aulas agendadas para os próximos dias."
-                            action={
-                                <Button
-                                    title="Buscar Instrutor"
-                                    onPress={() => console.log('Buscar')}
-                                    size="sm"
-                                />
-                            }
+                            icon={<History size={32} color="#2563EB" />}
+                            title="Nenhum histórico"
+                            message="Você ainda não possui aulas concluídas ou canceladas."
                         />
                     )
                 }
+            />
+
+            <LessonEvaluationModal
+                visible={modalVisible}
+                onClose={() => setModalVisible(false)}
+                scheduling={selectedLesson}
+                onSuccess={() => refetch()}
             />
         </SafeAreaView>
     );

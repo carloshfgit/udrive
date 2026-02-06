@@ -5,6 +5,7 @@ Entidades puras de domínio sem dependências externas.
 """
 
 from .availability import Availability
+from .review import Review
 from .instructor_profile import InstructorProfile
 from .location import Location
 from .payment import Payment
@@ -33,5 +34,6 @@ __all__ = [
     "PaymentStatus",
     "Transaction",
     "TransactionType",
+    "Review",
 ]
 

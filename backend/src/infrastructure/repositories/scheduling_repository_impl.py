@@ -91,7 +91,7 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
     async def list_by_student(
         self,
         student_id: UUID,
-        status: SchedulingStatus | None = None,
+        status: SchedulingStatus | Sequence[SchedulingStatus] | None = None,
         limit: int = 10,
         offset: int = 0,
     ) -> Sequence[Scheduling]:
@@ -101,22 +101,34 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
             .order_by(SchedulingModel.scheduled_datetime.desc())
             .limit(limit)
             .offset(offset)
-            .options(joinedload(SchedulingModel.student), joinedload(SchedulingModel.instructor))
+            .options(
+                joinedload(SchedulingModel.student),
+                joinedload(SchedulingModel.instructor),
+                joinedload(SchedulingModel.review)
+            )
         )
 
         if status:
-            stmt = stmt.where(SchedulingModel.status == status)
+            if isinstance(status, (list, tuple, Sequence)):
+                stmt = stmt.where(SchedulingModel.status.in_(status))
+            else:
+                stmt = stmt.where(SchedulingModel.status == status)
 
         result = await self._session.execute(stmt)
         return [row.to_entity() for row in result.unique().scalars().all()]
 
     async def count_by_student(
-        self, student_id: UUID, status: SchedulingStatus | None = None
+        self,
+        student_id: UUID,
+        status: SchedulingStatus | Sequence[SchedulingStatus] | None = None,
     ) -> int:
         stmt = select(func.count()).select_from(SchedulingModel).where(SchedulingModel.student_id == student_id)
 
         if status:
-            stmt = stmt.where(SchedulingModel.status == status)
+            if isinstance(status, (list, tuple, Sequence)):
+                stmt = stmt.where(SchedulingModel.status.in_(status))
+            else:
+                stmt = stmt.where(SchedulingModel.status == status)
 
         result = await self._session.execute(stmt)
         return result.scalar_one() or 0
