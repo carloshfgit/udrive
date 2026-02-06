@@ -28,35 +28,6 @@ export function LessonDetailsScreen() {
         refetch
     } = useLessonDetails(schedulingId);
 
-    const [disableFinish, setDisableFinish] = useState(true);
-    const [timeLeftMinutes, setTimeLeftMinutes] = useState(0);
-
-    useEffect(() => {
-        if (lesson?.started_at) {
-            const checkTime = () => {
-                const startedAt = lesson.started_at;
-                if (!startedAt) return;
-
-                const startTime = new Date(startedAt).getTime();
-                const now = new Date().getTime();
-                const diffMs = now - startTime;
-                const diffMinutes = Math.floor(diffMs / 60000);
-
-                if (diffMinutes >= 60) {
-                    setDisableFinish(false);
-                    setTimeLeftMinutes(0);
-                } else {
-                    setDisableFinish(true);
-                    setTimeLeftMinutes(60 - diffMinutes);
-                }
-            };
-
-            checkTime();
-            const interval = setInterval(checkTime, 60000);
-            return () => clearInterval(interval);
-        }
-    }, [lesson?.started_at]);
-
     if (isLoading) return <LoadingState.Card />;
 
     if (isError || !lesson) {
@@ -201,33 +172,35 @@ export function LessonDetailsScreen() {
 
                 {/* Action Buttons Section */}
                 <View className="mb-10 mt-4 gap-4">
+                    {lesson.status.toLowerCase() === 'pending' && (
+                        <View className="bg-amber-50 p-4 rounded-2xl flex-row items-center mb-2 border border-amber-100">
+                            <AlertCircle size={20} color="#D97706" />
+                            <Text className="text-amber-700 text-sm ml-3 flex-1 font-medium">
+                                Aguardando confirmação do instrutor para liberar o início da aula.
+                            </Text>
+                        </View>
+                    )}
+
                     {lesson.status.toLowerCase() === 'confirmed' && !lesson.started_at && (
                         <Button
                             title="Iniciar Aula"
                             onPress={handleStart}
                             loading={isStarting}
                             size="lg"
+                            fullWidth
                         />
                     )}
 
                     {lesson.status.toLowerCase() === 'confirmed' && lesson.started_at && (
                         <View className="gap-4">
                             <Button
-                                title={disableFinish ? `Concluir Aula (${timeLeftMinutes}min)` : "Concluir Aula"}
+                                title="Concluir Aula"
                                 onPress={handleFinish}
                                 loading={isCompleting}
-                                disabled={disableFinish}
-                                variant={disableFinish ? "ghost" : "primary"}
+                                variant="primary"
                                 size="lg"
+                                fullWidth
                             />
-                            {disableFinish && (
-                                <View className="flex-row items-center justify-center px-4">
-                                    <AlertCircle size={14} color="#9CA3AF" />
-                                    <Text className="text-neutral-400 text-xs ml-2 text-center">
-                                        O botão de conclusão será habilitado 60 minutos após o início.
-                                    </Text>
-                                </View>
-                            )}
                         </View>
                     )}
 
@@ -239,6 +212,7 @@ export function LessonDetailsScreen() {
                             onPress={handleCancel}
                             loading={isCancelling}
                             size="lg"
+                            fullWidth
                         />
                     )}
                 </View>

@@ -119,8 +119,8 @@ export function StudentLessonCard({ scheduling, onPressDetails, onPressEvaluate 
             <View className="flex-row justify-between items-center pt-4 border-t border-neutral-100">
                 <View className="flex-row items-center">
                     <Calendar size={16} color="#9CA3AF" />
-                    <Text className="text-neutral-500 text-sm font-medium ml-2 uppercase tracking-wide">
-                        {weekDay}, {monthFull}
+                    <Text className="text-neutral-500 text-sm font-medium ml-2 tracking-wide">
+                        {weekDay}, {day} de {monthFull}
                     </Text>
                 </View>
 
