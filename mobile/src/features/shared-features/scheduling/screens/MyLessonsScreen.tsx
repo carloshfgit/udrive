@@ -17,6 +17,15 @@ export function MyLessonsScreen() {
     // As per LESSONS_PLAN.md: "agendamentos ativos"
     const { data, isLoading, refetch, isError } = useStudentSchedulings();
 
+    // Ordenar as aulas por data e hora (as mais próximas primeiro)
+    const sortedSchedulings = React.useMemo(() => {
+        if (!data?.schedulings) return [];
+
+        return [...data.schedulings].sort((a, b) => {
+            return new Date(a.scheduled_datetime).getTime() - new Date(b.scheduled_datetime).getTime();
+        });
+    }, [data?.schedulings]);
+
     const onRefresh = async () => {
         setRefreshing(true);
         await refetch();
@@ -72,7 +81,7 @@ export function MyLessonsScreen() {
             />
 
             <FlatList
-                data={data?.schedulings || []}
+                data={sortedSchedulings}
                 renderItem={renderItem}
                 keyExtractor={(item) => item.id}
                 contentContainerStyle={{ padding: 16, paddingBottom: 80 }}
@@ -81,7 +90,7 @@ export function MyLessonsScreen() {
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#2563EB']} />
                 }
                 ListHeaderComponent={
-                    data?.schedulings && data.schedulings.length > 0 ? (
+                    sortedSchedulings.length > 0 ? (
                         <View className="mb-4">
                             <Text className="text-neutral-500 text-sm font-medium">
                                 Próximas aulas agendadas

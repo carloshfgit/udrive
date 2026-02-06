@@ -54,32 +54,31 @@ export function StudentLessonCard({ scheduling, onPressDetails }: StudentLessonC
     };
 
     return (
-        <View className="bg-white rounded-2xl p-4 mb-4 border border-neutral-100 shadow-sm">
-            <View className="flex-row items-center mb-4">
-                {/* Destaque Temporal */}
-                <View className="bg-primary-50 px-3 py-2 rounded-xl items-center justify-center mr-4 w-16">
-                    <Text className="text-primary-700 font-bold text-lg leading-tight">
-                        {day}
-                    </Text>
-                    <Text className="text-primary-600 text-[10px] font-bold uppercase tracking-wider">
-                        {month}
-                    </Text>
-                </View>
-
-                {/* Info do Instrutor */}
-                <View className="flex-1 flex-row items-center">
-                    <Avatar
-                        fallback={scheduling.instructor_name || 'I'}
-                        size="md"
-                    />
-                    <View className="ml-3 flex-1">
-                        <Text className="text-neutral-900 font-bold text-base" numberOfLines={1}>
-                            {scheduling.instructor_name || 'Instrutor'}
+        <View className="bg-white rounded-3xl p-6 mb-5 border border-neutral-100 shadow-md">
+            {/* Top Section: Date, Time and Status */}
+            <View className="flex-row justify-between items-start mb-6">
+                <View className="flex-row items-center flex-1">
+                    {/* Destaque Temporal */}
+                    <View className="bg-primary-50 px-4 py-3 rounded-2xl items-center justify-center mr-5 min-w-[75px]">
+                        <Text className="text-primary-700 font-black text-2xl leading-none">
+                            {day}
                         </Text>
-                        <View className="flex-row items-center mt-0.5">
-                            <Clock size={12} color="#6B7280" />
-                            <Text className="text-neutral-500 text-xs ml-1">
-                                {hours}:{minutes} • {scheduling.duration_minutes} min
+                        <Text className="text-primary-500 text-[10px] font-black uppercase tracking-widest mt-1">
+                            {month}
+                        </Text>
+                    </View>
+
+                    {/* Horário Destacado */}
+                    <View className="flex-1">
+                        <Text className="text-neutral-400 text-[10px] uppercase font-bold tracking-[2px] mb-1">
+                            HORÁRIO
+                        </Text>
+                        <View className="flex-row items-baseline">
+                            <Text className="text-neutral-900 font-black text-4xl tracking-tight">
+                                {hours}:{minutes}
+                            </Text>
+                            <Text className="text-neutral-400 font-bold text-sm ml-2">
+                                {scheduling.duration_minutes}m
                             </Text>
                         </View>
                     </View>
@@ -88,26 +87,44 @@ export function StudentLessonCard({ scheduling, onPressDetails }: StudentLessonC
                 <Badge
                     label={getStatusLabel(scheduling.status)}
                     variant={getStatusVariant(scheduling.status)}
+                    className="mt-1"
                 />
             </View>
 
-            <View className="flex-row justify-between items-center pt-3 border-t border-neutral-50">
+            {/* Middle Section: Instructor Info */}
+            <View className="flex-row items-center bg-neutral-50/50 p-4 rounded-2xl mb-6">
+                <Avatar
+                    fallback={scheduling.instructor_name || 'I'}
+                    size="lg"
+                    className="border-2 border-white shadow-sm"
+                />
+                <View className="ml-4 flex-1">
+                    <Text className="text-neutral-400 text-[10px] uppercase font-bold tracking-wider mb-1">
+                        INSTRUTOR
+                    </Text>
+                    <Text className="text-neutral-800 font-bold text-lg" numberOfLines={1}>
+                        {scheduling.instructor_name || 'Instrutor'}
+                    </Text>
+                </View>
+            </View>
+
+            {/* Bottom Section: Footer Info and Action */}
+            <View className="flex-row justify-between items-center pt-4 border-t border-neutral-100">
                 <View className="flex-row items-center">
-                    <Calendar size={14} color="#6B7280" />
-                    <Text className="text-neutral-500 text-xs ml-1">
-                        {weekDay}, {day} de {monthFull}
+                    <Calendar size={16} color="#9CA3AF" />
+                    <Text className="text-neutral-500 text-sm font-medium ml-2 uppercase tracking-wide">
+                        {weekDay}, {monthFull}
                     </Text>
                 </View>
 
                 <TouchableOpacity
                     onPress={() => onPressDetails(scheduling)}
-                    className="flex-row items-center"
-                    activeOpacity={0.6}
+                    className="bg-primary-600 px-5 py-2.5 rounded-xl shadow-sm shadow-primary-200"
+                    activeOpacity={0.8}
                 >
-                    <Text className="text-primary-600 font-semibold text-sm mr-1">
+                    <Text className="text-white font-bold text-sm">
                         Ver Detalhes
                     </Text>
-                    <ChevronRight size={16} color="#2563EB" />
                 </TouchableOpacity>
             </View>
         </View>

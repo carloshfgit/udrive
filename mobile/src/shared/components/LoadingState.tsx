@@ -64,18 +64,24 @@ export const LoadingState = {
         </View>
     ),
 
-    // Preset: Card Skeleton
+    // Preset: Card Skeleton (Matches StudentLessonCard)
     Card: () => (
-        <View className="p-4 border border-neutral-200 rounded-2xl mb-4">
-            <View className="flex-row items-center mb-4">
-                <Skeleton width={48} height={48} borderRadius={24} className="mr-3" />
-                <View>
-                    <Skeleton width={120} height={16} className="mb-2" />
-                    <Skeleton width={80} height={12} />
+        <View className="p-6 border border-neutral-100 rounded-3xl mb-5 bg-white shadow-sm">
+            <View className="flex-row justify-between mb-6">
+                <View className="flex-row items-center flex-1">
+                    <Skeleton width={75} height={75} borderRadius={16} className="mr-5" />
+                    <View className="flex-1">
+                        <Skeleton width={50} height={10} className="mb-2" />
+                        <Skeleton width="80%" height={32} borderRadius={8} />
+                    </View>
                 </View>
+                <Skeleton width={80} height={24} borderRadius={20} />
             </View>
-            <Skeleton width="100%" height={12} className="mb-2" />
-            <Skeleton width="80%" height={12} />
+            <Skeleton width="100%" height={70} borderRadius={16} className="mb-6" />
+            <View className="flex-row justify-between pt-4 border-t border-neutral-50">
+                <Skeleton width={120} height={16} />
+                <Skeleton width={100} height={40} borderRadius={12} />
+            </View>
         </View>
     )
 };
