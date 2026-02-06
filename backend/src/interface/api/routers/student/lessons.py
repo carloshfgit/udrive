@@ -187,6 +187,7 @@ async def cancel_scheduling(
     request: CancelSchedulingRequest,
     current_user: CurrentStudent,
     scheduling_repo: SchedulingRepo,
+    user_repo: UserRepo,
 ) -> CancellationResultResponse:
     """Cancela um agendamento."""
     scheduling = await scheduling_repo.get_by_id(scheduling_id)
@@ -202,7 +203,7 @@ async def cancel_scheduling(
             detail="Acesso não autorizado a este agendamento",
         )
 
-    use_case = CancelSchedulingUseCase(scheduling_repo)
+    use_case = CancelSchedulingUseCase(scheduling_repo, user_repo)
     dto = CancelSchedulingDTO(
         scheduling_id=scheduling_id,
         cancelled_by=current_user.id,
@@ -212,10 +213,10 @@ async def cancel_scheduling(
     result = await use_case.execute(dto)
     return CancellationResultResponse(
         scheduling_id=result.scheduling_id,
-        status=result.status.value if hasattr(result.status, 'value') else str(result.status),
-        refund_percentage=int(result.refund_percentage * 100) if hasattr(result, 'refund_percentage') else 0,
-        refund_amount=result.refund_amount if hasattr(result, 'refund_amount') else 0,
-        message=f"Agendamento cancelado com sucesso.",
+        status=result.status,
+        refund_percentage=result.refund_percentage,
+        refund_amount=result.refund_amount,
+        cancelled_at=result.cancelled_at,
     )
 
 
