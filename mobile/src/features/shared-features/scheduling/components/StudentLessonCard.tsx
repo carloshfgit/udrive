@@ -34,21 +34,27 @@ export function StudentLessonCard({ scheduling, onPressDetails }: StudentLessonC
     const minutes = scheduledDate.getMinutes().toString().padStart(2, '0');
 
     const getStatusVariant = (status: string): BadgeVariant => {
-        switch (status.toLowerCase()) {
-            case 'confirmed': return 'info';
+        const s = status.toLowerCase();
+        switch (s) {
+            case 'confirmed': return 'success';
             case 'pending': return 'warning';
             case 'completed': return 'success';
-            case 'canceled': return 'error';
+            case 'canceled':
+            case 'cancelled':
+                return 'error';
             default: return 'default';
         }
     };
 
     const getStatusLabel = (status: string): string => {
-        switch (status.toLowerCase()) {
+        const s = status.toLowerCase();
+        switch (s) {
             case 'confirmed': return 'Confirmada';
             case 'pending': return 'Pendente';
             case 'completed': return 'Concluída';
-            case 'canceled': return 'Cancelada';
+            case 'canceled':
+            case 'cancelled':
+                return 'Cancelada';
             default: return status;
         }
     };
