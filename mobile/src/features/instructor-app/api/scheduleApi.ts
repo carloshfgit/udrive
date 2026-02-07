@@ -8,7 +8,7 @@ import api, { INSTRUCTOR_API } from '../../../lib/axios';
 
 // ============= Types =============
 
-export type SchedulingStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled';
+export type SchedulingStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'reschedule_requested';
 
 export interface Scheduling {
     id: string;
@@ -25,6 +25,7 @@ export interface Scheduling {
     created_at: string;
     student_name?: string | null;
     instructor_name?: string | null;
+    rescheduled_datetime?: string | null;
 }
 
 export interface SchedulingListResponse {
@@ -185,5 +186,19 @@ export async function createAvailability(
  */
 export async function deleteAvailability(availabilityId: string): Promise<void> {
     await api.delete(`${INSTRUCTOR_API}/availability/${availabilityId}`);
+}
+
+/**
+ * Responde a uma solicitação de reagendamento.
+ */
+export async function respondReschedule(
+    schedulingId: string,
+    accepted: boolean
+): Promise<Scheduling> {
+    const response = await api.post<Scheduling>(
+        `${INSTRUCTOR_API}/schedule/${schedulingId}/respond-reschedule`,
+        { accepted }
+    );
+    return response.data;
 }
 

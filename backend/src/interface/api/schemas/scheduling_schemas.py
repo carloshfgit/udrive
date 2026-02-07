@@ -96,6 +96,18 @@ class CancelSchedulingRequest(BaseModel):
     reason: str | None = Field(None, max_length=500, description="Motivo do cancelamento (opcional)")
 
 
+class RequestRescheduleRequest(BaseModel):
+    """Schema para solicitar reagendamento."""
+
+    new_datetime: datetime
+
+
+class RespondRescheduleRequest(BaseModel):
+    """Schema para responder a uma solicitação de reagendamento."""
+
+    accepted: bool
+
+
 class SchedulingResponse(BaseModel):
     """Schema de resposta para agendamento."""
 
@@ -111,6 +123,7 @@ class SchedulingResponse(BaseModel):
     cancelled_at: datetime | None = None
     completed_at: datetime | None = None
     started_at: datetime | None = None
+    rescheduled_datetime: datetime | None = None
     created_at: datetime
     
     # Campos enriquecidos (opcionais, preenchidos se disponíveis)

@@ -9,6 +9,7 @@ import { Badge, BadgeVariant } from '../../../../shared/components/Badge';
 import { LoadingState } from '../../../../shared/components/LoadingState';
 import { EmptyState } from '../../../../shared/components/EmptyState';
 import { useLessonDetails } from '../../../shared-features/scheduling/hooks/useLessonDetails';
+import { RescheduleModal } from '../components/RescheduleModal';
 
 export function LessonDetailsScreen() {
     const route = useRoute<any>();
@@ -25,8 +26,12 @@ export function LessonDetailsScreen() {
         isCompleting,
         cancelLesson,
         isCancelling,
+        requestReschedule,
+        isRequestingReschedule,
         refetch
     } = useLessonDetails(schedulingId);
+
+    const [isRescheduleVisible, setIsRescheduleVisible] = useState(false);
 
     if (isLoading) return <LoadingState.Card />;
 
@@ -54,9 +59,15 @@ export function LessonDetailsScreen() {
         const s = status.toLowerCase();
         if (s === 'confirmed') return 'success';
         if (s === 'pending') return 'warning';
+        if (s === 'reschedule_requested') return 'warning';
         if (s === 'completed') return 'secondary';
         if (s === 'canceled' || s === 'cancelled') return 'error';
         return 'default';
+    };
+
+    const getStatusLabel = (status: string): string => {
+        if (status.toLowerCase() === 'reschedule_requested') return 'REAGENDAMENTO SOLICITADO';
+        return status.toUpperCase();
     };
 
     const handleStart = () => {
@@ -104,6 +115,16 @@ export function LessonDetailsScreen() {
         );
     };
 
+    const handleConfirmReschedule = async (newDatetime: string) => {
+        try {
+            await requestReschedule(newDatetime);
+            setIsRescheduleVisible(false);
+            Alert.alert("Sucesso", "Solicitação de reagendamento enviada com sucesso!");
+        } catch (error: any) {
+            Alert.alert("Erro", error.message || "Não foi possível solicitar o reagendamento.");
+        }
+    };
+
     return (
         <SafeAreaView className="flex-1 bg-white">
             <Header title="Detalhes da Aula" onBack={() => navigation.goBack()} />
@@ -112,7 +133,7 @@ export function LessonDetailsScreen() {
                 {/* Status Badge */}
                 <View className="items-center mb-6">
                     <Badge
-                        label={lesson.status.toUpperCase()}
+                        label={getStatusLabel(lesson.status)}
                         variant={getStatusVariant(lesson.status)}
                     />
                 </View>
@@ -138,6 +159,19 @@ export function LessonDetailsScreen() {
                             <Text className="text-neutral-900 font-bold text-lg">{hours}:{minutes} • {lesson.duration_minutes} minutos</Text>
                         </View>
                     </View>
+
+                    {lesson.status.toLowerCase() === 'reschedule_requested' && lesson.rescheduled_datetime && (
+                        <View className="mt-4 pt-4 border-t border-neutral-100 italic">
+                            <Text className="text-amber-600 text-sm font-medium">
+                                Novo horário proposto: {new Date(lesson.rescheduled_datetime).toLocaleString('pt-BR', {
+                                    day: '2-digit',
+                                    month: 'long',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                })}
+                            </Text>
+                        </View>
+                    )}
                 </View>
 
                 {/* Instructor Block */}
@@ -195,6 +229,15 @@ export function LessonDetailsScreen() {
                         </View>
                     )}
 
+                    {lesson.status.toLowerCase() === 'reschedule_requested' && (
+                        <View className="bg-amber-50 p-4 rounded-2xl flex-row items-center mb-2 border border-amber-100">
+                            <AlertCircle size={20} color="#D97706" />
+                            <Text className="text-amber-700 text-sm ml-3 flex-1 font-medium">
+                                Você solicitou um reagendamento. Aguarde a aprovação do instrutor.
+                            </Text>
+                        </View>
+                    )}
+
                     {lesson.status.toLowerCase() === 'confirmed' && !lesson.started_at && (
                         <Button
                             title="Iniciar Aula"
@@ -220,17 +263,38 @@ export function LessonDetailsScreen() {
 
                     {(lesson.status.toLowerCase() === 'pending' || lesson.status.toLowerCase() === 'confirmed') && (
                         <Button
-                            title="Cancelar Agendamento"
-                            variant="ghost"
-                            className="text-red-500"
-                            onPress={handleCancel}
-                            loading={isCancelling}
+                            title="Reagendar Aula"
+                            variant="outline"
+                            onPress={() => setIsRescheduleVisible(true)}
                             size="lg"
                             fullWidth
                         />
                     )}
+
+                    {(lesson.status.toLowerCase() === 'pending' ||
+                        lesson.status.toLowerCase() === 'confirmed' ||
+                        lesson.status.toLowerCase() === 'reschedule_requested') && (
+                            <Button
+                                title="Cancelar Agendamento"
+                                variant="ghost"
+                                className="text-red-500"
+                                onPress={handleCancel}
+                                loading={isCancelling}
+                                size="lg"
+                                fullWidth
+                            />
+                        )}
                 </View>
             </ScrollView>
+
+            <RescheduleModal
+                isVisible={isRescheduleVisible}
+                onClose={() => setIsRescheduleVisible(false)}
+                onConfirm={handleConfirmReschedule}
+                instructorId={lesson.instructor_id}
+                durationMinutes={lesson.duration_minutes}
+                isSubmitting={isRequestingReschedule}
+            />
         </SafeAreaView>
     );
 }

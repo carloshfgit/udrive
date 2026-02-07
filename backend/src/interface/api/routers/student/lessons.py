@@ -12,6 +12,7 @@ from src.application.dtos.scheduling_dtos import (
     CancelSchedulingDTO,
     CompleteSchedulingDTO,
     CreateSchedulingDTO,
+    RequestRescheduleDTO,
     StartSchedulingDTO,
 )
 from src.application.use_cases.create_review_use_case import CreateReviewUseCase
@@ -19,6 +20,7 @@ from src.application.use_cases.scheduling import (
     CancelSchedulingUseCase,
     CompleteSchedulingUseCase,
     CreateSchedulingUseCase,
+    RequestRescheduleUseCase,
     StartSchedulingUseCase,
 )
 from src.domain.entities.scheduling_status import SchedulingStatus
@@ -35,6 +37,7 @@ from src.interface.api.schemas.scheduling_schemas import (
     CancelSchedulingRequest,
     CreateReviewRequest,
     CreateSchedulingRequest,
+    RequestRescheduleRequest,
     ReviewResponse,
     SchedulingListResponse,
     SchedulingResponse,
@@ -149,6 +152,46 @@ async def get_scheduling(
         )
 
     return SchedulingResponse.model_validate(scheduling)
+
+
+@router.post(
+    "/{scheduling_id}/request-reschedule",
+    response_model=SchedulingResponse,
+    summary="Solicitar reagendamento",
+    description="Solicita uma nova data/horário para uma aula.",
+)
+async def request_reschedule(
+    scheduling_id: UUID,
+    request: RequestRescheduleRequest,
+    current_user: CurrentStudent,
+    scheduling_repo: SchedulingRepo,
+    availability_repo: AvailabilityRepo,
+    user_repo: UserRepo,
+) -> SchedulingResponse:
+    """Solicita reagendamento de aula."""
+    use_case = RequestRescheduleUseCase(
+        scheduling_repository=scheduling_repo,
+        user_repository=user_repo,
+        availability_repository=availability_repo,
+    )
+
+    dto = RequestRescheduleDTO(
+        scheduling_id=scheduling_id,
+        student_id=current_user.id,
+        new_datetime=request.new_datetime,
+    )
+
+    try:
+        result = await use_case.execute(dto)
+        return SchedulingResponse.model_validate(result)
+    except (ValueError, Exception) as e:
+        # Note: exceptions should ideally be handled by a global handler 
+        # but following local pattern if any or just raising.
+        # Actually some routers handle exceptions explicitly.
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
 
 
 @router.post(

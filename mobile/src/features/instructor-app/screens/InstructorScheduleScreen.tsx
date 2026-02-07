@@ -112,6 +112,8 @@ function ScheduleCard({
                 return { bg: 'bg-secondary-100', text: 'text-secondary-800', label: 'Concluído' };
             case 'cancelled':
                 return { bg: 'bg-red-100', text: 'text-red-800', label: 'Cancelado' };
+            case 'reschedule_requested':
+                return { bg: 'bg-amber-100', text: 'text-amber-800', label: 'Reagendamento' };
             default:
                 return { bg: 'bg-gray-100', text: 'text-gray-800', label: status };
         }
@@ -155,6 +157,7 @@ function ScheduleCard({
             ]
         );
     };
+    const navigation = useNavigation<any>();
 
     return (
         <Card variant="outlined" className="mb-3">
@@ -195,6 +198,18 @@ function ScheduleCard({
                 </View>
 
                 {/* Ações */}
+                {scheduling.status === 'reschedule_requested' && (
+                    <TouchableOpacity
+                        onPress={() => navigation.navigate('RescheduleDetails', { scheduling })}
+                        className="flex-row items-center justify-center py-3 rounded-xl mt-2 bg-amber-500 active:bg-amber-600 shadow-sm"
+                    >
+                        <Clock size={18} color="#ffffff" />
+                        <Text className="text-white font-semibold ml-2">
+                            Ver Solicitação
+                        </Text>
+                    </TouchableOpacity>
+                )}
+
                 {scheduling.status === 'pending' && (
                     <TouchableOpacity
                         onPress={handleConfirm}

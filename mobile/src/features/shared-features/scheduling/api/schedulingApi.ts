@@ -57,6 +57,7 @@ export interface BookingResponse {
     instructor_name?: string;
     has_review?: boolean;
     started_at?: string;
+    rescheduled_datetime?: string;
 }
 
 export interface SchedulingListResponse {
@@ -196,6 +197,20 @@ export async function createReview(
     const response = await api.post(
         `${STUDENT_API}/lessons/${schedulingId}/review`,
         { rating, comment }
+    );
+    return response.data;
+}
+
+/**
+ * Solicita o reagendamento de uma aula.
+ */
+export async function requestReschedule(
+    schedulingId: string,
+    newDatetime: string
+): Promise<BookingResponse> {
+    const response = await api.post<BookingResponse>(
+        `${STUDENT_API}/lessons/${schedulingId}/request-reschedule`,
+        { new_datetime: newDatetime }
     );
     return response.data;
 }

@@ -12,6 +12,7 @@ import {
     completeScheduling,
     cancelScheduling,
     getSchedulingDates,
+    respondReschedule,
     SchedulingStatus,
 } from '../api/scheduleApi';
 
@@ -100,6 +101,22 @@ export function useSchedulingDates(year: number, month: number) {
         queryFn: () => getSchedulingDates(year, month),
         staleTime: 5 * 60 * 1000, // 5 minutos
         enabled: year > 0 && month > 0,
+    });
+}
+
+/**
+ * Hook para responder a uma solicitação de reagendamento.
+ */
+export function useRespondReschedule() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({ schedulingId, accepted }: { schedulingId: string; accepted: boolean }) =>
+            respondReschedule(schedulingId, accepted),
+        onSuccess: () => {
+            // Invalidar cache da agenda para recarregar
+            queryClient.invalidateQueries({ queryKey: INSTRUCTOR_SCHEDULE_QUERY_KEY });
+        },
     });
 }
 

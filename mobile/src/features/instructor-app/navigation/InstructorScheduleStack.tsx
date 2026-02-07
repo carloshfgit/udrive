@@ -8,11 +8,13 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import { InstructorScheduleScreen, InstructorAvailabilityScreen } from '../screens';
+import { InstructorScheduleScreen, InstructorAvailabilityScreen, RescheduleDetailsScreen } from '../screens';
+import { Scheduling } from '../api/scheduleApi';
 
 export type InstructorScheduleStackParamList = {
     InstructorScheduleMain: undefined;
     InstructorAvailability: undefined;
+    RescheduleDetails: { scheduling: Scheduling };
 };
 
 const Stack = createNativeStackNavigator<InstructorScheduleStackParamList>();
@@ -31,6 +33,10 @@ export function InstructorScheduleStack() {
             <Stack.Screen
                 name="InstructorAvailability"
                 component={InstructorAvailabilityScreen}
+            />
+            <Stack.Screen
+                name="RescheduleDetails"
+                component={RescheduleDetailsScreen}
             />
         </Stack.Navigator>
     );

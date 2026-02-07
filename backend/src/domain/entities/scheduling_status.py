@@ -28,3 +28,6 @@ class SchedulingStatus(str, Enum):
 
     COMPLETED = "completed"
     """Aula concluída."""
+
+    RESCHEDULE_REQUESTED = "reschedule_requested"
+    """Reagendamento solicitado pelo aluno, aguardando aprovação do instrutor."""

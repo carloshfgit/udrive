@@ -97,6 +97,24 @@ class StartSchedulingDTO:
     user_id: UUID
 
 
+@dataclass(frozen=True)
+class RequestRescheduleDTO:
+    """DTO para solicitar reagendamento."""
+
+    scheduling_id: UUID
+    student_id: UUID
+    new_datetime: datetime
+
+
+@dataclass(frozen=True)
+class RespondRescheduleDTO:
+    """DTO para responder a uma solicitação de reagendamento."""
+
+    scheduling_id: UUID
+    instructor_id: UUID
+    accepted: bool
+
+
 # === Output DTOs ===
 
 
@@ -116,6 +134,7 @@ class SchedulingResponseDTO:
     cancelled_at: datetime | None = None
     completed_at: datetime | None = None
     started_at: datetime | None = None
+    rescheduled_datetime: datetime | None = None
     created_at: datetime | None = None
 
     # Dados opcionais enriquecidos

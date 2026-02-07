@@ -13,18 +13,21 @@ from src.application.dtos.scheduling_dtos import (
     CancelSchedulingDTO,
     CompleteSchedulingDTO,
     ConfirmSchedulingDTO,
+    RespondRescheduleDTO,
     StartSchedulingDTO,
 )
 from src.application.use_cases.scheduling import (
     CancelSchedulingUseCase,
     CompleteSchedulingUseCase,
     ConfirmSchedulingUseCase,
+    RespondRescheduleUseCase,
     StartSchedulingUseCase,
 )
 from src.domain.entities.scheduling_status import SchedulingStatus
 from src.interface.api.dependencies import CurrentInstructor, SchedulingRepo, UserRepo
 from src.interface.api.schemas.scheduling_schemas import (
     CancellationResultResponse,
+    RespondRescheduleRequest,
     SchedulingListResponse,
     SchedulingResponse,
 )
@@ -177,6 +180,41 @@ async def confirm_scheduling(
     )
     result = await use_case.execute(dto)
     return SchedulingResponse.model_validate(result)
+
+
+@router.post(
+    "/{scheduling_id}/respond-reschedule",
+    response_model=SchedulingResponse,
+    summary="Responder a reagendamento",
+    description="Aceita ou recusa uma solicitação de reagendamento.",
+)
+async def respond_reschedule(
+    scheduling_id: UUID,
+    request: RespondRescheduleRequest,
+    current_user: CurrentInstructor,
+    scheduling_repo: SchedulingRepo,
+    user_repo: UserRepo,
+) -> SchedulingResponse:
+    """Aceita ou recusa uma solicitação de reagendamento."""
+    use_case = RespondRescheduleUseCase(
+        scheduling_repository=scheduling_repo,
+        user_repository=user_repo,
+    )
+
+    dto = RespondRescheduleDTO(
+        scheduling_id=scheduling_id,
+        instructor_id=current_user.id,
+        accepted=request.accepted,
+    )
+
+    try:
+        result = await use_case.execute(dto)
+        return SchedulingResponse.model_validate(result)
+    except (ValueError, Exception) as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
 
 
 @router.post(

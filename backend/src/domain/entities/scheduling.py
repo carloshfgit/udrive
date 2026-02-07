@@ -28,6 +28,7 @@ class Scheduling:
         cancelled_by: ID do usuário que cancelou (se aplicável).
         cancelled_at: Data/hora do cancelamento (se aplicável).
         completed_at: Data/hora da conclusão (se aplicável).
+        rescheduled_datetime: Nova data/hora sugerida para reagendamento.
     """
 
     student_id: UUID
@@ -41,6 +42,7 @@ class Scheduling:
     cancelled_at: datetime | None = None
     completed_at: datetime | None = None
     started_at: datetime | None = None
+    rescheduled_datetime: datetime | None = None
     id: UUID = field(default_factory=uuid4)
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime | None = None
@@ -89,7 +91,11 @@ class Scheduling:
         Returns:
             True se pode ser cancelado.
         """
-        return self.status in (SchedulingStatus.PENDING, SchedulingStatus.CONFIRMED)
+        return self.status in (
+            SchedulingStatus.PENDING,
+            SchedulingStatus.CONFIRMED,
+            SchedulingStatus.RESCHEDULE_REQUESTED,
+        )
 
     def can_confirm(self) -> bool:
         """
@@ -99,6 +105,15 @@ class Scheduling:
             True se pode ser confirmado (status == PENDING).
         """
         return self.status == SchedulingStatus.PENDING
+
+    def can_request_reschedule(self) -> bool:
+        """
+        Verifica se o reagendamento pode ser solicitado.
+
+        Returns:
+            True se pode solicitar reagendamento.
+        """
+        return self.status in (SchedulingStatus.PENDING, SchedulingStatus.CONFIRMED)
 
     def can_complete(self) -> bool:
         """
@@ -175,6 +190,62 @@ class Scheduling:
             )
         
         self.started_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(timezone.utc)
+
+    def request_reschedule(self, new_datetime: datetime) -> None:
+        """
+        Solicita o reagendamento da aula.
+
+        Args:
+            new_datetime: Nova data e hora sugerida.
+
+        Raises:
+            ValueError: Se o reagendamento não pode ser solicitado ou data inválida.
+        """
+        if not self.can_request_reschedule():
+            raise ValueError(
+                f"Reagendamento não pode ser solicitado. Status atual: {self.status}"
+            )
+
+        now = datetime.now(timezone.utc)
+        if new_datetime <= now:
+            raise ValueError("A nova data deve ser no futuro")
+
+        self.status = SchedulingStatus.RESCHEDULE_REQUESTED
+        self.rescheduled_datetime = new_datetime
+        self.updated_at = now
+
+    def accept_reschedule(self) -> None:
+        """
+        Aceita o reagendamento sugerido.
+
+        Raises:
+            ValueError: Se não houver solicitação de reagendamento pendente.
+        """
+        if self.status != SchedulingStatus.RESCHEDULE_REQUESTED or not self.rescheduled_datetime:
+            raise ValueError("Não há solicitação de reagendamento pendente para aceitar.")
+
+        self.scheduled_datetime = self.rescheduled_datetime
+        self.rescheduled_datetime = None
+        self.status = SchedulingStatus.CONFIRMED
+        self.updated_at = datetime.now(timezone.utc)
+
+    def refuse_reschedule(self) -> None:
+        """
+        Recusa o reagendamento sugerido.
+
+        Raises:
+            ValueError: Se não houver solicitação de reagendamento pendente.
+        """
+        if self.status != SchedulingStatus.RESCHEDULE_REQUESTED:
+            raise ValueError("Não há solicitação de reagendamento pendente para recusar.")
+
+        # Volta para CONFIRMED (assume-se que só pode pedir se estava CONFIRMED ou PENDING,
+        # mas no fluxograma mobile diz que vira CONFIRMED se aceitar. Se recusar volta ao que era.
+        # Por simplicidade, se estava em PENDING ou CONFIRMED, voltamos para CONFIRMED ou mantemos?
+        # O pedido de reagendamento geralmente acontece em aulas já confirmadas.
+        self.status = SchedulingStatus.CONFIRMED
+        self.rescheduled_datetime = None
         self.updated_at = datetime.now(timezone.utc)
 
     @property
