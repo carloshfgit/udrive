@@ -72,6 +72,10 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
             raise ValueError(f"Agendamento {scheduling.id} não encontrado para atualização")
 
         # Atualizar campos
+        model.scheduled_datetime = scheduling.scheduled_datetime
+        model.rescheduled_datetime = scheduling.rescheduled_datetime
+        model.duration_minutes = scheduling.duration_minutes
+        model.price = scheduling.price
         model.status = scheduling.status
         model.cancellation_reason = scheduling.cancellation_reason
         model.cancelled_by = scheduling.cancelled_by
