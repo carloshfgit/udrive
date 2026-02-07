@@ -13,6 +13,7 @@ import {
     TouchableOpacity,
     ActivityIndicator,
     Alert,
+    RefreshControl,
 } from 'react-native';
 import {
     ChevronLeft,
@@ -24,7 +25,7 @@ import {
     User,
     XCircle,
 } from 'lucide-react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { Card, EmptyState } from '../../../shared/components';
@@ -300,10 +301,21 @@ export function InstructorScheduleScreen() {
     const formattedDate = formatDateForAPI(selectedDate);
 
     // Hooks de API
-    const { data, isLoading, isError, refetch } = useScheduleByDate(formattedDate);
+    const { data, isLoading, isError, refetch, isRefetching } = useScheduleByDate(formattedDate);
     const confirmMutation = useConfirmScheduling();
     const completeMutation = useCompleteScheduling();
     const cancelMutation = useCancelScheduling();
+
+    // Atualizar ao ganhar foco
+    useFocusEffect(
+        React.useCallback(() => {
+            refetch();
+        }, [refetch])
+    );
+
+    const onRefresh = React.useCallback(async () => {
+        await refetch();
+    }, [refetch]);
 
     // Buscar datas com agendamentos para o mês atual (mês é 1-indexed na API)
     const { data: schedulingDatesData } = useSchedulingDates(currentYear, currentMonth + 1);
@@ -449,6 +461,14 @@ export function InstructorScheduleScreen() {
                 className="flex-1"
                 contentContainerClassName="pb-8"
                 showsVerticalScrollIndicator={false}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={isRefetching}
+                        onRefresh={onRefresh}
+                        colors={['#2563EB']}
+                        tintColor="#2563EB"
+                    />
+                }
             >
                 {/* Navegação do Calendário */}
                 <View className="flex-row items-center justify-between px-4 py-3">

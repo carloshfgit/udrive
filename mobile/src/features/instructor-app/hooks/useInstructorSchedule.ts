@@ -26,7 +26,7 @@ export function useScheduleByDate(date: string) {
     return useQuery({
         queryKey: [...INSTRUCTOR_SCHEDULE_QUERY_KEY, 'by-date', date],
         queryFn: () => getScheduleByDate(date),
-        staleTime: 2 * 60 * 1000, // 2 minutos
+        staleTime: 0, // Garantir dados frescos ao abrir
         enabled: !!date,
     });
 }
@@ -42,7 +42,7 @@ export function useInstructorSchedule(params?: {
     return useQuery({
         queryKey: [...INSTRUCTOR_SCHEDULE_QUERY_KEY, 'list', params],
         queryFn: () => getInstructorSchedule(params),
-        staleTime: 2 * 60 * 1000, // 2 minutos
+        staleTime: 0, // Garantir dados frescos ao abrir
     });
 }
 

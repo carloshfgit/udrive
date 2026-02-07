@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, SafeAreaView, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Calendar, Clock, User, ChevronRight, MessageSquare, AlertCircle, CheckCircle2 } from 'lucide-react-native';
 import { Header } from '../../../../shared/components/Header';
 import { Button } from '../../../../shared/components/Button';
@@ -32,6 +32,13 @@ export function LessonDetailsScreen() {
     } = useLessonDetails(schedulingId);
 
     const [isRescheduleVisible, setIsRescheduleVisible] = useState(false);
+
+    // Atualizar dados ao ganhar foco
+    useFocusEffect(
+        React.useCallback(() => {
+            refetch();
+        }, [refetch])
+    );
 
     if (isLoading) return <LoadingState.Card />;
 
