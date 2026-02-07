@@ -184,14 +184,22 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
         return result.scalar_one() or 0
 
     async def check_conflict(
-        self, instructor_id: UUID, scheduled_datetime: "datetime", duration_minutes: int
+        self, 
+        instructor_id: UUID, 
+        scheduled_datetime: "datetime", 
+        duration_minutes: int,
+        exclude_scheduling_id: UUID | None = None
     ) -> bool:
         """
         Verifica se existe conflito de horário para o instrutor.
         Conflito ocorre se um agendamento existente se sobrepõe ao novo horário.
         Ignora agendamentos cancelados.
         """
-        from datetime import timedelta
+        from datetime import timedelta, timezone
+
+        # Garantir que scheduled_datetime é aware (UTC se naive)
+        if scheduled_datetime.tzinfo is None:
+            scheduled_datetime = scheduled_datetime.replace(tzinfo=timezone.utc)
 
         new_start = scheduled_datetime
         new_end = scheduled_datetime + timedelta(minutes=duration_minutes)
@@ -206,6 +214,9 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
             SchedulingModel.scheduled_datetime < new_end,
             (SchedulingModel.scheduled_datetime + func.make_interval(0, 0, 0, 0, 0, SchedulingModel.duration_minutes)) > new_start
         )
+
+        if exclude_scheduling_id:
+            stmt = stmt.where(SchedulingModel.id != exclude_scheduling_id)
         
         # Nota: `func.make_interval` é específico do Postgres.
         # Alternativa portátil seria calcular end_time na aplicação ou persistir end_time no banco.

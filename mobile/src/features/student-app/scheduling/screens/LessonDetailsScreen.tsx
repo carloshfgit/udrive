@@ -124,10 +124,12 @@ export function LessonDetailsScreen() {
 
     const handleConfirmReschedule = async (newDatetime: string) => {
         try {
+            // Usar a versão async da mutation para capturar erros corretamente
             await requestReschedule(newDatetime);
             setIsRescheduleVisible(false);
             Alert.alert("Sucesso", "Solicitação de reagendamento enviada com sucesso!");
         } catch (error: any) {
+            console.error('Erro ao reagendar:', error);
             Alert.alert("Erro", error.message || "Não foi possível solicitar o reagendamento.");
         }
     };

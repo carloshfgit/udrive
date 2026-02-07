@@ -136,10 +136,20 @@ class AvailabilityRepositoryImpl(IAvailabilityRepository):
         Verifica se o horário específico está coberto por algum slot de disponibilidade ativo.
         """
         from datetime import timedelta
+        from src.core.helpers.timezone_utils import DEFAULT_TIMEZONE
 
-        day = target_datetime.weekday()
-        start = target_datetime.time()
-        end_dt = target_datetime + timedelta(minutes=duration_minutes)
+        # Garantir que estamos comparando no timezone correto (Brasília)
+        # Se for naive, assume UTC e converte para local. 
+        # Se for aware, apenas converte para local.
+        if target_datetime.tzinfo is None:
+            from datetime import timezone
+            target_datetime = target_datetime.replace(tzinfo=timezone.utc)
+        
+        local_dt = target_datetime.astimezone(DEFAULT_TIMEZONE)
+
+        day = local_dt.weekday()
+        start = local_dt.time()
+        end_dt = local_dt + timedelta(minutes=duration_minutes)
         end = end_dt.time()
 
         # Se a aula cruza a meia-noite, a lógica complica.
@@ -147,7 +157,7 @@ class AvailabilityRepositoryImpl(IAvailabilityRepository):
         # Ou melhor, se cruzar meia-noite, end < start, então devemos tratar.
         # Assumindo que slots não cruzam dias na modelagem atual (start < end constraint).
 
-        if end_dt.date() != target_datetime.date():
+        if end_dt.date() != local_dt.date():
              # Se cruza o dia, precisamos verificar se existe slot cobrindo até 23:59 E slot no dia seguinte iniciando 00:00
              # Por simplificação, vamos retornar False para aulas trans-dia por enquanto, exceto se implementarmos lógica complexa.
              return False

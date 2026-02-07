@@ -54,7 +54,7 @@ export function useLessonDetails(schedulingId: string) {
         isCompleting: completeMutation.isPending,
         cancelLesson: cancelMutation.mutate,
         isCancelling: cancelMutation.isPending,
-        requestReschedule: (newDatetime: string) => requestRescheduleMutation.mutate(newDatetime),
+        requestReschedule: requestRescheduleMutation.mutateAsync,
         isRequestingReschedule: requestRescheduleMutation.isPending
     };
 }
