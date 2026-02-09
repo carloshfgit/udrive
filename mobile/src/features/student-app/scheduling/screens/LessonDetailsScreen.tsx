@@ -10,6 +10,7 @@ import { LoadingState } from '../../../../shared/components/LoadingState';
 import { EmptyState } from '../../../../shared/components/EmptyState';
 import { useLessonDetails } from '../../../shared-features/scheduling/hooks/useLessonDetails';
 import { RescheduleModal } from '../components/RescheduleModal';
+import { LessonEvaluationModal } from '../components/LessonEvaluationModal';
 
 export function LessonDetailsScreen() {
     const route = useRoute<any>();
@@ -32,6 +33,7 @@ export function LessonDetailsScreen() {
     } = useLessonDetails(schedulingId);
 
     const [isRescheduleVisible, setIsRescheduleVisible] = useState(false);
+    const [isEvaluationVisible, setIsEvaluationVisible] = useState(false);
 
 
 
@@ -112,7 +114,14 @@ export function LessonDetailsScreen() {
             "Deseja marcar esta aula como concluída?",
             [
                 { text: "Cancelar", style: "cancel" },
-                { text: "Sim, Concluir", onPress: () => completeLesson() }
+                {
+                    text: "Sim, Concluir",
+                    onPress: () => completeLesson(undefined, {
+                        onSuccess: () => {
+                            setIsEvaluationVisible(true);
+                        }
+                    })
+                }
             ]
         );
     };
@@ -221,6 +230,18 @@ export function LessonDetailsScreen() {
                             <Text className="text-green-700 text-center mt-2">
                                 Esperamos que tenha sido um ótimo aprendizado!
                             </Text>
+
+                            {!lesson.has_review && (
+                                <View className="w-full mt-6">
+                                    <Button
+                                        title="Avaliar Aula"
+                                        onPress={() => setIsEvaluationVisible(true)}
+                                        variant="primary"
+                                        size="md"
+                                        fullWidth
+                                    />
+                                </View>
+                            )}
                         </View>
                     )}
 
@@ -299,6 +320,16 @@ export function LessonDetailsScreen() {
                 instructorId={lesson.instructor_id}
                 durationMinutes={lesson.duration_minutes}
                 isSubmitting={isRequestingReschedule}
+            />
+
+            <LessonEvaluationModal
+                visible={isEvaluationVisible}
+                onClose={() => setIsEvaluationVisible(false)}
+                scheduling={lesson}
+                onSuccess={() => {
+                    refetch();
+                    Alert.alert("Sucesso", "Obrigado por sua avaliação!");
+                }}
             />
         </SafeAreaView>
     );
