@@ -47,7 +47,8 @@ class CompleteSchedulingDTO:
     """DTO para marcar agendamento como concluído."""
 
     scheduling_id: UUID
-    instructor_id: UUID
+    user_id: UUID
+    is_student: bool = False
 
 
 @dataclass(frozen=True)
@@ -134,6 +135,7 @@ class SchedulingResponseDTO:
     cancelled_at: datetime | None = None
     completed_at: datetime | None = None
     started_at: datetime | None = None
+    student_confirmed_at: datetime | None = None
     rescheduled_datetime: datetime | None = None
     created_at: datetime | None = None
 

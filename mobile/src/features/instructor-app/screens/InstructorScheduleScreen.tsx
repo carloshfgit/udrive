@@ -414,8 +414,11 @@ export function InstructorScheduleScreen() {
             Alert.alert('Sucesso', 'Aula marcada como concluída!');
         } catch (error: any) {
             console.error('[InstructorScheduleScreen] Complete error:', error);
-            const message = error?.response?.data?.detail || 'Não foi possível concluir a aula.';
-            Alert.alert('Erro', message);
+            const detail = error?.response?.data?.detail;
+            const message = typeof detail === 'string' && detail.includes('solicite ao aluno')
+                ? detail
+                : (detail || 'Não foi possível concluir a aula.');
+            Alert.alert('Atenção', message);
         } finally {
             setCompletingId(null);
         }

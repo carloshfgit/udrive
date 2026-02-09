@@ -199,6 +199,26 @@ class LessonNotFinishedException(DomainException):
         )
 
 
+class CompletionConfirmationMissingException(DomainException):
+    """Exceção lançada quando o instrutor tenta concluir mas o aluno não confirmou."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "Solicite ao aluno para confirmar a conclusão da aula no aplicativo.",
+            "COMPLETION_CONFIRMATION_MISSING"
+        )
+
+
+class LessonNotStartedException(DomainException):
+    """Exceção lançada quando tenta concluir uma aula que ainda não começou."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "Solicite ao aluno para confirmar a conclusão da aula no aplicativo.",
+            "LESSON_NOT_STARTED"
+        )
+
+
 # === Availability Exceptions ===
 
 

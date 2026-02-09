@@ -87,6 +87,7 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
         model.cancelled_at = scheduling.cancelled_at
         model.completed_at = scheduling.completed_at
         model.started_at = scheduling.started_at
+        model.student_confirmed_at = scheduling.student_confirmed_at
         model.updated_at = scheduling.updated_at
 
         # Commit da transação

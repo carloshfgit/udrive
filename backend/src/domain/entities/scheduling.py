@@ -42,6 +42,7 @@ class Scheduling:
     cancelled_at: datetime | None = None
     completed_at: datetime | None = None
     started_at: datetime | None = None
+    student_confirmed_at: datetime | None = None
     rescheduled_datetime: datetime | None = None
     id: UUID = field(default_factory=uuid4)
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
@@ -120,12 +121,15 @@ class Scheduling:
         Verifica se o agendamento pode ser marcado como concluído.
 
         Returns:
-            True se pode ser concluído (CONFIRMED e foi iniciado).
+            True se pode ser concluído (CONFIRMED, foi iniciado e aluno confirmou).
         """
         if self.status != SchedulingStatus.CONFIRMED:
             return False
 
-        return self.started_at is not None
+        if self.started_at is None:
+            return False
+            
+        return self.student_confirmed_at is not None
 
     def cancel(self, cancelled_by: UUID, reason: str | None = None) -> None:
         """
@@ -171,13 +175,32 @@ class Scheduling:
         Raises:
             ValueError: Se o agendamento não pode ser concluído.
         """
-        if not self.can_complete():
+        if self.status != SchedulingStatus.CONFIRMED:
             raise ValueError(
-                f"Agendamento não pode ser concluído. Verifique se o status é CONFIRMED e se a aula já terminou. Status atual: {self.status}"
+                f"Agendamento não pode ser concluído. Status atual: {self.status}"
             )
+            
+        if self.started_at is None:
+            from src.domain.exceptions import LessonNotStartedException
+            raise LessonNotStartedException()
 
         self.status = SchedulingStatus.COMPLETED
         self.completed_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(timezone.utc)
+
+    def student_confirm_completion(self) -> None:
+        """
+        Registra a confirmação de conclusão pelo aluno.
+        """
+        if self.status != SchedulingStatus.CONFIRMED:
+            raise ValueError(
+                f"Confirmação só pode ser feita em aulas confirmadas. Status atual: {self.status}"
+            )
+        
+        if self.started_at is None:
+            raise ValueError("Aula ainda não foi iniciada.")
+
+        self.student_confirmed_at = datetime.now(timezone.utc)
         self.updated_at = datetime.now(timezone.utc)
 
     def start(self) -> None:

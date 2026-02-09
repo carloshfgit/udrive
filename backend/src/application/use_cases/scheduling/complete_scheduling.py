@@ -38,18 +38,18 @@ class CompleteSchedulingUseCase:
 
     async def execute(self, dto: CompleteSchedulingDTO) -> SchedulingResponseDTO:
         """
-        Executa a conclusão do agendamento.
+        Executa a conclusão ou confirmação do aluno.
 
         Args:
             dto: Dados da conclusão.
 
         Returns:
-            SchedulingResponseDTO: Agendamento concluído.
+            SchedulingResponseDTO: Agendamento atualizado.
 
         Raises:
             SchedulingNotFoundException: Se agendamento não existir.
-            InvalidSchedulingStateException: Se não estiver CONFIRMED ou aula não acabou.
-            UserNotFoundException: Se não for o instrutor do agendamento.
+            InvalidSchedulingStateException: Se não estiver CONFIRMED.
+            UserNotFoundException: Se usuário não tiver permissão.
         """
         # 1. Buscar agendamento
         scheduling = await self.scheduling_repository.get_by_id(dto.scheduling_id)
@@ -63,23 +63,29 @@ class CompleteSchedulingUseCase:
                 expected_state="confirmed"
             )
 
-        # 3. Verificar se é o instrutor
-        if dto.instructor_id != scheduling.instructor_id:
-            raise UserNotFoundException(
-                f"Usuário {dto.instructor_id} não é o instrutor deste agendamento"
-            )
+        # 3. Diferenciar fluxo por tipo de usuário
+        if dto.is_student:
+            # Verificar se é o aluno
+            if dto.user_id != scheduling.student_id:
+                raise UserNotFoundException(
+                    f"Usuário {dto.user_id} não é o aluno deste agendamento"
+                )
+            # Fluxo do aluno: confirma e completa
+            scheduling.student_confirm_completion()
+            scheduling.complete()
+        else:
+            # Verificar se é o instrutor
+            if dto.user_id != scheduling.instructor_id:
+                raise UserNotFoundException(
+                    f"Usuário {dto.user_id} não é o instrutor deste agendamento"
+                )
+            # Fluxo do instrutor: completa de fato
+            scheduling.complete()
 
-        # 4. Validar se a aula já pode ser concluída (opcional: pode adicionar check se foi iniciada)
-        if scheduling.started_at is None:
-             # Opcional: Garantir que a aula foi iniciada antes de concluir
-             pass
-
-
-        # 5. Completar
-        scheduling.complete()
+        # 4. Salvar
         saved_scheduling = await self.scheduling_repository.update(scheduling)
 
-        # 6. Buscar nomes para resposta enriquecida
+        # 5. Buscar nomes para resposta enriquecida
         student = await self.user_repository.get_by_id(saved_scheduling.student_id)
         instructor = await self.user_repository.get_by_id(saved_scheduling.instructor_id)
 
@@ -92,6 +98,9 @@ class CompleteSchedulingUseCase:
             price=saved_scheduling.price,
             status=saved_scheduling.status.value,
             completed_at=saved_scheduling.completed_at,
+            started_at=saved_scheduling.started_at,
+            student_confirmed_at=saved_scheduling.student_confirmed_at,
+            rescheduled_datetime=saved_scheduling.rescheduled_datetime,
             created_at=saved_scheduling.created_at,
             student_name=student.full_name if student else None,
             instructor_name=instructor.full_name if instructor else None,

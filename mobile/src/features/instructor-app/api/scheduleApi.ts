@@ -22,6 +22,8 @@ export interface Scheduling {
     cancelled_by?: string | null;
     cancelled_at?: string | null;
     completed_at?: string | null;
+    started_at?: string | null;
+    student_confirmed_at?: string | null;
     created_at: string;
     student_name?: string | null;
     instructor_name?: string | null;

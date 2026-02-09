@@ -123,6 +123,7 @@ class SchedulingResponse(BaseModel):
     cancelled_at: datetime | None = None
     completed_at: datetime | None = None
     started_at: datetime | None = None
+    student_confirmed_at: datetime | None = None
     rescheduled_datetime: datetime | None = None
     created_at: datetime
     

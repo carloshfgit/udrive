@@ -57,6 +57,7 @@ export interface BookingResponse {
     instructor_name?: string;
     has_review?: boolean;
     started_at?: string;
+    student_confirmed_at?: string;
     rescheduled_datetime?: string;
 }
 

@@ -251,7 +251,8 @@ async def complete_lesson(
     use_case = CompleteSchedulingUseCase(scheduling_repo, user_repo)
     dto = CompleteSchedulingDTO(
         scheduling_id=scheduling_id,
-        instructor_id=scheduling.instructor_id, # Usamos o ID do instrutor no DTO pois o UC valida o instrutor_id
+        user_id=current_user.id,
+        is_student=True,
     )
 
     result = await use_case.execute(dto)

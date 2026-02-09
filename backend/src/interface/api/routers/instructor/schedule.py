@@ -23,6 +23,7 @@ from src.application.use_cases.scheduling import (
     RespondRescheduleUseCase,
     StartSchedulingUseCase,
 )
+from src.domain.exceptions import DomainException
 from src.domain.entities.scheduling_status import SchedulingStatus
 from src.interface.api.dependencies import CurrentInstructor, SchedulingRepo, UserRepo
 from src.interface.api.schemas.scheduling_schemas import (
@@ -271,13 +272,20 @@ async def complete_scheduling(
             detail="Apenas o instrutor pode concluir",
         )
 
-    use_case = CompleteSchedulingUseCase(scheduling_repo, user_repo)
-    dto = CompleteSchedulingDTO(
-        scheduling_id=scheduling_id,
-        instructor_id=current_user.id,
-    )
-    result = await use_case.execute(dto)
-    return SchedulingResponse.model_validate(result)
+    try:
+        use_case = CompleteSchedulingUseCase(scheduling_repo, user_repo)
+        dto = CompleteSchedulingDTO(
+            scheduling_id=scheduling_id,
+            user_id=current_user.id,
+            is_student=False,
+        )
+        result = await use_case.execute(dto)
+        return SchedulingResponse.model_validate(result)
+    except DomainException as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=e.message,
+        )
 
 
 @router.post(
