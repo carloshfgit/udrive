@@ -9,7 +9,8 @@ import {
     Platform,
     SafeAreaView,
     ActivityIndicator,
-    Alert
+    Alert,
+    Keyboard
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -29,6 +30,22 @@ export function ChatRoomScreen() {
     const { messages, sendMessage, isSending, isLoading } = useMessages(otherUserId);
     const insets = useSafeAreaInsets();
     const flatListRef = useRef<FlatList>(null);
+
+    // Rola a lista quando o teclado aparecer
+    useEffect(() => {
+        const keyboardDidShowListener = Keyboard.addListener(
+            'keyboardDidShow',
+            () => {
+                setTimeout(() => {
+                    flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+                }, 100);
+            }
+        );
+
+        return () => {
+            keyboardDidShowListener.remove();
+        };
+    }, []);
 
     const handleSend = async () => {
         if (!messageText.trim() || isSending) return;
@@ -86,9 +103,9 @@ export function ChatRoomScreen() {
             />
 
             <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                behavior="padding"
                 className="flex-1"
-                keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
             >
                 {/* Dica para ver aulas */}
                 <View className="bg-blue-50 px-4 py-2 border-b border-blue-100 flex-row items-center">
