@@ -303,7 +303,7 @@ export function LessonDetailsScreen() {
                             <Button
                                 title="Cancelar Agendamento"
                                 variant="ghost"
-                                textClassName="text-error-600"
+                                textClassName="text-red-600"
                                 onPress={handleCancel}
                                 loading={isCancelling}
                                 size="lg"

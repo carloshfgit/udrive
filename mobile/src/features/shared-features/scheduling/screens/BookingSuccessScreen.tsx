@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp, CommonActions } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useQueryClient } from '@tanstack/react-query';
 import { CheckCircle, Calendar, ArrowRight } from 'lucide-react-native';
 
 import { SchedulingStackParamList } from './SelectDateTimeScreen';
@@ -46,12 +47,30 @@ export function BookingSuccessScreen() {
         rating
     } = route.params;
 
+    const queryClient = useQueryClient();
+
     const formattedDateTime = formatDateTimeBR(scheduledDatetime);
 
     // Navegar para Meus Agendamentos
     const handleViewSchedulings = () => {
-        // Vai para a tab de Aulas (Scheduling)
-        navigation.navigate('Scheduling' as any);
+        // Invalida o cache para garantir que a lista seja atualizada ao chegar na tela
+        queryClient.invalidateQueries({ queryKey: ['student-schedulings'] });
+
+        // Reseta o estado da navegação para ir diretamente para a aba de agendamentos
+        // no nível da tela de listagem, garantindo que o useFocusEffect de lá seja disparado.
+        navigation.dispatch(
+            CommonActions.reset({
+                index: 0,
+                routes: [
+                    {
+                        name: 'Scheduling',
+                        state: {
+                            routes: [{ name: 'MyLessons' }]
+                        }
+                    }
+                ],
+            })
+        );
     };
 
     // Agendar mais uma aula com o mesmo instrutor
