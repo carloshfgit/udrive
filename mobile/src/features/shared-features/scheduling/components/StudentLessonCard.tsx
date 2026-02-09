@@ -9,6 +9,7 @@ interface StudentLessonCardProps {
     scheduling: BookingResponse;
     onPressDetails: (scheduling: BookingResponse) => void;
     onPressEvaluate?: (scheduling: BookingResponse) => void;
+    variant?: 'student' | 'instructor';
 }
 
 const WEEK_DAYS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
@@ -21,7 +22,13 @@ const MONTHS_FULL = [
     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
 ];
 
-export function StudentLessonCard({ scheduling, onPressDetails, onPressEvaluate }: StudentLessonCardProps) {
+export function StudentLessonCard({
+    scheduling,
+    onPressDetails,
+    onPressEvaluate,
+    variant = 'student'
+}: StudentLessonCardProps) {
+    const isInstructor = variant === 'instructor';
     const scheduledDate = new Date(scheduling.scheduled_datetime);
 
     // Fallback for parsing ISO string if Date constructor fails in some RN versions
@@ -101,16 +108,16 @@ export function StudentLessonCard({ scheduling, onPressDetails, onPressEvaluate 
             {/* Middle Section: Instructor Info */}
             <View className="flex-row items-center bg-neutral-50/50 p-4 rounded-2xl mb-6">
                 <Avatar
-                    fallback={scheduling.instructor_name || 'I'}
+                    fallback={(isInstructor ? scheduling.student_name : scheduling.instructor_name) || '?'}
                     size="lg"
                     className="border-2 border-white shadow-sm"
                 />
                 <View className="ml-4 flex-1">
                     <Text className="text-neutral-400 text-[10px] uppercase font-bold tracking-wider mb-1">
-                        INSTRUTOR
+                        {isInstructor ? 'ALUNO' : 'INSTRUTOR'}
                     </Text>
                     <Text className="text-neutral-800 font-bold text-lg" numberOfLines={1}>
-                        {scheduling.instructor_name || 'Instrutor'}
+                        {(isInstructor ? scheduling.student_name : scheduling.instructor_name) || (isInstructor ? 'Aluno' : 'Instrutor')}
                     </Text>
                 </View>
             </View>
@@ -143,7 +150,7 @@ export function StudentLessonCard({ scheduling, onPressDetails, onPressEvaluate 
                         activeOpacity={0.8}
                     >
                         <Text className="text-white font-bold text-sm">
-                            Ver Detalhes
+                            {isInstructor ? 'Ver na Agenda' : 'Ver Detalhes'}
                         </Text>
                     </TouchableOpacity>
                 </View>

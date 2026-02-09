@@ -12,7 +12,7 @@ import { InstructorScheduleScreen, InstructorAvailabilityScreen, RescheduleDetai
 import { Scheduling } from '../api/scheduleApi';
 
 export type InstructorScheduleStackParamList = {
-    InstructorScheduleMain: undefined;
+    InstructorScheduleMain: { initialDate?: string };
     InstructorAvailability: undefined;
     RescheduleDetails: { scheduling: Scheduling };
 };

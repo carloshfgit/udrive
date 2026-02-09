@@ -25,7 +25,7 @@ import {
     User,
     XCircle,
 } from 'lucide-react-native';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useFocusEffect, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { Card, EmptyState } from '../../../shared/components';
@@ -285,12 +285,25 @@ function ScheduleCard({
 
 export function InstructorScheduleScreen() {
     const navigation = useNavigation<NavigationProp>();
+    const route = useRoute<RouteProp<InstructorScheduleStackParamList, 'InstructorScheduleMain'>>();
 
     // Estado do calendário
     const today = new Date();
     const [currentMonth, setCurrentMonth] = useState(today.getMonth());
     const [currentYear, setCurrentYear] = useState(today.getFullYear());
     const [selectedDate, setSelectedDate] = useState(today);
+
+    // Atualizar data selecionada se vier via parâmetro
+    React.useEffect(() => {
+        if (route.params?.initialDate) {
+            const date = new Date(route.params.initialDate);
+            if (!isNaN(date.getTime())) {
+                setSelectedDate(date);
+                setCurrentMonth(date.getMonth());
+                setCurrentYear(date.getFullYear());
+            }
+        }
+    }, [route.params?.initialDate]);
 
     // Estado de mutações em andamento
     const [confirmingId, setConfirmingId] = useState<string | null>(null);

@@ -35,7 +35,13 @@ export function StudentLessonHistoryScreen() {
                 renderItem={({ item }) => (
                     <StudentLessonCard
                         scheduling={item}
-                        onPressDetails={() => { }} // Desativado nesta vista simplificada por enquanto
+                        variant="instructor"
+                        onPressDetails={() => {
+                            navigation.navigate('InstructorSchedule', {
+                                screen: 'InstructorScheduleMain',
+                                params: { initialDate: item.scheduled_datetime }
+                            });
+                        }}
                     />
                 )}
                 keyExtractor={(item) => item.id}
