@@ -12,6 +12,7 @@ import {
     Alert
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Send } from 'lucide-react-native';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -26,6 +27,7 @@ export function ChatRoomScreen() {
 
     const [messageText, setMessageText] = useState('');
     const { messages, sendMessage, isSending, isLoading } = useMessages(otherUserId);
+    const insets = useSafeAreaInsets();
     const flatListRef = useRef<FlatList>(null);
 
     const handleSend = async () => {
@@ -86,7 +88,7 @@ export function ChatRoomScreen() {
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 className="flex-1"
-                keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
             >
                 <View className="flex-1 px-4">
                     {isLoading ? (
@@ -114,7 +116,10 @@ export function ChatRoomScreen() {
                 </View>
 
                 {/* Input Area */}
-                <View className="p-4 border-t border-neutral-100 flex-row items-center bg-white">
+                <View
+                    className="p-4 border-t border-neutral-100 flex-row items-center bg-white"
+                    style={{ paddingBottom: Math.max(insets.bottom, 16) }}
+                >
                     <View className="flex-1 bg-neutral-100 rounded-full px-4 py-2 mr-2 max-h-32">
                         <TextInput
                             placeholder="Mensagem..."
@@ -122,6 +127,7 @@ export function ChatRoomScreen() {
                             onChangeText={setMessageText}
                             multiline
                             className="text-neutral-900 text-sm py-1"
+                            blurOnSubmit={false}
                         />
                     </View>
 
