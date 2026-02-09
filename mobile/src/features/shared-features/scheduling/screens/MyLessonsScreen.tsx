@@ -27,7 +27,9 @@ export function MyLessonsScreen() {
 
     // Os dados já vêm ordenados (ASC) do backend para esta tela
     const sortedSchedulings = React.useMemo(() => {
-        return data?.schedulings ?? [];
+        return (data?.schedulings ?? []).filter(
+            (s) => s.status.toLowerCase() !== 'completed'
+        );
     }, [data?.schedulings]);
 
     const onRefresh = async () => {

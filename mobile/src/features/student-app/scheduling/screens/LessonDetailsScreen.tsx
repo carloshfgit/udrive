@@ -190,7 +190,10 @@ export function LessonDetailsScreen() {
                 {/* Instructor Block */}
                 <Text className="text-neutral-900 font-black text-xl mb-4">Instrutor</Text>
                 <View className="bg-white rounded-3xl p-5 mb-8 border border-neutral-100 shadow-sm">
-                    <View className="flex-row items-center mb-5">
+                    <TouchableOpacity
+                        onPress={() => navigation.navigate('InstructorProfile', { instructorId: lesson.instructor_id })}
+                        className="flex-row items-center mb-5"
+                    >
                         <Avatar
                             fallback={lesson.instructor_name || 'I'}
                             size="xl"
@@ -202,15 +205,14 @@ export function LessonDetailsScreen() {
                                 <Text className="text-neutral-400 text-sm ml-1">(128 avaliações)</Text>
                             </View>
                         </View>
-                        <TouchableOpacity onPress={() => console.log('Ver Perfil')}>
-                            <ChevronRight size={20} color="#9CA3AF" />
-                        </TouchableOpacity>
-                    </View>
+                        <ChevronRight size={20} color="#9CA3AF" />
+                    </TouchableOpacity>
 
                     <View className="flex-row gap-3">
                         <Button
                             title="Chat com Instrutor"
-                            variant="outline"
+                            variant="ghost"
+                            leftIcon={<MessageSquare size={20} color="#2563EB" />}
                             className="flex-1"
                             onPress={() => Alert.alert("Em breve", "O sistema de chat está sendo implementado.")}
                         />

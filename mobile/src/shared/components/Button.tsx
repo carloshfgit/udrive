@@ -9,6 +9,7 @@ import {
     TouchableOpacity,
     Text,
     ActivityIndicator,
+    View,
     ViewStyle,
     TextStyle,
 } from 'react-native';
@@ -28,6 +29,8 @@ interface ButtonProps {
     textClassName?: string;
     style?: ViewStyle;
     textStyle?: TextStyle;
+    leftIcon?: React.ReactNode;
+    rightIcon?: React.ReactNode;
 }
 
 export function Button({
@@ -42,6 +45,8 @@ export function Button({
     textClassName = '',
     style,
     textStyle,
+    leftIcon,
+    rightIcon,
 }: ButtonProps) {
     const isDisabled = disabled || loading;
 
@@ -94,17 +99,21 @@ export function Button({
                     size="small"
                 />
             ) : (
-                <Text
-                    className={`
-                        font-semibold text-center
-                        ${textVariantStyles[variant]}
-                        ${textSizeStyles[size]}
-                        ${textClassName}
-                    `}
-                    style={textStyle}
-                >
-                    {title}
-                </Text>
+                <>
+                    {leftIcon && <View className="mr-2">{leftIcon}</View>}
+                    <Text
+                        className={`
+                            font-semibold text-center
+                            ${textVariantStyles[variant]}
+                            ${textSizeStyles[size]}
+                            ${textClassName}
+                        `}
+                        style={textStyle}
+                    >
+                        {title}
+                    </Text>
+                    {rightIcon && <View className="ml-2">{rightIcon}</View>}
+                </>
             )}
         </TouchableOpacity>
     );
