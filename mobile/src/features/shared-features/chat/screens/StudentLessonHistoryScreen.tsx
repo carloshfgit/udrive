@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, FlatList, Text, SafeAreaView } from 'react-native';
-import { useRoute } from '@react-navigation/native';
+import { useRoute, useNavigation } from '@react-navigation/native';
 import { Header } from '../../../../shared/components/Header';
 import { LoadingState } from '../../../../shared/components/LoadingState';
 import { EmptyState } from '../../../../shared/components/EmptyState';
@@ -9,6 +9,7 @@ import { useStudentLessons } from '../hooks/useStudentLessons';
 
 export function StudentLessonHistoryScreen() {
     const route = useRoute<any>();
+    const navigation = useNavigation<any>();
     const { studentId, studentName } = route.params;
 
     const { data: lessons, isLoading, isError } = useStudentLessons(studentId);
@@ -16,7 +17,7 @@ export function StudentLessonHistoryScreen() {
     if (isError) {
         return (
             <SafeAreaView className="flex-1 bg-white">
-                <Header title={`Aulas - ${studentName}`} />
+                <Header title={`Aulas - ${studentName}`} onBack={() => navigation.goBack()} />
                 <EmptyState
                     title="Ops! Algo deu errado"
                     message="Não conseguimos carregar o histórico de aulas."
@@ -27,7 +28,7 @@ export function StudentLessonHistoryScreen() {
 
     return (
         <SafeAreaView className="flex-1 bg-white">
-            <Header title={`Aulas - ${studentName}`} />
+            <Header title={`Aulas - ${studentName}`} onBack={() => navigation.goBack()} />
 
             <FlatList
                 data={lessons}

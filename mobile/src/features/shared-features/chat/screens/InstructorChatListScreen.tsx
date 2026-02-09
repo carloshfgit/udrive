@@ -55,7 +55,7 @@ export function InstructorChatListScreen() {
     }
 
     return (
-        <SafeAreaView className="flex-1 bg-white">
+        <SafeAreaView className="flex-1 bg-neutral-50">
             <Header title="Mensagens" showBack={false} />
 
             <FlatList
@@ -67,7 +67,7 @@ export function InstructorChatListScreen() {
                     />
                 )}
                 keyExtractor={(item) => item.student_id}
-                contentContainerStyle={{ paddingBottom: 80 }}
+                contentContainerStyle={{ paddingVertical: 8, paddingBottom: 100 }}
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#2563EB']} />
                 }

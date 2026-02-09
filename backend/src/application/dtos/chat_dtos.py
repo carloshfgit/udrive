@@ -32,3 +32,4 @@ class ConversationResponseDTO(BaseModel):
     student_name: str
     last_message: MessageResponseDTO | None = None
     unread_count: int = 0
+    next_lesson_at: datetime | None = None

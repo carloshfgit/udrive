@@ -45,15 +45,20 @@ class GetInstructorConversationsUseCase:
             limit=200 # Limite alto para garantir que pegamos todos os alunos recentes
         )
 
-        # 2. Agrupar por aluno e extrair nomes
+        # 2. Agrupar por aluno e extrair nomes + próxima aula
         # Como o repositório já traz student_name preenchido (se carregado via JoinedLoad)
         conversations_dict = {}
         for s in schedulings:
             if s.student_id not in conversations_dict:
                 conversations_dict[s.student_id] = {
                     "id": s.student_id,
-                    "name": s.student_name or f"Aluno {str(s.student_id)[:8]}"
+                    "name": s.student_name or f"Aluno {str(s.student_id)[:8]}",
+                    "next_lesson_at": s.scheduled_datetime
                 }
+            else:
+                # Atualizar para a aula mais próxima se encontrarmos uma anterior
+                if s.scheduled_datetime < conversations_dict[s.student_id]["next_lesson_at"]:
+                    conversations_dict[s.student_id]["next_lesson_at"] = s.scheduled_datetime
 
         # 3. Para cada aluno, buscar a última mensagem
         results = []
@@ -77,7 +82,8 @@ class GetInstructorConversationsUseCase:
                 student_id=student_id,
                 student_name=student_info["name"],
                 last_message=last_msg_dto,
-                unread_count=0 # TODO: Implementar contagem de não lidas se necessário
+                unread_count=0, # TODO: Implementar contagem de não lidas se necessário
+                next_lesson_at=student_info["next_lesson_at"]
             ))
 
         # Ordenar por data da última mensagem (conversas mais recentes primeiro)

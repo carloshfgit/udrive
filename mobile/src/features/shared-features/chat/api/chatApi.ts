@@ -23,6 +23,7 @@ export interface ConversationResponse {
     student_name: string;
     last_message: MessageResponse | null;
     unread_count: number;
+    next_lesson_at: string | null;
 }
 
 export interface SendMessageRequest {

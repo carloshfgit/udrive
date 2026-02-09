@@ -46,7 +46,7 @@ export function Header({
             <Text style={styles.title}>{title}</Text>
 
             {rightElement ? (
-                <View style={styles.placeholder}>{rightElement}</View>
+                <View style={styles.rightContainer}>{rightElement}</View>
             ) : (
                 <View style={styles.placeholder} />
             )}
@@ -83,5 +83,10 @@ const styles = StyleSheet.create({
     },
     placeholder: {
         width: 48,
+    },
+    rightContainer: {
+        minWidth: 48,
+        alignItems: 'flex-end',
+        justifyContent: 'center',
     },
 });

@@ -12,11 +12,10 @@ import {
     Alert
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import { Send, Info } from 'lucide-react-native';
+import { Send } from 'lucide-react-native';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Header } from '../../../../shared/components/Header';
-import { IconButton } from '../../../../shared/components/IconButton';
 import { useMessages } from '../hooks/useMessages';
 import { MessageResponse } from '../api/chatApi';
 
@@ -68,25 +67,26 @@ export function ChatRoomScreen() {
     };
 
     const renderHeaderRight = () => (
-        <IconButton
-            icon={<Info size={24} color="#111318" />}
+        <TouchableOpacity
             onPress={() => navigation.navigate('StudentLessonHistory', { studentId: otherUserId, studentName: otherUserName })}
-            variant="ghost"
-            size={44}
-        />
+            className="bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100 items-center justify-center mr-1"
+        >
+            <Text className="text-blue-600 text-[10px] font-bold uppercase tracking-wider">Ver Aulas</Text>
+        </TouchableOpacity>
     );
 
     return (
         <SafeAreaView className="flex-1 bg-white">
             <Header
                 title={otherUserName}
+                onBack={() => navigation.goBack()}
                 rightElement={renderHeaderRight()}
             />
 
             <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 className="flex-1"
-                keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
             >
                 <View className="flex-1 px-4">
                     {isLoading ? (
