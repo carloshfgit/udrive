@@ -25,6 +25,7 @@ interface ButtonProps {
     loading?: boolean;
     fullWidth?: boolean;
     className?: string;
+    textClassName?: string;
     style?: ViewStyle;
     textStyle?: TextStyle;
 }
@@ -38,6 +39,7 @@ export function Button({
     loading = false,
     fullWidth = false,
     className = '',
+    textClassName = '',
     style,
     textStyle,
 }: ButtonProps) {
@@ -97,6 +99,7 @@ export function Button({
                         font-semibold text-center
                         ${textVariantStyles[variant]}
                         ${textSizeStyles[size]}
+                        ${textClassName}
                     `}
                     style={textStyle}
                 >

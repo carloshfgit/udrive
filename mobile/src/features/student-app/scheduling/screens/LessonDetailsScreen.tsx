@@ -268,7 +268,8 @@ export function LessonDetailsScreen() {
                     {(lesson.status.toLowerCase() === 'pending' || lesson.status.toLowerCase() === 'confirmed') && (
                         <Button
                             title="Reagendar Aula"
-                            variant="outline"
+                            variant="ghost"
+                            textClassName="text-warning-600 font-bold"
                             onPress={() => setIsRescheduleVisible(true)}
                             size="lg"
                             fullWidth
@@ -281,7 +282,7 @@ export function LessonDetailsScreen() {
                             <Button
                                 title="Cancelar Agendamento"
                                 variant="ghost"
-                                className="text-red-500"
+                                textClassName="text-error-600"
                                 onPress={handleCancel}
                                 loading={isCancelling}
                                 size="lg"
