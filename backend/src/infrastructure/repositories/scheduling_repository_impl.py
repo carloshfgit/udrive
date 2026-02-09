@@ -346,7 +346,7 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
                 SchedulingModel.instructor_id == instructor_id,
                 SchedulingModel.scheduled_datetime >= first_day_utc,
                 SchedulingModel.scheduled_datetime <= last_day_utc,
-                SchedulingModel.status != SchedulingStatus.CANCELLED,
+                SchedulingModel.status.notin_([SchedulingStatus.CANCELLED, SchedulingStatus.COMPLETED]),
             )
             .distinct()
             .order_by(func.date(local_ts))

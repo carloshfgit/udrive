@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
     View,
     Text,
@@ -36,6 +37,7 @@ import {
     useCompleteScheduling,
     useCancelScheduling,
     useSchedulingDates,
+    INSTRUCTOR_SCHEDULE_QUERY_KEY,
 } from '../hooks/useInstructorSchedule';
 import { Scheduling, SchedulingStatus } from '../api/scheduleApi';
 import type { InstructorScheduleStackParamList } from '../navigation/InstructorScheduleStack';
@@ -301,6 +303,7 @@ function ScheduleCard({
 export function InstructorScheduleScreen() {
     const navigation = useNavigation<NavigationProp>();
     const route = useRoute<RouteProp<InstructorScheduleStackParamList, 'InstructorScheduleMain'>>();
+    const queryClient = useQueryClient();
 
     // Estado do calendário
     const today = new Date();
@@ -342,8 +345,9 @@ export function InstructorScheduleScreen() {
     );
 
     const onRefresh = React.useCallback(async () => {
-        await refetch();
-    }, [refetch]);
+        // Invalidar tudo relacionado à agenda do instrutor para garantir que pontos no calendário atualizem
+        await queryClient.invalidateQueries({ queryKey: INSTRUCTOR_SCHEDULE_QUERY_KEY });
+    }, [queryClient]);
 
     // Buscar datas com agendamentos para o mês atual (mês é 1-indexed na API)
     const { data: schedulingDatesData } = useSchedulingDates(currentYear, currentMonth + 1);

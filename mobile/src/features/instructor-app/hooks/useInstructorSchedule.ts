@@ -70,7 +70,7 @@ export function useCompleteScheduling() {
     return useMutation({
         mutationFn: (schedulingId: string) => completeScheduling(schedulingId),
         onSuccess: () => {
-            // Invalidar cache da agenda para recarregar
+            // Invalidar cache da agenda para recarregar (incluindo datas com agendamentos)
             queryClient.invalidateQueries({ queryKey: INSTRUCTOR_SCHEDULE_QUERY_KEY });
         },
     });
@@ -99,7 +99,7 @@ export function useSchedulingDates(year: number, month: number) {
     return useQuery({
         queryKey: [...INSTRUCTOR_SCHEDULE_QUERY_KEY, 'dates', year, month],
         queryFn: () => getSchedulingDates(year, month),
-        staleTime: 5 * 60 * 1000, // 5 minutos
+        staleTime: 30 * 1000, // Reduzido para 30 segundos para refletir mudanças mais rápido
         enabled: year > 0 && month > 0,
     });
 }
