@@ -70,8 +70,8 @@ export function ChatConversationCard({ conversation, onPress }: ChatConversation
 
                     {/* Next Lesson Info */}
                     <View className="flex-row items-center pt-2 border-t border-neutral-50">
-                        <View className="bg-amber-50 px-2 py-1 rounded-md flex-row items-center">
-                            <Text className="text-[10px] text-amber-700 font-medium uppercase tracking-wider">
+                        <View className="bg-blue-50 px-2 py-1 rounded-md flex-row items-center">
+                            <Text className="text-[10px] text-blue-700 font-medium uppercase tracking-wider">
                                 Próxima aula: <Text className="font-bold">{nextLessonDate}</Text>
                             </Text>
                         </View>

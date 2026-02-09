@@ -24,6 +24,7 @@ import {
     CheckCircle,
     User,
     XCircle,
+    MessageSquare,
 } from 'lucide-react-native';
 import { useNavigation, useFocusEffect, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -108,7 +109,7 @@ function ScheduleCard({
             case 'pending':
                 return { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Pendente' };
             case 'confirmed':
-                return { bg: 'bg-blue-100', text: 'text-blue-800', label: 'Confirmado' };
+                return { bg: 'bg-green-100', text: 'text-green-800', label: 'Confirmado' };
             case 'completed':
                 return { bg: 'bg-secondary-100', text: 'text-secondary-800', label: 'Concluído' };
             case 'cancelled':
@@ -170,9 +171,24 @@ function ScheduleCard({
                             <User size={20} color="#2563EB" />
                         </View>
                         <View>
-                            <Text className="text-base font-semibold text-gray-900">
-                                {scheduling.student_name || 'Aluno'}
-                            </Text>
+                            <View className="flex-row items-center">
+                                <Text className="text-base font-semibold text-gray-900">
+                                    {scheduling.student_name || 'Aluno'}
+                                </Text>
+                                <TouchableOpacity
+                                    onPress={() => navigation.navigate('InstructorChat', {
+                                        screen: 'ChatRoom',
+                                        params: {
+                                            otherUserId: scheduling.student_id,
+                                            otherUserName: scheduling.student_name || 'Aluno'
+                                        }
+                                    })}
+                                    className="ml-2 bg-blue-100 px-2 py-1 rounded-lg flex-row items-center"
+                                >
+                                    <MessageSquare size={12} color="#2563EB" />
+                                    <Text className="text-blue-600 text-[10px] font-bold ml-1 uppercase">Chat</Text>
+                                </TouchableOpacity>
+                            </View>
                             <View className="flex-row items-center mt-0.5">
                                 <Clock size={14} color="#6B7280" />
                                 <Text className="text-sm text-gray-500 ml-1">
@@ -262,7 +278,6 @@ function ScheduleCard({
                         disabled={isCancelling}
                         className={`
                             flex-row items-center justify-center py-3 rounded-xl mt-2
-                            border-2 border-red-500
                             ${isCancelling ? 'bg-red-100' : 'bg-white active:bg-red-50'}
                         `}
                     >

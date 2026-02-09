@@ -90,6 +90,13 @@ export function ChatRoomScreen() {
                 className="flex-1"
                 keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
             >
+                {/* Dica para ver aulas */}
+                <View className="bg-blue-50 px-4 py-2 border-b border-blue-100 flex-row items-center">
+                    <Text className="text-blue-700 text-xs font-medium">
+                        💡 Para ver as aulas agendadas clique em "Ver Aulas" no topo
+                    </Text>
+                </View>
+
                 <View className="flex-1 px-4">
                     {isLoading ? (
                         <View className="flex-1 justify-center items-center">
