@@ -6,6 +6,7 @@ Interface para repositório de agendamentos.
 
 from abc import ABC, abstractmethod
 from datetime import datetime
+from typing import Sequence
 from uuid import UUID
 
 from src.domain.entities.scheduling import Scheduling
@@ -97,7 +98,7 @@ class ISchedulingRepository(ABC):
     async def list_by_instructor(
         self,
         instructor_id: UUID,
-        status: SchedulingStatus | None = None,
+        status: SchedulingStatus | Sequence[SchedulingStatus] | None = None,
         limit: int = 50,
         offset: int = 0,
     ) -> list[Scheduling]:
@@ -159,7 +160,7 @@ class ISchedulingRepository(ABC):
     async def count_by_instructor(
         self,
         instructor_id: UUID,
-        status: SchedulingStatus | None = None,
+        status: SchedulingStatus | Sequence[SchedulingStatus] | None = None,
     ) -> int:
         """
         Conta agendamentos de um instrutor.
@@ -170,6 +171,28 @@ class ISchedulingRepository(ABC):
 
         Returns:
             Contagem de agendamentos.
+        """
+        ...
+
+    @abstractmethod
+    async def list_by_student_and_instructor(
+        self,
+        student_id: UUID,
+        instructor_id: UUID,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> list[Scheduling]:
+        """
+        Lista agendamentos entre um aluno e um instrutor específico.
+
+        Args:
+            student_id: ID do aluno.
+            instructor_id: ID do instrutor.
+            limit: Número máximo de resultados.
+            offset: Deslocamento para paginação.
+
+        Returns:
+            Lista de agendamentos ordenados por data (mais recentes primeiro).
         """
         ...
 

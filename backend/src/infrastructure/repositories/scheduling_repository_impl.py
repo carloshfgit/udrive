@@ -161,7 +161,7 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
     async def list_by_instructor(
         self,
         instructor_id: UUID,
-        status: SchedulingStatus | None = None,
+        status: SchedulingStatus | Sequence[SchedulingStatus] | None = None,
         limit: int = 10,
         offset: int = 0,
     ) -> Sequence[Scheduling]:
@@ -179,18 +179,26 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
         )
 
         if status:
-            stmt = stmt.where(SchedulingModel.status == status)
+            if isinstance(status, (list, tuple, Sequence)):
+                stmt = stmt.where(SchedulingModel.status.in_(status))
+            else:
+                stmt = stmt.where(SchedulingModel.status == status)
 
         result = await self._session.execute(stmt)
         return [row.to_entity() for row in result.unique().scalars().all()]
 
     async def count_by_instructor(
-        self, instructor_id: UUID, status: SchedulingStatus | None = None
+        self, 
+        instructor_id: UUID, 
+        status: SchedulingStatus | Sequence[SchedulingStatus] | None = None
     ) -> int:
         stmt = select(func.count()).select_from(SchedulingModel).where(SchedulingModel.instructor_id == instructor_id)
 
         if status:
-            stmt = stmt.where(SchedulingModel.status == status)
+            if isinstance(status, (list, tuple, Sequence)):
+                stmt = stmt.where(SchedulingModel.status.in_(status))
+            else:
+                stmt = stmt.where(SchedulingModel.status == status)
 
         result = await self._session.execute(stmt)
         return result.scalar_one() or 0
@@ -238,6 +246,33 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
 
         result = await self._session.execute(stmt)
         return result.first() is not None
+
+    async def list_by_student_and_instructor(
+        self,
+        student_id: UUID,
+        instructor_id: UUID,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> Sequence[Scheduling]:
+        stmt = (
+            select(SchedulingModel)
+            .where(
+                and_(
+                    SchedulingModel.student_id == student_id,
+                    SchedulingModel.instructor_id == instructor_id,
+                )
+            )
+            .order_by(SchedulingModel.scheduled_datetime.desc())
+            .limit(limit)
+            .offset(offset)
+            .options(
+                joinedload(SchedulingModel.student).load_only(UserModel.id, UserModel.full_name),
+                joinedload(SchedulingModel.instructor).load_only(UserModel.id, UserModel.full_name),
+                joinedload(SchedulingModel.review),
+            )
+        )
+        result = await self._session.execute(stmt)
+        return [row.to_entity() for row in result.unique().scalars().all()]
 
     async def list_by_instructor_and_date(
         self,

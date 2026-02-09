@@ -308,3 +308,27 @@ class PaymentAlreadyProcessedException(DomainException):
             "PAYMENT_ALREADY_PROCESSED"
         )
 
+
+# === Chat Exceptions ===
+
+
+class ForbiddenContentException(DomainException):
+    """Exceção lançada quando o conteúdo da mensagem viola as regras de segurança."""
+
+    def __init__(self, reason: str | None = None) -> None:
+        message = (
+            f"Conteúdo proibido: {reason}"
+            if reason
+            else "A mensagem contém conteúdo não permitido pela plataforma."
+        )
+        super().__init__(message, "FORBIDDEN_CONTENT")
+
+
+class ActiveSchedulingRequiredException(DomainException):
+    """Exceção lançada quando tenta-se enviar mensagem sem agendamento ativo."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "Você só pode enviar mensagens para usuários com quem possui agendamentos ativos.",
+            "ACTIVE_SCHEDULING_REQUIRED",
+        )

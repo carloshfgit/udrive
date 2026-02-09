@@ -20,6 +20,8 @@ from src.domain.exceptions import (
     InvalidSchedulingStateException,
     LessonNotFinishedException,
     SchedulingNotFoundException,
+    ForbiddenContentException,
+    ActiveSchedulingRequiredException,
 )
 
 
@@ -130,5 +132,7 @@ EXCEPTION_HANDLERS = {
     LessonNotFinishedException: domain_exception_handler,
     InvalidSchedulingStateException: domain_exception_handler,
     SchedulingNotFoundException: domain_exception_handler,
+    ForbiddenContentException: domain_exception_handler,
+    ActiveSchedulingRequiredException: domain_exception_handler,
     DomainException: domain_exception_handler,
 }

@@ -22,6 +22,7 @@ from src.domain.exceptions import (
 from src.domain.interfaces.auth_service import IAuthService
 from src.domain.interfaces.instructor_repository import IInstructorRepository
 from src.domain.interfaces.location_service import ILocationService
+from src.domain.interfaces.message_repository import IMessageRepository
 from src.domain.interfaces.scheduling_repository import ISchedulingRepository
 from src.domain.interfaces.review_repository import IReviewRepository
 from src.domain.interfaces.availability_repository import IAvailabilityRepository
@@ -40,6 +41,9 @@ from src.infrastructure.repositories.scheduling_repository_impl import (
 )
 from src.infrastructure.repositories.availability_repository_impl import (
     AvailabilityRepositoryImpl,
+)
+from src.infrastructure.repositories.message_repository_impl import (
+    MessageRepositoryImpl,
 )
 from src.infrastructure.repositories.student_repository_impl import (
     StudentRepositoryImpl,
@@ -96,6 +100,11 @@ def get_availability_repository(session: DBSession) -> IAvailabilityRepository:
 def get_review_repository(session: DBSession) -> IReviewRepository:
     """Fornece uma instância do repositório de avaliações."""
     return ReviewRepositoryImpl(session)
+
+
+def get_message_repository(session: DBSession) -> IMessageRepository:
+    """Fornece uma instância do repositório de mensagens."""
+    return MessageRepositoryImpl(session)
 
 
 # =============================================================================
@@ -232,9 +241,44 @@ ReviewRepo = Annotated[IReviewRepository, Depends(get_review_repository)]
 AuthService = Annotated[IAuthService, Depends(get_auth_service)]
 LocationService = Annotated[ILocationService, Depends(get_location_service)]
 CacheService = Annotated[RedisCacheService, Depends(get_cache_service)]
+MessageRepo = Annotated[IMessageRepository, Depends(get_message_repository)]
 
 CurrentUser = Annotated[User, Depends(get_current_active_user)]
 CurrentStudent = Annotated[User, Depends(require_student)]
 CurrentInstructor = Annotated[User, Depends(require_instructor)]
+
+
+# =============================================================================
+# Use Case Dependencies
+# =============================================================================
+
+from src.application.use_cases.chat.send_message_use_case import SendMessageUseCase
+from src.application.use_cases.chat.get_instructor_conversations_use_case import (
+    GetInstructorConversationsUseCase,
+)
+from src.application.use_cases.chat.get_student_lessons_for_instructor_use_case import (
+    GetStudentLessonsForInstructorUseCase,
+)
+
+
+def get_send_message_use_case(
+    message_repo: MessageRepo,
+    scheduling_repo: SchedulingRepo,
+    user_repo: UserRepo,
+) -> SendMessageUseCase:
+    return SendMessageUseCase(message_repo, scheduling_repo, user_repo)
+
+
+def get_get_instructor_conversations_use_case(
+    scheduling_repo: SchedulingRepo,
+    message_repo: MessageRepo,
+) -> GetInstructorConversationsUseCase:
+    return GetInstructorConversationsUseCase(scheduling_repo, message_repo)
+
+
+def get_get_student_lessons_for_instructor_use_case(
+    scheduling_repo: SchedulingRepo,
+) -> GetStudentLessonsForInstructorUseCase:
+    return GetStudentLessonsForInstructorUseCase(scheduling_repo)
 
 

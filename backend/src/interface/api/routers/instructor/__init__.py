@@ -11,6 +11,7 @@ from src.interface.api.routers.instructor import (
     earnings,
     profile,
     schedule,
+    students,
 )
 
 router = APIRouter()
@@ -20,5 +21,6 @@ router.include_router(profile.router)
 router.include_router(availability.router)
 router.include_router(schedule.router)
 router.include_router(earnings.router)
+router.include_router(students.router)
 
 __all__ = ["router"]

@@ -10,7 +10,7 @@
 
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Home, Calendar, BarChart2, User } from 'lucide-react-native';
+import { Home, Calendar, BarChart2, User, MessageSquare } from 'lucide-react-native';
 
 // Instructor-specific screens (same feature)
 import {
@@ -19,6 +19,7 @@ import {
 } from '../screens';
 import { InstructorProfileStack } from './InstructorProfileStack';
 import { InstructorScheduleStack } from './InstructorScheduleStack';
+import { InstructorChatStack } from './InstructorChatStack';
 
 const Tab = createBottomTabNavigator();
 
@@ -56,6 +57,14 @@ export function InstructorTabNavigator() {
                 options={{
                     tabBarLabel: 'Agenda',
                     tabBarIcon: ({ color, size }) => <Calendar color={color} size={size} />,
+                }}
+            />
+            <Tab.Screen
+                name="InstructorChat"
+                component={InstructorChatStack}
+                options={{
+                    tabBarLabel: 'Mensagens',
+                    tabBarIcon: ({ color, size }) => <MessageSquare color={color} size={size} />,
                 }}
             />
             <Tab.Screen

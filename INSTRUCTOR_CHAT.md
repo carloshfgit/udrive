@@ -46,7 +46,7 @@ Para evitar desvios da plataforma (transações por fora), o chat deve bloquear 
 
 ### Etapa 3: Backend - Interface (API)
 - [ ] **Chat Router:** Criar `/api/v1/shared/chat.py` para endpoints de listagem de conversas e mensagens.
-- [ ] **Instructor Router:** Atualizar `/api/v1/instructor/schedule.py` ou criar específico para detalhes do aluno.
+- [ ] **Instructor Router:** Atualizar `/api/v1/instructor/schedule.py` ou criar específico para detalhes do aluno. (Criar específico).
 
 ### Etapa 4: Mobile - Camada de Dados
 - [ ] **API Tooling:** Criar `features/shared-features/chat/api/chatApi.ts`.
