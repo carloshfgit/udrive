@@ -33,12 +33,7 @@ export function LessonDetailsScreen() {
 
     const [isRescheduleVisible, setIsRescheduleVisible] = useState(false);
 
-    // Atualizar dados ao ganhar foco
-    useFocusEffect(
-        React.useCallback(() => {
-            refetch();
-        }, [refetch])
-    );
+
 
     if (isLoading) return <LoadingState.Card />;
 

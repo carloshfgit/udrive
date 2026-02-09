@@ -25,13 +25,9 @@ export function MyLessonsScreen() {
         }, [refetch])
     );
 
-    // Ordenar as aulas por data e hora (as mais próximas primeiro)
+    // Os dados já vêm ordenados (ASC) do backend para esta tela
     const sortedSchedulings = React.useMemo(() => {
-        if (!data?.schedulings) return [];
-
-        return [...data.schedulings].sort((a, b) => {
-            return new Date(a.scheduled_datetime).getTime() - new Date(b.scheduled_datetime).getTime();
-        });
+        return data?.schedulings ?? [];
     }, [data?.schedulings]);
 
     const onRefresh = async () => {

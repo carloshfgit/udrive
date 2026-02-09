@@ -72,7 +72,6 @@ class UserRepositoryImpl:
                 load_only(
                     UserModel.id,
                     UserModel.email,
-                    UserModel.hashed_password,
                     UserModel.full_name,
                     UserModel.user_type,
                     UserModel.is_active,

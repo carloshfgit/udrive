@@ -164,7 +164,7 @@ class SchedulingModel(Base):
             updated_at=self.updated_at,
             student_name=self.student.full_name if self.student else None,
             instructor_name=self.instructor.full_name if self.instructor else None,
-            has_review=True if hasattr(self, "review") and self.review else False,
+            has_review=True if self.__dict__.get("review") else False,
         )
 
     @classmethod

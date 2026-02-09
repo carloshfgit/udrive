@@ -139,10 +139,14 @@ class UserModel(Base):
 
     def to_entity(self) -> User:
         """Converte o modelo para entidade de domínio."""
+        # Use __dict__.get() to avoid triggering lazy loading 
+        # for hashed_password if it's not in the query (load_only)
+        h_password = self.__dict__.get("hashed_password", "")
+        
         return User(
             id=self.id,
             email=self.email,
-            hashed_password=self.hashed_password,
+            hashed_password=h_password,
             full_name=self.full_name,
             phone=self.phone,
             cpf=self.cpf,

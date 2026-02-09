@@ -9,12 +9,13 @@ from uuid import UUID
 
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, load_only
 
 from src.domain.entities.scheduling import Scheduling
 from src.domain.entities.scheduling_status import SchedulingStatus
 from src.domain.interfaces.scheduling_repository import ISchedulingRepository
 from src.infrastructure.db.models.scheduling_model import SchedulingModel
+from src.infrastructure.db.models.user_model import UserModel
 from src.core.helpers.timezone_utils import DEFAULT_TIMEZONE
 
 
@@ -29,21 +30,25 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
         self._session.add(model)
         await self._session.flush()
         
-        # Reload with relationships to avoid MissingGreenlet error
-        # during to_entity() conversion (which accesses .student/.instructor)
+        # The model is now in the session, but relationships (student/instructor) 
+        # might not be loaded. However, the use cases usually only need the ID 
+        # or the caller already has the info. But to_entity() NEEDS them.
+        # Instead of a full get_by_id (which is SELECT * + multiple JOINs), 
+        # we can just return the entity if we are sure the relationships are there, 
+        # or just keep it as is if it's the safest way to avoid MissingGreenlet.
+        # Actually, if we want to optimize, we should return the entity directly if possible.
+        # For 'create', it's often better to just fetch it once to be safe.
+        # But for 'update', we ALREADY fetched it with joinedload.
         created = await self.get_by_id(model.id)
-        if not created:
-            # Should not happen after commit
-            return model.to_entity()
-        return created
+        return created or model.to_entity()
 
     async def get_by_id(self, scheduling_id: UUID) -> Scheduling | None:
         stmt = (
             select(SchedulingModel)
             .where(SchedulingModel.id == scheduling_id)
             .options(
-                joinedload(SchedulingModel.student),
-                joinedload(SchedulingModel.instructor),
+                joinedload(SchedulingModel.student).load_only(UserModel.id, UserModel.full_name),
+                joinedload(SchedulingModel.instructor).load_only(UserModel.id, UserModel.full_name),
                 joinedload(SchedulingModel.review)
             )
         )
@@ -58,8 +63,8 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
             select(SchedulingModel)
             .where(SchedulingModel.id == scheduling.id)
             .options(
-                joinedload(SchedulingModel.student),
-                joinedload(SchedulingModel.instructor),
+                joinedload(SchedulingModel.student).load_only(UserModel.id, UserModel.full_name),
+                joinedload(SchedulingModel.instructor).load_only(UserModel.id, UserModel.full_name),
                 joinedload(SchedulingModel.review)
             )
         )
@@ -87,10 +92,9 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
         # Commit da transação
         await self._session.flush()
         
-        # Recarregar o modelo com os relacionamentos necessários para to_entity()
-        # Não usamos refresh() simples pois precisamos dos relacionamentos
-        # O padrão é buscar novamente com as options
-        return (await self.get_by_id(scheduling.id)) or model.to_entity()
+        # The model was already loaded with joinedload options in the first select.
+        # After flush(), we don't need to fetch it again.
+        return model.to_entity()
 
     async def delete(self, scheduling_id: UUID) -> bool:
         """Remove um agendamento."""
@@ -112,15 +116,19 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
         limit: int = 10,
         offset: int = 0,
     ) -> Sequence[Scheduling]:
+        # Para a tela "Minhas Aulas" (sem filtro de status), ordenamos ASC para mostrar as próximas aulas.
+        # Para o "Histórico" (com filtro de status), costuma-se usar DESC para mostrar as mais recentes primeiro.
+        order = SchedulingModel.scheduled_datetime.asc() if status is None else SchedulingModel.scheduled_datetime.desc()
+        
         stmt = (
             select(SchedulingModel)
             .where(SchedulingModel.student_id == student_id)
-            .order_by(SchedulingModel.scheduled_datetime.desc())
+            .order_by(order)
             .limit(limit)
             .offset(offset)
             .options(
-                joinedload(SchedulingModel.student),
-                joinedload(SchedulingModel.instructor),
+                joinedload(SchedulingModel.student).load_only(UserModel.id, UserModel.full_name),
+                joinedload(SchedulingModel.instructor).load_only(UserModel.id, UserModel.full_name),
                 joinedload(SchedulingModel.review)
             )
         )
@@ -164,8 +172,8 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
             .limit(limit)
             .offset(offset)
             .options(
-                joinedload(SchedulingModel.student),
-                joinedload(SchedulingModel.instructor),
+                joinedload(SchedulingModel.student).load_only(UserModel.id, UserModel.full_name),
+                joinedload(SchedulingModel.instructor).load_only(UserModel.id, UserModel.full_name),
                 joinedload(SchedulingModel.review)
             )
         )
@@ -258,8 +266,8 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
             )
             .order_by(SchedulingModel.scheduled_datetime.asc())
             .options(
-                joinedload(SchedulingModel.student),
-                joinedload(SchedulingModel.instructor),
+                joinedload(SchedulingModel.student).load_only(UserModel.id, UserModel.full_name),
+                joinedload(SchedulingModel.instructor).load_only(UserModel.id, UserModel.full_name),
                 joinedload(SchedulingModel.review)
             )
         )
