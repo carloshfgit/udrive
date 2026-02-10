@@ -21,7 +21,10 @@ export function StudentTabNavigator() {
                 tabBarActiveTintColor: '#2563EB', // blue-600
                 tabBarInactiveTintColor: '#6B7280', // gray-500
                 tabBarStyle: {
-                    borderTopColor: '#E5E7EB', // gray-200
+                    backgroundColor: '#ffffff',
+                    borderTopWidth: 0,
+                    elevation: 0,
+                    shadowOpacity: 0,
                     paddingTop: 8,
                     paddingBottom: 8,
                     height: 60,
