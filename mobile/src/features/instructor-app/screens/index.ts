@@ -10,5 +10,6 @@ export { InstructorAvailabilityScreen } from './InstructorAvailabilityScreen';
 export { InstructorDashboardScreen } from './InstructorDashboardScreen';
 export { InstructorProfileScreen } from './InstructorProfileScreen';
 export { EditInstructorProfileScreen } from './EditInstructorProfileScreen';
+export { EditPublicProfileScreen } from './EditPublicProfileScreen';
 export { RescheduleDetailsScreen } from './RescheduleDetailsScreen';
 

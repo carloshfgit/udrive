@@ -16,7 +16,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
     User,
-    Car,
+    Eye,
     Wallet,
     Settings,
     LogOut,
@@ -37,16 +37,16 @@ const APP_VERSION = '2.4.0';
 // Itens do menu de perfil do instrutor
 const MENU_ITEMS = [
     {
+        id: 'publicProfile',
+        title: 'Editar Perfil Público',
+        icon: Eye,
+        route: 'EditPublicProfile' as const,
+    },
+    {
         id: 'personal',
         title: 'Informações Pessoais',
         icon: User,
         route: 'EditInstructorProfile' as const,
-    },
-    {
-        id: 'vehicle',
-        title: 'Meu Veículo',
-        icon: Car,
-        route: null, // TODO: Implementar
     },
     {
         id: 'banking',
@@ -70,6 +70,8 @@ export function InstructorProfileScreen() {
     const handleMenuItemPress = (route: string | null) => {
         if (route === 'EditInstructorProfile') {
             navigation.navigate('EditInstructorProfile');
+        } else if (route === 'EditPublicProfile') {
+            navigation.navigate('EditPublicProfile');
         }
         // TODO: Implementar outras rotas
     };
