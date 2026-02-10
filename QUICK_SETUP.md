@@ -64,7 +64,7 @@ Caso prefira rodar o Backend fora do Docker (para debugging avançado), siga est
 
 1. **Certifique-se que o Banco e Redis estão rodando** (via docker-compose):
    ```bash
-   docker-compose up -d postgres redis
+   docker compose up -d postgres redis
    ```
 
 2. **Navegue até a pasta backend**:

@@ -177,19 +177,19 @@ A aplicação conecta ao banco exclusivamente de forma assíncrona.
 ### Comandos Padrão
 ```bash
 # Criar nova migration (manual - sem autogenerate)
-alembic revision -m "descricao_da_mudanca"
+docker compose exec backend alembic revision -m "descricao_da_mudanca"
 
 # Aplicar migrations
-alembic upgrade head
+docker compose exec backend alembic upgrade head
 
 # Rollback
-alembic downgrade -1
+docker compose exec backend alembic downgrade -1
 
 # Verificar status atual
-alembic current
+docker compose exec backend alembic current
 
 # Histórico de migrations
-alembic history
+docker compose exec backend alembic history
 ```
 
 ### 4.3. PostGIS e GeoAlchemy2
