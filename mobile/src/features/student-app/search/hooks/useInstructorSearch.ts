@@ -89,7 +89,8 @@ export function useUserLocation(): UseUserLocationResult {
  */
 export function useInstructorSearch(
     location: UserLocation | null,
-    filters: SearchFilters = {}
+    filters: SearchFilters = {},
+    search: string | null = null
 ): UseInstructorSearchResult {
     const params: SearchInstructorsParams | null = location
         ? {
@@ -98,6 +99,7 @@ export function useInstructorSearch(
             radiusKm: filters.radiusKm || 10,
             category: filters.category,
             biological_sex: filters.biological_sex,
+            search: search,
         }
         : null;
 
@@ -110,7 +112,7 @@ export function useInstructorSearch(
             return searchInstructors(params);
         },
         enabled: !!location,
-        staleTime: 1000 * 60 * 5, // 5 minutos
+        staleTime: 1000 * 30, // 30 segundos
         gcTime: 1000 * 60 * 10, // 10 minutos (anteriormente cacheTime)
     });
 

@@ -28,6 +28,7 @@ class UpdateInstructorProfileRequest(BaseModel):
     cpf: str | None = Field(None, max_length=14, description="CPF")
     birth_date: date | None = Field(None, description="Data de nascimento")
     biological_sex: str | None = Field(None, max_length=10, description="Sexo biológico (male/female)")
+    city: str | None = Field(None, max_length=100, description="Cidade do instrutor")
     latitude: float | None = Field(None, ge=-90, le=90, description="Latitude da localização")
     longitude: float | None = Field(None, ge=-180, le=180, description="Longitude da localização")
 
@@ -77,6 +78,7 @@ class InstructorProfileResponse(BaseModel):
     id: UUID
     user_id: UUID
     bio: str
+    city: str | None = None
     vehicle_type: str
     license_category: str
     hourly_rate: Decimal

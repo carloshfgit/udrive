@@ -70,3 +70,16 @@ class ILocationService(ABC):
             True se o ponto está dentro do raio.
         """
         ...
+
+    @abstractmethod
+    async def get_city_name(self, location: Location) -> str | None:
+        """
+        Obtém o nome da cidade a partir de coordenadas (geocodificação reversa).
+
+        Args:
+            location: Localização com latitude e longitude.
+
+        Returns:
+            Nome da cidade ou None se não encontrado.
+        """
+        ...

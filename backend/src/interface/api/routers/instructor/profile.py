@@ -17,11 +17,16 @@ from src.domain.exceptions import (
     InstructorNotFoundException,
     InvalidLocationException,
 )
-from src.interface.api.dependencies import CurrentInstructor, InstructorRepo, UserRepo
 from src.interface.api.schemas.profiles import (
     InstructorProfileResponse,
+    LocationResponse,
     UpdateInstructorProfileRequest,
     UpdateLocationRequest,
+)
+from src.interface.api.dependencies import (
+    CurrentInstructor,
+    InstructorRepo,
+    UserRepo,
 )
 
 router = APIRouter(tags=["Instructor - Profile"])
@@ -49,6 +54,7 @@ async def get_current_instructor_profile(
         id=profile.id,
         user_id=profile.user_id,
         bio=profile.bio,
+        city=profile.city,
         vehicle_type=profile.vehicle_type,
         license_category=profile.license_category,
         hourly_rate=profile.hourly_rate,
@@ -60,6 +66,7 @@ async def get_current_instructor_profile(
         cpf=current_user.cpf,
         birth_date=current_user.birth_date,
         biological_sex=current_user.biological_sex,
+        location=LocationResponse.model_validate(profile.location) if profile.location else None,
     )
 
 
@@ -84,6 +91,7 @@ async def update_instructor_profile(
     dto = UpdateInstructorProfileDTO(
         user_id=current_user.id,
         bio=request.bio,
+        city=request.city,
         vehicle_type=request.vehicle_type,
         license_category=request.license_category,
         hourly_rate=request.hourly_rate,

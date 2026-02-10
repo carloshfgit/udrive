@@ -103,6 +103,7 @@ class IInstructorRepository(ABC):
         radius_km: float = 10.0,
         biological_sex: str | None = None,
         license_category: str | None = None,
+        search_query: str | None = None,
         only_available: bool = True,
         limit: int = 50,
     ) -> list[InstructorProfile]:
@@ -121,15 +122,16 @@ class IInstructorRepository(ABC):
         ...
 
     @abstractmethod
-    async def update_location(self, user_id: UUID, location: Location) -> bool:
+    async def update_location(self, user_id: UUID, location: Location, city: str | None = None) -> bool:
         """
-        Atualiza apenas a localização do instrutor.
+        Atualiza apenas a localização (e opcionalmente a cidade) do instrutor.
 
         Operação otimizada para updates frequentes de posição.
 
         Args:
             user_id: ID do usuário instrutor.
             location: Nova localização.
+            city: Nova cidade (opcional).
 
         Returns:
             True se atualizado, False se perfil não encontrado.

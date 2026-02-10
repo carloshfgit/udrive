@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
     View,
     Text,
@@ -51,6 +51,13 @@ export function InstructorSearchScreen() {
     // Estado de busca por texto
     const [searchText, setSearchText] = useState('');
 
+    // Debounce do texto de busca (400ms)
+    const [debouncedSearch, setDebouncedSearch] = useState('');
+    useEffect(() => {
+        const timer = setTimeout(() => setDebouncedSearch(searchText), 400);
+        return () => clearTimeout(timer);
+    }, [searchText]);
+
     // Estado do modal de filtros
     const [filterModalVisible, setFilterModalVisible] = useState(false);
     const [activeFilterChip, setActiveFilterChip] = useState<string | null>(null);
@@ -65,16 +72,10 @@ export function InstructorSearchScreen() {
         error,
         refetch,
         totalCount,
-    } = useInstructorSearch(location, filters);
+    } = useInstructorSearch(location, filters, debouncedSearch);
 
-    // Filtrar por texto de busca (local)
-    const filteredInstructors = instructors.filter(instructor => {
-        if (!searchText) return true;
-        const search = searchText.toLowerCase();
-        const name = instructor.name?.toLowerCase() || '';
-        const vehicle = instructor.vehicle_type.toLowerCase();
-        return name.includes(search) || vehicle.includes(search);
-    });
+    // O backend já filtra por nome e cidade via search_query.
+    // Nenhum filtro local adicional necessário.
 
     // Handlers
     const handleViewProfile = useCallback((instructorId: string) => {
@@ -192,10 +193,10 @@ export function InstructorSearchScreen() {
             {/* Conteúdo principal */}
             {viewMode === 'list' ? (
                 <FlatList
-                    data={filteredInstructors}
+                    data={instructors}
                     renderItem={renderInstructorCard}
                     keyExtractor={keyExtractor}
-                    ListHeaderComponent={renderHeader}
+                    ListHeaderComponent={renderHeader()}
                     ListEmptyComponent={
                         isLoading || locationLoading ? (
                             <>

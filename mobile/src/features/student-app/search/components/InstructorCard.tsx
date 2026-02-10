@@ -28,6 +28,7 @@ function InstructorCardComponent({ instructor, onViewProfile }: InstructorCardPr
         user_id,
         name,
         full_name,
+        city,
         rating,
         total_reviews,
         vehicle_type,
@@ -41,6 +42,12 @@ function InstructorCardComponent({ instructor, onViewProfile }: InstructorCardPr
     // Fallback para nome se não vier da API
     // A busca retorna full_name, os detalhes retornam name
     const displayName = full_name || name || 'Instrutor';
+
+    // Texto de localização (Distância + Cidade)
+    const locationText = [
+        city,
+        distance_km !== null ? `${distance_km.toFixed(1)} km` : null
+    ].filter(Boolean).join(' • ');
 
     // Verifica se o instrutor tem localização disponível
     const hasLocation = location !== null && distance_km !== null;
@@ -73,10 +80,10 @@ function InstructorCardComponent({ instructor, onViewProfile }: InstructorCardPr
                             {vehicle_type} • Categoria {license_category}
                         </Text>
 
-                        {/* Distância ou indicador de localização indisponível */}
-                        {hasLocation ? (
+                        {/* Localização (Cidade e Distância) */}
+                        {locationText ? (
                             <Text className="text-primary-500 text-xs font-medium">
-                                📍 {distance_km?.toFixed(1)} km de distância
+                                📍 {locationText}
                             </Text>
                         ) : (
                             <View className="flex-row items-center gap-1 mt-1">

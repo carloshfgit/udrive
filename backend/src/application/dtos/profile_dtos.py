@@ -19,6 +19,7 @@ class UpdateInstructorProfileDTO:
 
     user_id: UUID
     bio: str | None = None
+    city: str | None = None
     vehicle_type: str | None = None
     license_category: str | None = None
     hourly_rate: Decimal | None = None
@@ -56,6 +57,7 @@ class InstructorSearchDTO:
     radius_km: float = 10.0
     biological_sex: str | None = None
     license_category: str | None = None
+    search_query: str | None = None
     only_available: bool = True
     limit: int = 50
 
@@ -87,6 +89,7 @@ class InstructorProfileResponseDTO:
     id: UUID
     user_id: UUID
     bio: str
+    city: str | None
     vehicle_type: str
     license_category: str
     hourly_rate: Decimal

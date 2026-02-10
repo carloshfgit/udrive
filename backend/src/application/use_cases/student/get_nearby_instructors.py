@@ -5,6 +5,7 @@ Caso de uso otimizado para busca de instrutores próximos com cache.
 """
 
 from dataclasses import dataclass
+from decimal import Decimal
 from typing import Protocol
 
 from src.application.dtos.profile_dtos import (
@@ -85,15 +86,22 @@ class GetNearbyInstructorsUseCase:
             raise InvalidLocationException(str(e)) from e
 
         # Tentar obter do cache
+        # Tentar buscar do cache
         if self.cache_service:
-            cache_key = self._get_cache_key(dto.latitude, dto.longitude, dto.radius_km)
+            cache_key = (
+                f"nearby:{dto.latitude}:{dto.longitude}:{dto.radius_km}:"
+                f"{dto.biological_sex}:{dto.license_category}:{dto.search_query}"
+            )
             cached = await self.cache_service.get(cache_key)
 
             if cached:
                 data = json.loads(cached)
                 return InstructorSearchResultDTO(
                     instructors=[
-                        InstructorProfileResponseDTO(**inst)
+                        InstructorProfileResponseDTO(
+                            **{k: v for k, v in inst.items() if k != "hourly_rate"},
+                            hourly_rate=Decimal(inst["hourly_rate"])
+                        )
                         for inst in data["instructors"]
                     ],
                     total_count=data["total_count"],
@@ -109,6 +117,7 @@ class GetNearbyInstructorsUseCase:
             radius_km=dto.radius_km,
             biological_sex=dto.biological_sex,
             license_category=dto.license_category,
+            search_query=dto.search_query,
             only_available=dto.only_available,
             limit=dto.limit,
         )
@@ -139,6 +148,7 @@ class GetNearbyInstructorsUseCase:
                     id=profile.id,
                     user_id=profile.user_id,
                     bio=profile.bio,
+                    city=profile.city,
                     vehicle_type=profile.vehicle_type,
                     license_category=profile.license_category,
                     hourly_rate=profile.hourly_rate,
@@ -167,12 +177,14 @@ class GetNearbyInstructorsUseCase:
                         "id": str(inst.id),
                         "user_id": str(inst.user_id),
                         "bio": inst.bio,
+                        "city": inst.city,
                         "vehicle_type": inst.vehicle_type,
                         "license_category": inst.license_category,
                         "hourly_rate": str(inst.hourly_rate),
                         "rating": inst.rating,
                         "total_reviews": inst.total_reviews,
                         "is_available": inst.is_available,
+                        "full_name": inst.full_name,
                         "location": {
                             "latitude": inst.location.latitude,
                             "longitude": inst.location.longitude,

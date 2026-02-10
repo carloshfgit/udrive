@@ -83,6 +83,10 @@ class UpdateInstructorProfileUseCase:
             location = Location(latitude=dto.latitude, longitude=dto.longitude)
             profile.update_location(location)
 
+        # Atualizar cidade se fornecida (preenchida manualmente pelo instrutor)
+        if dto.city is not None:
+            profile.city = dto.city
+
         # Atualizar disponibilidade se fornecida
         if dto.is_available is not None:
             profile.set_availability(dto.is_available)
@@ -127,6 +131,7 @@ class UpdateInstructorProfileUseCase:
             id=saved_profile.id,
             user_id=saved_profile.user_id,
             bio=saved_profile.bio,
+            city=saved_profile.city,
             vehicle_type=saved_profile.vehicle_type,
             license_category=saved_profile.license_category,
             hourly_rate=saved_profile.hourly_rate,

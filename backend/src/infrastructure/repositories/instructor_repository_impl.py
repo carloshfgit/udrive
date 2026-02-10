@@ -60,12 +60,24 @@ class InstructorRepositoryImpl(IInstructorRepository):
 
     async def get_by_user_id(self, user_id: UUID) -> InstructorProfile | None:
         """Busca perfil pelo ID do usuário."""
-        stmt = select(InstructorProfileModel).where(
-            InstructorProfileModel.user_id == user_id
+        stmt = (
+            select(
+                InstructorProfileModel,
+                geo_func.ST_X(InstructorProfileModel.location).label("lon"),
+                geo_func.ST_Y(InstructorProfileModel.location).label("lat"),
+            )
+            .where(InstructorProfileModel.user_id == user_id)
         )
         result = await self._session.execute(stmt)
-        model = result.scalar_one_or_none()
-        return self._model_to_entity(model) if model else None
+        row = result.first()
+
+        if row:
+            model = row[0]
+            profile = self._model_to_entity(model)
+            if row.lat is not None and row.lon is not None:
+                profile.location = Location(latitude=row.lat, longitude=row.lon)
+            return profile
+        return None
 
     async def get_public_profile_by_user_id(self, user_id: UUID) -> InstructorProfile | None:
         """Busca apenas dados públicos do perfil do instrutor."""
@@ -85,6 +97,7 @@ class InstructorRepositoryImpl(IInstructorRepository):
                     InstructorProfileModel.id,
                     InstructorProfileModel.user_id,
                     InstructorProfileModel.bio,
+                    InstructorProfileModel.city,
                     InstructorProfileModel.hourly_rate,
                     InstructorProfileModel.rating,
                     InstructorProfileModel.total_reviews,
@@ -105,6 +118,7 @@ class InstructorRepositoryImpl(IInstructorRepository):
                 id=model.id,
                 user_id=model.user_id,
                 bio=model.bio,
+                city=model.city,
                 vehicle_type=model.vehicle_type,
                 license_category=model.license_category,
                 hourly_rate=model.hourly_rate,
@@ -133,6 +147,7 @@ class InstructorRepositoryImpl(IInstructorRepository):
 
         # Atualizar campos
         model.bio = profile.bio
+        model.city = profile.city
         model.vehicle_type = profile.vehicle_type
         model.license_category = profile.license_category
         model.hourly_rate = profile.hourly_rate
@@ -171,13 +186,15 @@ class InstructorRepositoryImpl(IInstructorRepository):
         radius_km: float = 10.0,
         biological_sex: str | None = None,
         license_category: str | None = None,
+        search_query: str | None = None,
         only_available: bool = True,
         limit: int = 50,
     ) -> list[InstructorProfile]:
         """
-        Busca instrutores por proximidade usando PostGIS.
+        Busca instrutores por proximidade usando PostGIS e filtros de texto.
 
         Utiliza ST_DWithin para busca eficiente com índice GIST.
+        Também filtra por nome ou cidade se search_query for fornecido.
         """
         # Converter raio de km para metros (PostGIS geography usa metros)
         radius_m = radius_km * 1000
@@ -207,6 +224,8 @@ class InstructorRepositoryImpl(IInstructorRepository):
                 load_only(
                     InstructorProfileModel.id,
                     InstructorProfileModel.user_id,
+                    InstructorProfileModel.bio,
+                    InstructorProfileModel.city,
                     InstructorProfileModel.hourly_rate,
                     InstructorProfileModel.rating,
                     InstructorProfileModel.total_reviews,
@@ -232,6 +251,15 @@ class InstructorRepositoryImpl(IInstructorRepository):
                 InstructorProfileModel.location.is_(None)
             )
         )
+
+        # Filtro por texto (Nome ou Cidade)
+        if search_query:
+            stmt = stmt.where(
+                or_(
+                    geo_func.unaccent(UserModel.full_name).ilike(geo_func.unaccent(f"%{search_query}%")),
+                    geo_func.unaccent(InstructorProfileModel.city).ilike(geo_func.unaccent(f"%{search_query}%"))
+                )
+            )
 
         # Ordenação: Localizados primeiro, por distância; depois Sem Localização por rating
         stmt = stmt.order_by(
@@ -275,7 +303,8 @@ class InstructorRepositoryImpl(IInstructorRepository):
                 is_available=model.is_available,
                 full_name=model.user.full_name if model.user else None,
                 biological_sex=model.user.biological_sex if model.user else None,
-                bio="",  # Bio não é essencial na lista de busca
+                bio="",
+                city=model.city,
                 created_at=model.created_at,
                 updated_at=model.updated_at,
             )
@@ -283,14 +312,18 @@ class InstructorRepositoryImpl(IInstructorRepository):
 
         return profiles
 
-    async def update_location(self, user_id: UUID, location: Location) -> bool:
+    async def update_location(self, user_id: UUID, location: Location, city: str | None = None) -> bool:
         """Atualiza apenas a localização do instrutor (operação otimizada)."""
         location_wkt = f"SRID=4326;{location.to_wkt()}"
+
+        values = {"location": location_wkt}
+        if city:
+            values["city"] = city
 
         stmt = (
             update(InstructorProfileModel)
             .where(InstructorProfileModel.user_id == user_id)
-            .values(location=location_wkt)
+            .values(**values)
         )
 
         result = await self._session.execute(stmt)
@@ -320,6 +353,7 @@ class InstructorRepositoryImpl(IInstructorRepository):
                 load_only(
                     InstructorProfileModel.id,
                     InstructorProfileModel.user_id,
+                    InstructorProfileModel.city,
                     InstructorProfileModel.hourly_rate,
                     InstructorProfileModel.rating,
                     InstructorProfileModel.total_reviews,
@@ -364,6 +398,7 @@ class InstructorRepositoryImpl(IInstructorRepository):
                 full_name=model.user.full_name if model.user else None,
                 biological_sex=model.user.biological_sex if model.user else None,
                 bio="",  # Bio não é essencial na lista de busca
+                city=model.city,
                 created_at=model.created_at,
                 updated_at=model.updated_at,
             )
@@ -377,6 +412,7 @@ class InstructorRepositoryImpl(IInstructorRepository):
             id=model.id,
             user_id=model.user_id,
             bio=model.bio,
+            city=model.city,
             vehicle_type=model.vehicle_type,
             license_category=model.license_category,
             hourly_rate=model.hourly_rate,

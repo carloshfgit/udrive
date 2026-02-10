@@ -90,6 +90,13 @@ class InstructorProfileModel(Base):
         nullable=True,
     )
 
+    # Cidade (obtida via geocodificação reversa)
+    city: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+        index=True,
+    )
+
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -126,6 +133,7 @@ class InstructorProfileModel(Base):
             id=self.id,
             user_id=self.user_id,
             bio=self.bio,
+            city=self.city,
             vehicle_type=self.vehicle_type,
             license_category=self.license_category,
             hourly_rate=self.hourly_rate,
@@ -149,6 +157,7 @@ class InstructorProfileModel(Base):
             id=profile.id,
             user_id=profile.user_id,
             bio=profile.bio,
+            city=profile.city,
             vehicle_type=profile.vehicle_type,
             license_category=profile.license_category,
             hourly_rate=profile.hourly_rate,

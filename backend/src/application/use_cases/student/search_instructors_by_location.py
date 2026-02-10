@@ -85,6 +85,7 @@ class SearchInstructorsByLocationUseCase:
                     id=profile.id,
                     user_id=profile.user_id,
                     bio=profile.bio,
+                    city=profile.city,
                     vehicle_type=profile.vehicle_type,
                     license_category=profile.license_category,
                     hourly_rate=profile.hourly_rate,

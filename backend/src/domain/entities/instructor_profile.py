@@ -33,6 +33,7 @@ class InstructorProfile:
 
     user_id: UUID
     bio: str = ""
+    city: str | None = None
     vehicle_type: str = ""
     license_category: str = "B"
     hourly_rate: Decimal = field(default_factory=lambda: Decimal("80.00"))

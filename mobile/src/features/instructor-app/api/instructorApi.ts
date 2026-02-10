@@ -12,6 +12,7 @@ export interface InstructorProfile {
     id: string;
     user_id: string;
     bio: string;
+    city?: string | null;
     vehicle_type: string;
     license_category: string;
     hourly_rate: number;
@@ -34,6 +35,7 @@ export interface LocationData {
 
 export interface UpdateInstructorProfileRequest {
     bio?: string;
+    city?: string;
     vehicle_type?: string;
     license_category?: string;
     hourly_rate?: number;

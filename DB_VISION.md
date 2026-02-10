@@ -104,7 +104,7 @@ Armazena dados específicos de instrutores, incluindo dados espaciais.
 *   **Geolocalização**:
     *   campo `location`: Tipo `Geometry(Point, 4326)`. Armazena a posição geográfica do instrutor (WGS84).
     *   Índice Espacial: `GIST` na coluna `location` para queries de proximidade (`ST_DWithin`).
-*   **Campos Chave**: `bio`, `vehicle_type`, `hourly_rate`, `is_available`, `rating`.
+*   **Campos Chave**: `bio`, `vehicle_type`, `hourly_rate`, `is_available`, `rating`, `city`.
 
 #### `student_profiles`
 Armazena dados de aprendizado dos alunos.

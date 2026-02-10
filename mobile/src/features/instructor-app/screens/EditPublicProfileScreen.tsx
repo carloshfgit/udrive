@@ -197,6 +197,7 @@ export function EditPublicProfileScreen() {
 
     // Dados do perfil público
     const [bio, setBio] = useState('');
+    const [city, setCity] = useState('');
     const [vehicleType, setVehicleType] = useState('');
     const [licenseCategory, setLicenseCategory] = useState('B');
     const [hourlyRate, setHourlyRate] = useState('');
@@ -211,12 +212,18 @@ export function EditPublicProfileScreen() {
     useEffect(() => {
         if (profile) {
             setBio(profile.bio || '');
+            setCity(profile.city || '');
             setVehicleType(profile.vehicle_type || '');
             setLicenseCategory(profile.license_category || 'B');
             setHourlyRate(profile.hourly_rate?.toString() || '80');
             setIsAvailable(profile.is_available ?? true);
+
+            // Sincronizar localização salva no perfil (se houver)
+            if (profile.location?.latitude && profile.location?.longitude) {
+                setLocation(profile.location.latitude, profile.location.longitude);
+            }
         }
-    }, [profile]);
+    }, [profile, setLocation]);
 
     // Carregar endereço quando coordenadas mudarem
     useEffect(() => {
@@ -332,6 +339,7 @@ export function EditPublicProfileScreen() {
 
             await updateProfile.mutateAsync({
                 bio: bio || undefined,
+                city: city || undefined,
                 vehicle_type: vehicleType || undefined,
                 license_category: licenseCategory,
                 hourly_rate: rate,
@@ -442,6 +450,16 @@ export function EditPublicProfileScreen() {
                     <Text className="text-xs text-gray-400 -mt-2 mb-4 leading-4">
                         * Não é permitido divulgar telefone, e-mail, redes sociais ou chaves PIX na biografia.
                     </Text>
+
+                    {/* Cidade */}
+                    <FormInput
+                        label="Cidade"
+                        value={city}
+                        onChangeText={setCity}
+                        placeholder="Ex: Brasília"
+                        leftIcon={<MapPin size={18} color="#9CA3AF" />}
+                        maxLength={100}
+                    />
 
                     {/* Tipo de Veículo */}
                     <FormInput

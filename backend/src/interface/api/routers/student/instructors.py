@@ -32,9 +32,12 @@ async def search_instructors(
     radius_km: float = 10.0,
     biological_sex: str | None = None,
     license_category: str | None = None,
+    search: str | None = None,
     limit: int = 50,
 ) -> InstructorSearchResponse:
-    """Busca instrutores por proximidade."""
+    """
+    Busca instrutores próximos à localização fornecida.
+    """
     use_case = GetNearbyInstructorsUseCase(
         instructor_repository=instructor_repo,
         cache_service=cache_service,
@@ -46,6 +49,7 @@ async def search_instructors(
         radius_km=radius_km,
         biological_sex=biological_sex,
         license_category=license_category,
+        search_query=search,
         only_available=True,
         limit=limit,
     )

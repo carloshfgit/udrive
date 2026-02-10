@@ -74,9 +74,9 @@ export function useAuth() {
         try {
             await authApi.logout();
         } catch {
-            // Ignorar erro de logout
+            // Ignorar erro de logout no backend
         } finally {
-            await tokenManager.clearTokens();
+            // Toda a limpeza (tokens, cache, location) é feita pelo storeLogout
             storeLogout();
         }
     }, [storeLogout]);

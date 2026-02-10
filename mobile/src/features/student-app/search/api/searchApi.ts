@@ -24,6 +24,7 @@ export interface Instructor {
     total_reviews: number;
     is_available: boolean;
     location: Location | null;
+    city: string | null;
     distance_km: number | null;
     // Campos adicionais para exibição (derivados de User)
     name?: string;
@@ -38,6 +39,7 @@ export interface SearchInstructorsParams {
     limit?: number;
     category?: string;
     biological_sex?: string;
+    search?: string | null;
 }
 
 export interface SearchInstructorsResponse {
@@ -66,6 +68,7 @@ export async function searchInstructors(
             limit,
             biological_sex,
             license_category: category,
+            search: params.search,
         },
     });
 
