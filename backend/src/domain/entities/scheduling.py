@@ -49,6 +49,8 @@ class Scheduling:
     updated_at: datetime | None = None
     student_name: str | None = None
     instructor_name: str | None = None
+    instructor_rating: float | None = None
+    instructor_review_count: int | None = None
     has_review: bool = False
 
     def __post_init__(self) -> None:

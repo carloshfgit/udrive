@@ -201,8 +201,8 @@ export function LessonDetailsScreen() {
                         <View className="ml-4 flex-1">
                             <Text className="text-neutral-900 font-bold text-xl">{lesson.instructor_name || 'Instrutor'}</Text>
                             <View className="flex-row items-center mt-1">
-                                <Text className="text-amber-500 font-bold">★ 4.9</Text>
-                                <Text className="text-neutral-400 text-sm ml-1">(128 avaliações)</Text>
+                                <Text className="text-amber-500 font-bold">★ {lesson.instructor_rating?.toFixed(1) || '0.0'}</Text>
+                                <Text className="text-neutral-400 text-sm ml-1">({lesson.instructor_review_count || 0} avaliações)</Text>
                             </View>
                         </View>
                         <ChevronRight size={20} color="#9CA3AF" />

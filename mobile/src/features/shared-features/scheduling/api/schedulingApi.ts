@@ -55,6 +55,8 @@ export interface BookingResponse {
     created_at: string;
     student_name?: string;
     instructor_name?: string;
+    instructor_rating?: number;
+    instructor_review_count?: number;
     has_review?: boolean;
     started_at?: string;
     student_confirmed_at?: string;

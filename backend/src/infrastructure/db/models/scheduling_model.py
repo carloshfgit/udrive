@@ -169,6 +169,8 @@ class SchedulingModel(Base):
             updated_at=self.updated_at,
             student_name=self.student.full_name if "student" in self.__dict__ and self.student else None,
             instructor_name=self.instructor.full_name if "instructor" in self.__dict__ and self.instructor else None,
+            instructor_rating=float(self.instructor.instructor_profile.rating) if "instructor" in self.__dict__ and self.instructor and self.instructor.instructor_profile else None,
+            instructor_review_count=self.instructor.instructor_profile.total_reviews if "instructor" in self.__dict__ and self.instructor and self.instructor.instructor_profile else None,
             has_review=True if self.__dict__.get("review") else False,
         )
 

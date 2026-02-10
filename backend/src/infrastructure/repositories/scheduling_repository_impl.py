@@ -48,7 +48,10 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
             .where(SchedulingModel.id == scheduling_id)
             .options(
                 joinedload(SchedulingModel.student).load_only(UserModel.id, UserModel.full_name),
-                joinedload(SchedulingModel.instructor).load_only(UserModel.id, UserModel.full_name),
+                joinedload(SchedulingModel.instructor).options(
+                    load_only(UserModel.id, UserModel.full_name),
+                    joinedload(UserModel.instructor_profile)
+                ),
                 joinedload(SchedulingModel.review)
             )
         )
@@ -64,7 +67,10 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
             .where(SchedulingModel.id == scheduling.id)
             .options(
                 joinedload(SchedulingModel.student).load_only(UserModel.id, UserModel.full_name),
-                joinedload(SchedulingModel.instructor).load_only(UserModel.id, UserModel.full_name),
+                joinedload(SchedulingModel.instructor).options(
+                    load_only(UserModel.id, UserModel.full_name),
+                    joinedload(UserModel.instructor_profile)
+                ),
                 joinedload(SchedulingModel.review)
             )
         )
@@ -129,7 +135,10 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
             .offset(offset)
             .options(
                 joinedload(SchedulingModel.student).load_only(UserModel.id, UserModel.full_name),
-                joinedload(SchedulingModel.instructor).load_only(UserModel.id, UserModel.full_name),
+                joinedload(SchedulingModel.instructor).options(
+                    load_only(UserModel.id, UserModel.full_name),
+                    joinedload(UserModel.instructor_profile)
+                ),
                 joinedload(SchedulingModel.review)
             )
         )
@@ -174,7 +183,10 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
             .offset(offset)
             .options(
                 joinedload(SchedulingModel.student).load_only(UserModel.id, UserModel.full_name),
-                joinedload(SchedulingModel.instructor).load_only(UserModel.id, UserModel.full_name),
+                joinedload(SchedulingModel.instructor).options(
+                    load_only(UserModel.id, UserModel.full_name),
+                    joinedload(UserModel.instructor_profile)
+                ),
                 joinedload(SchedulingModel.review)
             )
         )
@@ -268,7 +280,10 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
             .offset(offset)
             .options(
                 joinedload(SchedulingModel.student).load_only(UserModel.id, UserModel.full_name),
-                joinedload(SchedulingModel.instructor).load_only(UserModel.id, UserModel.full_name),
+                joinedload(SchedulingModel.instructor).options(
+                    load_only(UserModel.id, UserModel.full_name),
+                    joinedload(UserModel.instructor_profile)
+                ),
                 joinedload(SchedulingModel.review),
             )
         )
@@ -303,7 +318,10 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
             .order_by(SchedulingModel.scheduled_datetime.asc())
             .options(
                 joinedload(SchedulingModel.student).load_only(UserModel.id, UserModel.full_name),
-                joinedload(SchedulingModel.instructor).load_only(UserModel.id, UserModel.full_name),
+                joinedload(SchedulingModel.instructor).options(
+                    load_only(UserModel.id, UserModel.full_name),
+                    joinedload(UserModel.instructor_profile)
+                ),
                 joinedload(SchedulingModel.review)
             )
         )

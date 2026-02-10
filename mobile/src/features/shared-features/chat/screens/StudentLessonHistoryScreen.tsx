@@ -20,6 +20,34 @@ export function StudentLessonHistoryScreen() {
     const isInstructor = user?.user_type === 'instructor';
     const { data: lessons, isLoading, isError } = useLessonHistory(studentId);
 
+    const sortedLessons = React.useMemo(() => {
+        if (!lessons) return [];
+
+        const priorityOrder: Record<string, number> = {
+            'pending': 1,
+            'reschedule_requested': 1,
+            'confirmed': 2,
+            'completed': 3,
+            'cancelled': 4,
+            'canceled': 4,
+        };
+
+        return [...lessons].sort((a, b) => {
+            const statusA = (a.status || '').toLowerCase();
+            const statusB = (b.status || '').toLowerCase();
+
+            const pA = priorityOrder[statusA] || 99;
+            const pB = priorityOrder[statusB] || 99;
+
+            if (pA !== pB) return pA - pB;
+
+            // Se mesma prioridade, ordena por data (mais recente primeiro)
+            const timeA = new Date(a.scheduled_datetime).getTime();
+            const timeB = new Date(b.scheduled_datetime).getTime();
+            return timeB - timeA;
+        });
+    }, [lessons]);
+
     const displayName = studentName || (isInstructor ? 'Aluno' : 'Instrutor');
     const title = `Aulas - ${displayName}`;
 
@@ -40,7 +68,7 @@ export function StudentLessonHistoryScreen() {
             <Header title={title} onBack={() => navigation.goBack()} />
 
             <FlatList
-                data={lessons}
+                data={sortedLessons}
                 renderItem={({ item }) => (
                     <StudentLessonCard
                         scheduling={item}

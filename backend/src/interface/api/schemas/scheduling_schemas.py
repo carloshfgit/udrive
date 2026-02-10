@@ -130,6 +130,8 @@ class SchedulingResponse(BaseModel):
     # Campos enriquecidos (opcionais, preenchidos se disponíveis)
     student_name: str | None = None
     instructor_name: str | None = None
+    instructor_rating: float | None = None
+    instructor_review_count: int | None = None
     has_review: bool = False
 
     model_config = ConfigDict(from_attributes=True)
