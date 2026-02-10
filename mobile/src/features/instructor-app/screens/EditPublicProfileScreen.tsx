@@ -36,6 +36,51 @@ import { Avatar } from '../../../shared/components';
 // Categorias de CNH disponíveis
 const CNH_CATEGORIES = ['A', 'B', 'AB', 'C', 'D', 'E'];
 
+// Palavras e padrões proibidos na biografia (anti-bypass)
+const PROHIBITED_KEYWORDS = [
+    'whatsapp', 'zap', 'contato', 'telefone', 'celular', 'fone',
+    'instagram', 'insta', 'facebook', 'fb', 'e-mail', 'gmail',
+    'outlook', 'hotmail', 'me liga', 'chama no',
+    'pix', 'transferência', 'transf', 'depósito', 'dinheiro',
+    'espécie', 'pagamento por fora', 'picpay', 'mercado pago',
+    'mp', 'maquininha', 'cartão por fora',
+];
+
+const PHONE_REGEX = /\(?\d{2}\)?\s?\d{4,5}-?\d{4}/g;
+const EMAIL_REGEX = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+
+/**
+ * Valida se a biografia contém dados de contato ou pagamentos externos.
+ * Retorna o termo encontrado ou null se estiver limpo.
+ */
+function validateBio(bio: string): string | null {
+    const lowerBio = bio.toLowerCase();
+
+    // 1. Verificar palavras-chave
+    for (const keyword of PROHIBITED_KEYWORDS) {
+        if (lowerBio.includes(keyword)) {
+            return keyword;
+        }
+    }
+
+    // 2. Verificar arroba (menção social) - exceto se for parte de texto comum (raro em bio profissional)
+    if (lowerBio.includes('@')) {
+        return '@';
+    }
+
+    // 3. Verificar padrões de telefone
+    if (PHONE_REGEX.test(bio)) {
+        return 'padrão de telefone';
+    }
+
+    // 4. Verificar padrões de e-mail
+    if (EMAIL_REGEX.test(bio)) {
+        return 'padrão de e-mail';
+    }
+
+    return null;
+}
+
 // Componente de input customizado
 interface FormInputProps {
     label: string;
@@ -268,6 +313,17 @@ export function EditPublicProfileScreen() {
     // Salvar perfil público
     const handleSave = async () => {
         try {
+            // Validar Bio por segurança
+            const violation = validateBio(bio);
+            if (violation) {
+                Alert.alert(
+                    'Conteúdo Inválido',
+                    `Por motivos de segurança, não é permitido incluir dados de contato (telefone, e-mail, redes sociais) ou de pagamentos externos na sua biografia pública."`,
+                    [{ text: 'Entendi' }]
+                );
+                return;
+            }
+
             const rate = parseFloat(hourlyRate);
             if (isNaN(rate) || rate < 0) {
                 Alert.alert('Erro', 'Por favor, informe um valor válido para a hora/aula.');
@@ -383,6 +439,9 @@ export function EditPublicProfileScreen() {
                         numberOfLines={4}
                         maxLength={1000}
                     />
+                    <Text className="text-xs text-gray-400 -mt-2 mb-4 leading-4">
+                        * Não é permitido divulgar telefone, e-mail, redes sociais ou chaves PIX na biografia.
+                    </Text>
 
                     {/* Tipo de Veículo */}
                     <FormInput
