@@ -47,7 +47,11 @@ function InstructorCardComponent({ instructor, onViewProfile }: InstructorCardPr
 
     return (
         <View className="mx-4 my-2">
-            <View className="flex-row items-stretch justify-between gap-4 rounded-xl bg-white p-4 shadow-sm border border-neutral-100">
+            <TouchableOpacity
+                onPress={() => onViewProfile(user_id)}
+                activeOpacity={0.7}
+                className="flex-row items-stretch justify-between gap-4 rounded-xl bg-white p-4 shadow-sm border border-neutral-100"
+            >
                 {/* Conteúdo à esquerda */}
                 <View className="flex-1 justify-between pr-2">
                     {/* Rating */}
@@ -113,15 +117,13 @@ function InstructorCardComponent({ instructor, onViewProfile }: InstructorCardPr
                     </View>
 
                     {/* Botão Ver Perfil Centralizado */}
-                    <TouchableOpacity
-                        onPress={() => onViewProfile(user_id)}
+                    <View
                         className="bg-primary-100 px-3 py-2 rounded-lg w-24 items-center justify-center"
-                        activeOpacity={0.7}
                     >
                         <Text className="text-primary-600 text-xs font-bold text-center">Ver Perfil</Text>
-                    </TouchableOpacity>
+                    </View>
                 </View>
-            </View>
+            </TouchableOpacity>
         </View>
     );
 }
