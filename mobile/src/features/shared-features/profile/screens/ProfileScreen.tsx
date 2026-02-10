@@ -47,13 +47,15 @@ const MENU_ITEMS = [
         id: 'bookings',
         title: 'Meus Agendamentos',
         icon: Calendar,
-        route: null, // TODO: Implementar
+        route: 'Scheduling',
+        params: { screen: 'MyLessons' },
     },
     {
         id: 'history',
         title: 'Histórico de Aulas',
         icon: History,
-        route: null, // TODO: Implementar
+        route: 'Scheduling',
+        params: { screen: 'History' },
     },
     {
         id: 'payments',
@@ -73,11 +75,11 @@ export function ProfileScreen() {
     const navigation = useNavigation<ProfileNavigationProp>();
     const { user, logout } = useAuthStore();
 
-    const handleMenuItemPress = (route: string | null) => {
-        if (route === 'PersonalInfo') {
-            navigation.navigate('PersonalInfo');
+    const handleMenuItemPress = (item: typeof MENU_ITEMS[0]) => {
+        if (item.route) {
+            // @ts-ignore
+            navigation.navigate(item.route, item.params);
         }
-        // TODO: Implementar outras rotas
     };
 
     const handleEditPhoto = () => {
@@ -106,12 +108,7 @@ export function ProfileScreen() {
             <View className="flex-row items-center justify-between px-4 py-3">
                 <View className="w-10" />
                 <Text className="text-lg font-bold text-gray-900">Perfil do Aluno</Text>
-                <TouchableOpacity
-                    className="w-10 items-end"
-                    accessibilityLabel="Editar perfil"
-                >
-                    <Edit3 size={20} color="#111318" />
-                </TouchableOpacity>
+                <View className="w-10" />
             </View>
 
             <ScrollView
@@ -150,12 +147,7 @@ export function ProfileScreen() {
                         {user?.full_name || 'Nome do Aluno'}
                     </Text>
 
-                    {/* Badge de Categoria */}
-                    <View className="mt-2 px-3 py-1 bg-blue-50 rounded-full">
-                        <Text className="text-sm font-semibold text-blue-600">
-                            Categoria B
-                        </Text>
-                    </View>
+
                 </View>
 
                 {/* Menu Items */}
@@ -165,7 +157,7 @@ export function ProfileScreen() {
                         return (
                             <TouchableOpacity
                                 key={item.id}
-                                onPress={() => handleMenuItemPress(item.route)}
+                                onPress={() => handleMenuItemPress(item)}
                                 className="flex-row items-center px-4 py-4 rounded-xl active:bg-gray-50"
                                 accessibilityLabel={item.title}
                             >
