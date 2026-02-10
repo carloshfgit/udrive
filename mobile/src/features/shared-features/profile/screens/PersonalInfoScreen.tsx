@@ -22,6 +22,7 @@ import {
     ChevronLeft,
     MapPin,
     RefreshCw,
+    ShieldCheck,
 } from 'lucide-react-native';
 import * as Location from 'expo-location';
 
@@ -273,6 +274,20 @@ export function PersonalInfoScreen() {
                 showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
             >
+                {/* Banner LGPD */}
+                <View className="flex-row items-start bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
+                    <ShieldCheck size={20} color="#16A34A" />
+                    <View className="flex-1 ml-3">
+                        <Text className="text-sm font-semibold text-green-800">
+                            Seus dados estão protegidos
+                        </Text>
+                        <Text className="text-xs text-green-700 mt-1 leading-5">
+                            Suas informações pessoais, exceto nome, não serão exibidas publicamente e estão
+                            protegidas de acordo com a Lei Geral de Proteção de Dados (LGPD). Essas informações são usadas para validar sua identidade e garantir a segurança da plataforma.
+                        </Text>
+                    </View>
+                </View>
+
                 {/* Campos do formulário */}
                 <FormInput
                     label="Nome Completo"
@@ -311,7 +326,7 @@ export function PersonalInfoScreen() {
                         Localização
                     </Text>
                     <Text className="text-xs text-gray-400 mb-3">
-                        Sua localização é usada para buscar instrutores próximos a você.
+                        Sua localização é usada para buscar instrutores próximos a você. Para sua segurança, o endereço não é compartilhado.
                     </Text>
 
                     <View className="bg-blue-50 border border-blue-100 rounded-xl p-4">

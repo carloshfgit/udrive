@@ -378,7 +378,7 @@ export function EditPublicProfileScreen() {
                         label="Biografia"
                         value={bio}
                         onChangeText={setBio}
-                        placeholder="Conte um pouco sobre sua experiência como instrutor..."
+                        placeholder="Informe sua região de atuação (ex: Plano e Entorno) e conte um pouco sobre sua experiência como instrutor..."
                         multiline
                         numberOfLines={4}
                         maxLength={1000}
