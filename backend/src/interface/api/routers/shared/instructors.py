@@ -11,7 +11,7 @@ from uuid import UUID
 from fastapi import APIRouter, HTTPException, Query, status
 from pydantic import BaseModel
 
-from src.interface.api.dependencies import AvailabilityRepo, InstructorRepo
+from src.interface.api.dependencies import AvailabilityRepo, InstructorRepo, ReviewRepo
 from src.interface.api.schemas.scheduling_schemas import AvailabilityListResponse, AvailabilityResponse
 
 router = APIRouter(prefix="/instructors", tags=["Shared - Instructors"])
@@ -35,6 +35,14 @@ class LocationData(BaseModel):
     longitude: float
 
 
+class PublicReviewResponse(BaseModel):
+    """Schema de resposta para uma avaliação pública."""
+    rating: int
+    comment: str | None
+    student_name: str
+    created_at: datetime
+
+
 class InstructorDetailResponse(BaseModel):
     """Schema de resposta para detalhes do instrutor."""
     id: str
@@ -48,6 +56,7 @@ class InstructorDetailResponse(BaseModel):
     total_reviews: int
     is_available: bool
     location: LocationData | None = None
+    reviews: list[PublicReviewResponse] = []
 
 
 # === Endpoints ===
@@ -103,6 +112,7 @@ async def list_instructor_availability(
 async def get_instructor_by_id(
     instructor_id: UUID,
     instructor_repo: InstructorRepo,
+    review_repo: ReviewRepo,
 ) -> InstructorDetailResponse:
     """Obtém detalhes públicos de um instrutor."""
     instructor = await instructor_repo.get_public_profile_by_user_id(instructor_id)
@@ -121,6 +131,40 @@ async def get_instructor_by_id(
             longitude=instructor.location.longitude,
         )
 
+    # Buscar avaliações
+    all_reviews = await review_repo.get_by_instructor_id_with_student(instructor_id)
+    
+    # Filtrar: manter apenas uma avaliação por aluno
+    # Regra: selecionar a mais antiga que possua comentário. 
+    # Se nenhuma tiver comentário, selecionar a primeira realizada.
+    # Como all_reviews já está ordenado por created_at ASC, a primeira encontrada de cada aluno
+    # é a "reserva" inicial, que é substituída apenas se encontrarmos uma posterior com comentário 
+    # (ou se a primeira já for a com comentário).
+    best_reviews = {}
+    
+    for r in all_reviews:
+        student_id = r.student_id
+        if student_id not in best_reviews:
+            best_reviews[student_id] = r
+        else:
+            # Já temos uma reserva. Se ela não tem comentário e a atual tem, substituímos.
+            current_best = best_reviews[student_id]
+            current_has_comment = bool(current_best.comment and current_best.comment.strip())
+            new_has_comment = bool(r.comment and r.comment.strip())
+            
+            if not current_has_comment and new_has_comment:
+                best_reviews[student_id] = r
+
+    filtered_reviews = [
+        PublicReviewResponse(
+            rating=r.rating,
+            comment=r.comment,
+            student_name=r.student_name or "Aluno",
+            created_at=r.created_at,
+        )
+        for r in best_reviews.values()
+    ]
+
     return InstructorDetailResponse(
         id=str(instructor.id),
         user_id=str(instructor.user_id),
@@ -133,4 +177,5 @@ async def get_instructor_by_id(
         total_reviews=instructor.total_reviews,
         is_available=instructor.is_available,
         location=location,
+        reviews=filtered_reviews,
     )

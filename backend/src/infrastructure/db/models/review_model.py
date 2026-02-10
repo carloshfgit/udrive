@@ -77,6 +77,12 @@ class ReviewModel(Base):
 
     def to_entity(self) -> Review:
         """Converte o modelo para entidade de domínio."""
+        student_name = None
+        # Tenta pegar o nome do estudante se o relacionamento estiver carregado
+        # Evita trigger de lazy load que causa MissingGreenlet em sessão async
+        if "student" in self.__dict__ and self.student:
+            student_name = self.student.full_name
+
         return Review(
             id=self.id,
             scheduling_id=self.scheduling_id,
@@ -84,6 +90,7 @@ class ReviewModel(Base):
             instructor_id=self.instructor_id,
             rating=self.rating,
             comment=self.comment,
+            student_name=student_name,
             created_at=self.created_at,
         )
 

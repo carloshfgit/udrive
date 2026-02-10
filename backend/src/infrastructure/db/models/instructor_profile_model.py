@@ -133,7 +133,7 @@ class InstructorProfileModel(Base):
             rating=float(self.rating),
             total_reviews=self.total_reviews,
             is_available=self.is_available,
-            full_name=self.user.full_name if self.user else None,
+            full_name=self.user.full_name if "user" in self.__dict__ and self.user else None,
             created_at=self.created_at,
             updated_at=self.updated_at,
         )

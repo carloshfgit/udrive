@@ -7,6 +7,7 @@ Implementação concreta do repositório de avaliações usando SQLAlchemy.
 from uuid import UUID
 
 from sqlalchemy import select
+from sqlalchemy.orm import joinedload
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.domain.entities.review import Review
@@ -40,6 +41,18 @@ class ReviewRepositoryImpl(IReviewRepository):
     async def get_by_instructor_id(self, instructor_id: UUID) -> list[Review]:
         """Busca todas as avaliações de um instrutor."""
         stmt = select(ReviewModel).where(ReviewModel.instructor_id == instructor_id)
+        result = await self._session.execute(stmt)
+        models = result.scalars().all()
+        return [model.to_entity() for model in models]
+
+    async def get_by_instructor_id_with_student(self, instructor_id: UUID) -> list[Review]:
+        """Busca todas as avaliações de um instrutor acompanhadas dos dados do aluno."""
+        stmt = (
+            select(ReviewModel)
+            .options(joinedload(ReviewModel.student))
+            .where(ReviewModel.instructor_id == instructor_id)
+            .order_by(ReviewModel.created_at.asc())
+        )
         result = await self._session.execute(stmt)
         models = result.scalars().all()
         return [model.to_entity() for model in models]

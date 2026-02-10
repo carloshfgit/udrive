@@ -27,6 +27,7 @@ class Review:
     instructor_id: UUID
     rating: int
     comment: str | None = None
+    student_name: str | None = None
     id: UUID = field(default_factory=uuid4)
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 

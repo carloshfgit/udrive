@@ -53,3 +53,16 @@ class IReviewRepository(ABC):
             Lista de avaliações.
         """
         ...
+
+    @abstractmethod
+    async def get_by_instructor_id_with_student(self, instructor_id: UUID) -> list[Review]:
+        """
+        Busca todas as avaliações de um instrutor acompanhadas dos dados do aluno.
+
+        Args:
+            instructor_id: ID do instrutor.
+
+        Returns:
+            Lista de avaliações com dados do aluno carregados.
+        """
+        ...

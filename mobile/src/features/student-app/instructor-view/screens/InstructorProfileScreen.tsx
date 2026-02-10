@@ -19,7 +19,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ChevronLeft, Calendar } from 'lucide-react-native';
 
 import { useInstructorProfile } from '../hooks/useInstructorProfile';
-import { ProfileHeader, AboutSection, VehicleSection } from '../components';
+import { ProfileHeader, AboutSection, VehicleSection, ReviewsSection } from '../components';
 import { EmptyState } from '../../../../shared/components';
 import { SearchStackParamList } from '../../search/navigation/SearchStackNavigator';
 
@@ -136,6 +136,9 @@ export function InstructorProfileScreen() {
                     vehicleType={instructor.vehicle_type}
                     licenseCategory={instructor.license_category}
                 />
+
+                {/* Seção de Avaliações */}
+                <ReviewsSection reviews={instructor.reviews} />
 
                 {/* Espaço para o botão fixo */}
                 <View className="h-24" />

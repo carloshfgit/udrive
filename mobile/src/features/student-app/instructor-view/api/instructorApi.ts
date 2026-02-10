@@ -13,6 +13,13 @@ export interface Location {
     longitude: number;
 }
 
+export interface PublicReview {
+    rating: number;
+    comment: string | null;
+    student_name: string;
+    created_at: string;
+}
+
 export interface InstructorDetail {
     id: string;
     user_id: string;
@@ -26,6 +33,7 @@ export interface InstructorDetail {
     is_available: boolean;
     location: Location | null;
     avatar_url?: string;
+    reviews: PublicReview[];
 }
 
 // === Funções de API ===
