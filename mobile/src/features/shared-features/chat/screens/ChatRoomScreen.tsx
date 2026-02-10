@@ -37,7 +37,7 @@ export function ChatRoomScreen() {
             'keyboardDidShow',
             () => {
                 setTimeout(() => {
-                    flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+                    flatListRef.current?.scrollToEnd({ animated: true });
                 }, 100);
             }
         );
@@ -125,9 +125,9 @@ export function ChatRoomScreen() {
                             data={messages}
                             renderItem={renderMessage}
                             keyExtractor={(item) => item.id}
-                            inverted
                             showsVerticalScrollIndicator={false}
                             contentContainerStyle={{ paddingVertical: 16 }}
+                            onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
                             ListEmptyComponent={
                                 <View className="flex-1 justify-center items-center py-20">
                                     <Text className="text-neutral-400 text-center">

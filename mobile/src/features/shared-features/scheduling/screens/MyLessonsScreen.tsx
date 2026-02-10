@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { View, FlatList, RefreshControl, Text, SafeAreaView } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { History, Calendar } from 'lucide-react-native';
+import { History, Calendar, MessageSquare } from 'lucide-react-native';
 import { Header } from '../../../../shared/components/Header';
 import { IconButton } from '../../../../shared/components/IconButton';
 import { Button } from '../../../../shared/components/Button';
@@ -10,13 +10,17 @@ import { EmptyState } from '../../../../shared/components/EmptyState';
 import { StudentLessonCard } from '../components/StudentLessonCard';
 import { useStudentSchedulings } from '../hooks/useStudentSchedulings';
 import { BookingResponse } from '../api/schedulingApi';
+import { useUnreadCount } from '../../chat/hooks/useUnreadCount';
+import { MessageNotificationsModal } from '../../chat/components/MessageNotificationsModal';
 
 export function MyLessonsScreen() {
     const navigation = useNavigation<any>();
     const [refreshing, setRefreshing] = useState(false);
+    const [isMessagesModalVisible, setIsMessagesModalVisible] = useState(false);
 
     // Fetch only pending/confirmed lessons for the main screen
     const { data, isLoading, refetch, isError } = useStudentSchedulings();
+    const { unreadCount } = useUnreadCount();
 
     // Atualizar dados ao focar na tela
     useFocusEffect(
@@ -49,6 +53,20 @@ export function MyLessonsScreen() {
         />
     );
 
+    const renderHeaderLeft = () => (
+        <View className="relative">
+            <IconButton
+                icon={<MessageSquare size={24} color="#111318" />}
+                onPress={() => setIsMessagesModalVisible(true)}
+                variant="ghost"
+                size={44}
+            />
+            {unreadCount > 0 && (
+                <View className="absolute -top-0.5 -right-0.5 bg-red-500 rounded-full h-3 w-3 border-2 border-white" />
+            )}
+        </View>
+    );
+
     const renderHeaderRight = () => (
         <IconButton
             icon={<History size={24} color="#111318" />}
@@ -61,7 +79,7 @@ export function MyLessonsScreen() {
     if (isError) {
         return (
             <SafeAreaView className="flex-1 bg-white">
-                <Header title="Minhas Aulas" showBack={false} rightElement={renderHeaderRight()} />
+                <Header title="Minhas Aulas" showBack={false} leftElement={renderHeaderLeft()} rightElement={renderHeaderRight()} />
                 <EmptyState
                     title="Ops! Algo deu errado"
                     message="Não conseguimos carregar suas aulas no momento."
@@ -82,6 +100,7 @@ export function MyLessonsScreen() {
             <Header
                 title="Minhas Aulas"
                 showBack={false}
+                leftElement={renderHeaderLeft()}
                 rightElement={renderHeaderRight()}
             />
 
@@ -126,6 +145,12 @@ export function MyLessonsScreen() {
                     )
                 }
             />
+
+            <MessageNotificationsModal
+                visible={isMessagesModalVisible}
+                onClose={() => setIsMessagesModalVisible(false)}
+            />
         </SafeAreaView>
     );
 }
+

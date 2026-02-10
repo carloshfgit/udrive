@@ -4,6 +4,8 @@ import { MyLessonsScreen } from '../../../shared-features/scheduling/screens/MyL
 import { HistoryScreen } from '../screens/HistoryScreen';
 import { LessonDetailsScreen } from '../screens/LessonDetailsScreen';
 import { InstructorProfileScreen } from '../../instructor-view/screens/InstructorProfileScreen';
+import { ChatRoomScreen } from '../../../shared-features/chat/screens/ChatRoomScreen';
+import { StudentLessonHistoryScreen } from '../../../shared-features/chat/screens/StudentLessonHistoryScreen';
 import {
     SelectDateTimeScreen,
     ConfirmBookingScreen,
@@ -16,6 +18,8 @@ export type SchedulingStackParamList = {
     History: undefined;
     LessonDetails: { schedulingId: string };
     InstructorProfile: { instructorId: string };
+    ChatRoom: { otherUserId: string; otherUserName: string };
+    StudentLessonHistory: { studentId: string; studentName: string };
     SelectDateTime: {
         instructorId: string;
         instructorName: string;
@@ -60,6 +64,8 @@ export function SchedulingStackNavigator() {
             <Stack.Screen name="History" component={HistoryScreen} />
             <Stack.Screen name="LessonDetails" component={LessonDetailsScreen} />
             <Stack.Screen name="InstructorProfile" component={InstructorProfileScreen} />
+            <Stack.Screen name="ChatRoom" component={ChatRoomScreen} />
+            <Stack.Screen name="StudentLessonHistory" component={StudentLessonHistoryScreen} />
             <Stack.Screen name="SelectDateTime" component={SelectDateTimeScreen} />
             <Stack.Screen name="ConfirmBooking" component={ConfirmBookingScreen} />
             <Stack.Screen name="BookingSuccess" component={BookingSuccessScreen} />

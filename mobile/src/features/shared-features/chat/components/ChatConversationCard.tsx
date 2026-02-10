@@ -12,6 +12,7 @@ interface ChatConversationCardProps {
 
 export function ChatConversationCard({ conversation, onPress }: ChatConversationCardProps) {
     const lastMessage = conversation.last_message;
+    const hasUnread = conversation.unread_count > 0;
 
     const formattedTime = lastMessage
         ? format(new Date(lastMessage.timestamp), 'HH:mm', { locale: ptBR })
@@ -24,20 +25,32 @@ export function ChatConversationCard({ conversation, onPress }: ChatConversation
     return (
         <TouchableOpacity
             onPress={() => onPress(conversation)}
-            className="mx-4 my-2 p-4 bg-white rounded-2xl border border-neutral-100 shadow-sm active:bg-neutral-50"
+            className={`mx-4 my-2 p-4 rounded-2xl shadow-sm active:bg-neutral-50 ${hasUnread
+                    ? 'bg-blue-50 border-2 border-blue-500'
+                    : 'bg-white border border-neutral-100'
+                }`}
             style={{
-                shadowColor: '#000',
+                shadowColor: hasUnread ? '#2563EB' : '#000',
                 shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.05,
+                shadowOpacity: hasUnread ? 0.15 : 0.05,
                 shadowRadius: 8,
-                elevation: 2
+                elevation: hasUnread ? 4 : 2
             }}
         >
             <View className="flex-row items-center">
-                <Avatar
-                    fallback={conversation.student_name}
-                    size="md"
-                />
+                {/* Avatar with unread indicator */}
+                <View className="relative">
+                    <Avatar
+                        fallback={conversation.student_name}
+                        size="md"
+                    />
+                    {hasUnread && (
+                        <View
+                            className="absolute -top-1 -right-1 bg-blue-600 rounded-full border-2 border-white"
+                            style={{ width: 16, height: 16 }}
+                        />
+                    )}
+                </View>
 
                 <View className="flex-1 ml-4">
                     <View className="flex-row justify-between items-center mb-1">
@@ -45,7 +58,7 @@ export function ChatConversationCard({ conversation, onPress }: ChatConversation
                             {conversation.student_name}
                         </Text>
                         {lastMessage && (
-                            <Text className="text-neutral-500 text-xs">
+                            <Text className={`text-xs ${hasUnread ? 'text-blue-700 font-semibold' : 'text-neutral-500'}`}>
                                 {formattedTime}
                             </Text>
                         )}
@@ -53,15 +66,15 @@ export function ChatConversationCard({ conversation, onPress }: ChatConversation
 
                     <View className="flex-row justify-between items-center mb-2">
                         <Text
-                            className={`text-sm flex-1 mr-2 ${conversation.unread_count > 0 ? 'text-neutral-900 font-medium' : 'text-neutral-500'}`}
+                            className={`text-sm flex-1 mr-2 ${hasUnread ? 'text-neutral-900 font-semibold' : 'text-neutral-500'}`}
                             numberOfLines={1}
                         >
                             {lastMessage ? lastMessage.content : 'Nenhuma mensagem ainda'}
                         </Text>
 
-                        {conversation.unread_count > 0 && (
-                            <View className="bg-blue-600 rounded-full h-5 min-w-[20px] px-1.5 items-center justify-center">
-                                <Text className="text-white text-[10px] font-bold">
+                        {hasUnread && (
+                            <View className="bg-blue-600 rounded-full h-6 min-w-[24px] px-2 items-center justify-center">
+                                <Text className="text-white text-xs font-bold">
                                     {conversation.unread_count}
                                 </Text>
                             </View>
@@ -69,9 +82,11 @@ export function ChatConversationCard({ conversation, onPress }: ChatConversation
                     </View>
 
                     {/* Next Lesson Info */}
-                    <View className="flex-row items-center pt-2 border-t border-neutral-50">
-                        <View className="bg-blue-50 px-2 py-1 rounded-md flex-row items-center">
-                            <Text className="text-[10px] text-blue-700 font-medium uppercase tracking-wider">
+                    <View className="flex-row items-center pt-2 border-t border-neutral-100">
+                        <View className={`px-2 py-1 rounded-md flex-row items-center ${hasUnread ? 'bg-blue-100' : 'bg-blue-50'
+                            }`}>
+                            <Text className={`text-[10px] font-medium uppercase tracking-wider ${hasUnread ? 'text-blue-800' : 'text-blue-700'
+                                }`}>
                                 Próxima aula: <Text className="font-bold">{nextLessonDate}</Text>
                             </Text>
                         </View>

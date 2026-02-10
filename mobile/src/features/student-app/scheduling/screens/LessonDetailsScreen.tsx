@@ -214,7 +214,10 @@ export function LessonDetailsScreen() {
                             variant="ghost"
                             leftIcon={<MessageSquare size={20} color="#2563EB" />}
                             className="flex-1"
-                            onPress={() => Alert.alert("Em breve", "O sistema de chat está sendo implementado.")}
+                            onPress={() => navigation.navigate('ChatRoom', {
+                                otherUserId: lesson.instructor_id,
+                                otherUserName: lesson.instructor_name || 'Instrutor',
+                            })}
                         />
                     </View>
                 </View>

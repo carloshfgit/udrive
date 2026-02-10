@@ -256,8 +256,14 @@ from src.application.use_cases.chat.send_message_use_case import SendMessageUseC
 from src.application.use_cases.chat.get_instructor_conversations_use_case import (
     GetInstructorConversationsUseCase,
 )
+from src.application.use_cases.chat.get_student_conversations_use_case import (
+    GetStudentConversationsUseCase,
+)
 from src.application.use_cases.chat.get_student_lessons_for_instructor_use_case import (
     GetStudentLessonsForInstructorUseCase,
+)
+from src.application.use_cases.chat.get_instructor_lessons_for_student_use_case import (
+    GetInstructorLessonsForStudentUseCase,
 )
 
 
@@ -276,9 +282,22 @@ def get_get_instructor_conversations_use_case(
     return GetInstructorConversationsUseCase(scheduling_repo, message_repo)
 
 
+def get_get_student_conversations_use_case(
+    scheduling_repo: SchedulingRepo,
+    message_repo: MessageRepo,
+) -> GetStudentConversationsUseCase:
+    return GetStudentConversationsUseCase(scheduling_repo, message_repo)
+
+
 def get_get_student_lessons_for_instructor_use_case(
     scheduling_repo: SchedulingRepo,
 ) -> GetStudentLessonsForInstructorUseCase:
     return GetStudentLessonsForInstructorUseCase(scheduling_repo)
+
+
+def get_get_instructor_lessons_for_student_use_case(
+    scheduling_repo: SchedulingRepo,
+) -> GetInstructorLessonsForStudentUseCase:
+    return GetInstructorLessonsForStudentUseCase(scheduling_repo)
 
 

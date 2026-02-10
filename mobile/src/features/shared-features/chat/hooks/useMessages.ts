@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getMessages, sendMessage, SendMessageRequest } from '../api/chatApi';
 
@@ -19,6 +20,20 @@ export function useMessages(otherUserId: string) {
             queryClient.invalidateQueries({ queryKey: ['chat-conversations'] });
         },
     });
+
+    // Invalida a lista de conversas quando as mensagens são carregadas com sucesso
+    // Isso garante que os indicadores de não lidas sejam atualizados após abrir o chat
+    useEffect(() => {
+        if (query.isSuccess && query.data) {
+            // Pequeno delay para garantir que o backend processou a marcação como lida
+            const timer = setTimeout(() => {
+                queryClient.invalidateQueries({ queryKey: ['chat-conversations'] });
+                queryClient.invalidateQueries({ queryKey: ['chat-student-conversations'] });
+            }, 500);
+
+            return () => clearTimeout(timer);
+        }
+    }, [query.isSuccess, query.dataUpdatedAt, queryClient]);
 
     return {
         ...query,

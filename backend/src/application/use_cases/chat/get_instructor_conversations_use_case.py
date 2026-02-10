@@ -78,11 +78,17 @@ class GetInstructorConversationsUseCase:
                     is_read=last_msg.is_read
                 )
 
+            # Contar mensagens não lidas enviadas pelo aluno para o instrutor
+            unread_count = await self.message_repository.count_unread_for_user(
+                receiver_id=instructor_id,
+                sender_id=student_id
+            )
+
             results.append(ConversationResponseDTO(
                 student_id=student_id,
                 student_name=student_info["name"],
                 last_message=last_msg_dto,
-                unread_count=0, # TODO: Implementar contagem de não lidas se necessário
+                unread_count=unread_count,
                 next_lesson_at=student_info["next_lesson_at"]
             ))
 

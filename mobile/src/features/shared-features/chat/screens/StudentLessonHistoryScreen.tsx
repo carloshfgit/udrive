@@ -1,23 +1,32 @@
 import React from 'react';
 import { View, FlatList, Text, SafeAreaView } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { useAuthStore } from '@lib/store';
 import { Header } from '../../../../shared/components/Header';
 import { LoadingState } from '../../../../shared/components/LoadingState';
 import { EmptyState } from '../../../../shared/components/EmptyState';
 import { StudentLessonCard } from '../../scheduling/components/StudentLessonCard';
-import { useStudentLessons } from '../hooks/useStudentLessons';
+import { useLessonHistory } from '../hooks/useLessonHistory';
 
 export function StudentLessonHistoryScreen() {
     const route = useRoute<any>();
     const navigation = useNavigation<any>();
+    const { user } = useAuthStore();
+
+    // Para instrutor: recebe studentId e studentName
+    // Para aluno: recebe instructorId e instructorName (mas com nomes studentId/studentName por compatibilidade)
     const { studentId, studentName } = route.params;
 
-    const { data: lessons, isLoading, isError } = useStudentLessons(studentId);
+    const isInstructor = user?.user_type === 'instructor';
+    const { data: lessons, isLoading, isError } = useLessonHistory(studentId);
+
+    const displayName = studentName || (isInstructor ? 'Aluno' : 'Instrutor');
+    const title = `Aulas - ${displayName}`;
 
     if (isError) {
         return (
             <SafeAreaView className="flex-1 bg-white">
-                <Header title={`Aulas - ${studentName}`} onBack={() => navigation.goBack()} />
+                <Header title={title} onBack={() => navigation.goBack()} />
                 <EmptyState
                     title="Ops! Algo deu errado"
                     message="Não conseguimos carregar o histórico de aulas."
@@ -28,19 +37,27 @@ export function StudentLessonHistoryScreen() {
 
     return (
         <SafeAreaView className="flex-1 bg-white">
-            <Header title={`Aulas - ${studentName}`} onBack={() => navigation.goBack()} />
+            <Header title={title} onBack={() => navigation.goBack()} />
 
             <FlatList
                 data={lessons}
                 renderItem={({ item }) => (
                     <StudentLessonCard
                         scheduling={item}
-                        variant="instructor"
+                        variant={isInstructor ? 'instructor' : 'student'}
                         onPressDetails={() => {
-                            navigation.navigate('InstructorSchedule', {
-                                screen: 'InstructorScheduleMain',
-                                params: { initialDate: item.scheduled_datetime }
-                            });
+                            if (isInstructor) {
+                                // Instrutor: navega para a agenda do instrutor
+                                navigation.navigate('InstructorSchedule', {
+                                    screen: 'InstructorScheduleMain',
+                                    params: { initialDate: item.scheduled_datetime }
+                                });
+                            } else {
+                                // Aluno: navega para os detalhes da aula
+                                navigation.navigate('LessonDetails', {
+                                    schedulingId: item.id
+                                });
+                            }
                         }}
                     />
                 )}
@@ -55,7 +72,11 @@ export function StudentLessonHistoryScreen() {
                     ) : (
                         <EmptyState
                             title="Nenhuma aula encontrada"
-                            message="Não existem registros de aulas entre você e este aluno."
+                            message={
+                                isInstructor
+                                    ? "Não existem registros de aulas entre você e este aluno."
+                                    : "Não existem registros de aulas entre você e este instrutor."
+                            }
                         />
                     )
                 }
@@ -72,3 +93,4 @@ export function StudentLessonHistoryScreen() {
         </SafeAreaView>
     );
 }
+

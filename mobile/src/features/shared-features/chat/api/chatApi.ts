@@ -73,3 +73,48 @@ export async function getStudentLessons(studentId: string): Promise<BookingRespo
     );
     return response.data;
 }
+
+// === Tipos do Aluno ===
+
+export interface StudentConversationResponse {
+    instructor_id: string;
+    instructor_name: string;
+    last_message: MessageResponse | null;
+    unread_count: number;
+}
+
+export interface UnreadCountResponse {
+    unread_count: number;
+}
+
+// === Funções de API do Aluno ===
+
+/**
+ * Lista as conversas ativas do aluno com seus instrutores.
+ */
+export async function getStudentConversations(): Promise<StudentConversationResponse[]> {
+    const response = await api.get<StudentConversationResponse[]>(
+        `${SHARED_API}/chat/conversations/student`
+    );
+    return response.data;
+}
+
+/**
+ * Retorna a contagem total de mensagens não lidas do usuário logado.
+ */
+export async function getUnreadCount(): Promise<UnreadCountResponse> {
+    const response = await api.get<UnreadCountResponse>(
+        `${SHARED_API}/chat/unread-count`
+    );
+    return response.data;
+}
+
+/**
+ * Busca o histórico de aulas do aluno com um instrutor específico.
+ */
+export async function getStudentLessonsWithInstructor(instructorId: string): Promise<BookingResponse[]> {
+    const response = await api.get<BookingResponse[]>(
+        `${SHARED_API}/chat/lessons/instructor/${instructorId}`
+    );
+    return response.data;
+}

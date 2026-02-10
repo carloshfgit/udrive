@@ -86,3 +86,30 @@ class IMessageRepository(ABC):
             A última mensagem ou None.
         """
         ...
+
+    @abstractmethod
+    async def count_unread_for_user(self, receiver_id: UUID, sender_id: UUID) -> int:
+        """
+        Conta mensagens não lidas enviadas por um remetente específico para o destinatário.
+
+        Args:
+            receiver_id: ID do destinatário.
+            sender_id: ID do remetente.
+
+        Returns:
+            Contagem de mensagens não lidas.
+        """
+        ...
+
+    @abstractmethod
+    async def count_total_unread(self, receiver_id: UUID) -> int:
+        """
+        Conta o total de mensagens não lidas para o destinatário (de qualquer remetente).
+
+        Args:
+            receiver_id: ID do destinatário.
+
+        Returns:
+            Contagem total de mensagens não lidas.
+        """
+        ...

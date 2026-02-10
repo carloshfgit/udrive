@@ -7,7 +7,7 @@ Implementação concreta do repositório de mensagens usando SQLAlchemy.
 from typing import Sequence
 from uuid import UUID
 
-from sqlalchemy import and_, or_, select, update
+from sqlalchemy import and_, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.domain.entities.message import Message
@@ -82,3 +82,32 @@ class MessageRepositoryImpl(IMessageRepository):
         result = await self._session.execute(stmt)
         model = result.scalar_one_or_none()
         return model.to_entity() if model else None
+
+    async def count_unread_for_user(self, receiver_id: UUID, sender_id: UUID) -> int:
+        stmt = (
+            select(func.count())
+            .select_from(MessageModel)
+            .where(
+                and_(
+                    MessageModel.receiver_id == receiver_id,
+                    MessageModel.sender_id == sender_id,
+                    MessageModel.is_read == False,
+                )
+            )
+        )
+        result = await self._session.execute(stmt)
+        return result.scalar_one()
+
+    async def count_total_unread(self, receiver_id: UUID) -> int:
+        stmt = (
+            select(func.count())
+            .select_from(MessageModel)
+            .where(
+                and_(
+                    MessageModel.receiver_id == receiver_id,
+                    MessageModel.is_read == False,
+                )
+            )
+        )
+        result = await self._session.execute(stmt)
+        return result.scalar_one()

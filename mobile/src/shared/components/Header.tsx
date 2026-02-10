@@ -14,6 +14,8 @@ interface HeaderProps {
     onBack?: () => void;
     /** Mostrar botão voltar */
     showBack?: boolean;
+    /** Elemento customizado à esquerda (quando showBack é false) */
+    leftElement?: React.ReactNode;
     /** Botão/Elemento à direita */
     rightElement?: React.ReactNode;
     /** Estilo customizado */
@@ -24,6 +26,7 @@ export function Header({
     title,
     onBack,
     showBack = true,
+    leftElement,
     rightElement,
     style,
 }: HeaderProps) {
@@ -39,6 +42,8 @@ export function Header({
                 >
                     <Text style={styles.backIcon}>‹</Text>
                 </TouchableOpacity>
+            ) : leftElement ? (
+                <View style={styles.leftContainer}>{leftElement}</View>
             ) : (
                 <View style={styles.placeholder} />
             )}
@@ -83,6 +88,11 @@ const styles = StyleSheet.create({
     },
     placeholder: {
         width: 48,
+    },
+    leftContainer: {
+        minWidth: 48,
+        alignItems: 'flex-start' as const,
+        justifyContent: 'center' as const,
     },
     rightContainer: {
         minWidth: 48,
