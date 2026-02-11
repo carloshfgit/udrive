@@ -88,7 +88,7 @@ async def create_scheduling(
         try:
             await dispatcher.emit_scheduling_created(result)
         except Exception as e:
-            logger.error("event_dispatch_error", event="scheduling_created", error=str(e))
+            logger.error("event_dispatch_error", dispatch_event="scheduling_created", error=str(e))
 
     return SchedulingResponse.model_validate(result)
 
@@ -203,7 +203,7 @@ async def request_reschedule(
             try:
                 await dispatcher.emit_reschedule_requested(result)
             except Exception as e:
-                logger.error("event_dispatch_error", event="reschedule_requested", error=str(e))
+                logger.error("event_dispatch_error", dispatch_event="reschedule_requested", error=str(e))
 
         return SchedulingResponse.model_validate(result)
     except (ValueError, Exception) as e:
@@ -247,7 +247,7 @@ async def start_lesson(
         try:
             await dispatcher.emit_scheduling_started(result, current_user.id)
         except Exception as e:
-            logger.error("event_dispatch_error", event="scheduling_started", error=str(e))
+            logger.error("event_dispatch_error", dispatch_event="scheduling_started", error=str(e))
 
     return SchedulingResponse.model_validate(result)
 
@@ -294,7 +294,7 @@ async def complete_lesson(
         try:
             await dispatcher.emit_scheduling_completed(result)
         except Exception as e:
-            logger.error("event_dispatch_error", event="scheduling_completed", error=str(e))
+            logger.error("event_dispatch_error", dispatch_event="scheduling_completed", error=str(e))
 
     return SchedulingResponse.model_validate(result)
 
@@ -357,7 +357,7 @@ async def cancel_scheduling(
                 )
                 await dispatcher.emit_scheduling_cancelled(scheduling_dto, current_user.id)
         except Exception as e:
-            logger.error("event_dispatch_error", event="scheduling_cancelled", error=str(e))
+            logger.error("event_dispatch_error", dispatch_event="scheduling_cancelled", error=str(e))
 
     return CancellationResultResponse(
         scheduling_id=result.scheduling_id,

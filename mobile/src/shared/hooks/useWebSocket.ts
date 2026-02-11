@@ -129,10 +129,14 @@ export function useWebSocket() {
                 case 'scheduling_completed':
                 case 'reschedule_requested':
                 case 'reschedule_responded': {
-                    // Invalidar todas as queries de agendamento para forçar refetch
+                    // Invalidar todas as queries de agendamento para forçar refetch em todas as telas
                     queryClient.invalidateQueries({ queryKey: ['instructor', 'schedule'] });
                     queryClient.invalidateQueries({ queryKey: ['student-schedulings'] });
+                    queryClient.invalidateQueries({ queryKey: ['student-lessons'] });
                     queryClient.invalidateQueries({ queryKey: ['schedulings'] });
+                    queryClient.invalidateQueries({ queryKey: ['lesson-history'] });
+                    queryClient.invalidateQueries({ queryKey: ['scheduling'] });
+                    queryClient.invalidateQueries({ queryKey: ['student-history'] });
                     break;
                 }
             }
