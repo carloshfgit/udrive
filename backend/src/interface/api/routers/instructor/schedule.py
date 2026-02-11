@@ -7,6 +7,7 @@ Endpoints para gerenciamento de agenda do instrutor.
 from datetime import date, datetime
 from uuid import UUID
 
+import structlog
 from fastapi import APIRouter, HTTPException, Query, status
 
 from src.application.dtos.scheduling_dtos import (
@@ -32,6 +33,9 @@ from src.interface.api.schemas.scheduling_schemas import (
     SchedulingListResponse,
     SchedulingResponse,
 )
+from src.interface.websockets.event_dispatcher import get_event_dispatcher
+
+logger = structlog.get_logger()
 
 router = APIRouter(prefix="/schedule", tags=["Instructor - Schedule"])
 
@@ -180,6 +184,15 @@ async def confirm_scheduling(
         instructor_id=current_user.id,
     )
     result = await use_case.execute(dto)
+
+    # Emitir evento em tempo real para o aluno
+    dispatcher = get_event_dispatcher()
+    if dispatcher:
+        try:
+            await dispatcher.emit_scheduling_confirmed(result)
+        except Exception as e:
+            logger.error("event_dispatch_error", event="scheduling_confirmed", error=str(e))
+
     return SchedulingResponse.model_validate(result)
 
 
@@ -210,6 +223,15 @@ async def respond_reschedule(
 
     try:
         result = await use_case.execute(dto)
+
+        # Emitir evento em tempo real para o aluno
+        dispatcher = get_event_dispatcher()
+        if dispatcher:
+            try:
+                await dispatcher.emit_reschedule_responded(result, request.accepted)
+            except Exception as e:
+                logger.error("event_dispatch_error", event="reschedule_responded", error=str(e))
+
         return SchedulingResponse.model_validate(result)
     except (ValueError, Exception) as e:
         raise HTTPException(
@@ -242,6 +264,15 @@ async def start_lesson(
     )
 
     result = await use_case.execute(dto)
+
+    # Emitir evento em tempo real para a outra parte
+    dispatcher = get_event_dispatcher()
+    if dispatcher:
+        try:
+            await dispatcher.emit_scheduling_started(result, current_user.id)
+        except Exception as e:
+            logger.error("event_dispatch_error", event="scheduling_started", error=str(e))
+
     return SchedulingResponse.model_validate(result)
 
 
@@ -280,6 +311,15 @@ async def complete_scheduling(
             is_student=False,
         )
         result = await use_case.execute(dto)
+
+        # Emitir evento em tempo real para ambas as partes
+        dispatcher = get_event_dispatcher()
+        if dispatcher:
+            try:
+                await dispatcher.emit_scheduling_completed(result)
+            except Exception as e:
+                logger.error("event_dispatch_error", event="scheduling_completed", error=str(e))
+
         return SchedulingResponse.model_validate(result)
     except DomainException as e:
         raise HTTPException(
@@ -324,6 +364,30 @@ async def cancel_scheduling(
             reason=reason,
         )
         result = await use_case.execute(dto)
+
+        # Emitir evento em tempo real para o aluno
+        dispatcher = get_event_dispatcher()
+        if dispatcher:
+            try:
+                scheduling = await scheduling_repo.get_by_id(scheduling_id)
+                if scheduling:
+                    from src.application.dtos.scheduling_dtos import SchedulingResponseDTO
+                    scheduling_dto = SchedulingResponseDTO(
+                        id=scheduling.id,
+                        student_id=scheduling.student_id,
+                        instructor_id=scheduling.instructor_id,
+                        scheduled_datetime=scheduling.scheduled_datetime,
+                        duration_minutes=scheduling.duration_minutes,
+                        price=scheduling.price,
+                        status=scheduling.status.value if hasattr(scheduling.status, 'value') else str(scheduling.status),
+                        cancellation_reason=scheduling.cancellation_reason,
+                        cancelled_by=scheduling.cancelled_by,
+                        cancelled_at=scheduling.cancelled_at,
+                    )
+                    await dispatcher.emit_scheduling_cancelled(scheduling_dto, current_user.id)
+            except Exception as e:
+                logger.error("event_dispatch_error", event="scheduling_cancelled", error=str(e))
+
         return CancellationResultResponse(
             scheduling_id=result.scheduling_id,
             status=result.status,

@@ -17,6 +17,9 @@ from src.interface.api.exceptions import EXCEPTION_HANDLERS
 from src.interface.api.middleware.rate_limit import limiter, rate_limit_exceeded_handler
 from src.interface.api.middleware.security import SecurityHeadersMiddleware
 from src.interface.api.routers import auth, health, instructor, shared, student
+from src.interface.websockets.chat_handler import ws_router, set_pubsub_service
+from src.interface.websockets.event_dispatcher import init_event_dispatcher
+from src.infrastructure.external.redis_pubsub import pubsub_service
 
 # Configurar logging estruturado
 structlog.configure(
@@ -93,6 +96,9 @@ app.include_router(student.router, prefix="/api/v1/student", tags=["Student"])
 app.include_router(instructor.router, prefix="/api/v1/instructor", tags=["Instructor"])
 app.include_router(shared.router, prefix="/api/v1/shared", tags=["Shared"])
 
+# WebSocket routes
+app.include_router(ws_router)
+
 
 # =============================================================================
 # Admin Interface
@@ -109,16 +115,27 @@ setup_admin(app, engine)
 @app.on_event("startup")
 async def startup_event() -> None:
     """Evento executado ao iniciar a aplicação."""
+    # Inicializar Redis PubSub para WebSockets
+    await pubsub_service.connect()
+    set_pubsub_service(pubsub_service)
+
+    # Inicializar Event Dispatcher para eventos de agendamento em tempo real
+    init_event_dispatcher(pubsub_service)
+
     logger.info(
         "application_startup",
         environment=settings.environment,
         debug=settings.debug,
         rate_limiting="enabled",
         security_headers="enabled",
+        websockets="enabled",
     )
 
 
 @app.on_event("shutdown")
 async def shutdown_event() -> None:
     """Evento executado ao encerrar a aplicação."""
+    # Encerrar Redis PubSub
+    await pubsub_service.disconnect()
+
     logger.info("application_shutdown")
