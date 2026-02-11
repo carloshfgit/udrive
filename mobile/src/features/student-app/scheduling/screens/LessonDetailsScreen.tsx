@@ -167,39 +167,70 @@ export function LessonDetailsScreen() {
                 </View>
 
                 {/* Main Info Card */}
-                <View className="bg-neutral-50 rounded-3xl p-6 mb-8 border border-neutral-100">
+                {/* Proposed Time Highlight Card */}
+                {lesson.status.toLowerCase() === 'reschedule_requested' && lesson.rescheduled_datetime && (
+                    <View className="bg-amber-50 border-2 border-amber-200 rounded-3xl p-5 mb-8 shadow-sm scale-[1.02]">
+                        <View className="flex-row items-center mb-3">
+                            <View className="bg-amber-100 p-2 rounded-xl mr-3">
+                                <Clock size={20} color="#D97706" />
+                            </View>
+                            <Text className="text-amber-800 font-black text-[10px] uppercase tracking-[2px]">
+                                NOVA PROPOSTA DE HORÁRIO
+                            </Text>
+                        </View>
+
+                        <View className="flex-row items-center justify-between">
+                            <View className="flex-1">
+                                <Text className="text-neutral-900 font-black text-2xl">
+                                    {new Date(lesson.rescheduled_datetime).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' })}
+                                </Text>
+                                <Text className="text-primary-600 font-black text-4xl tracking-tighter mt-1">
+                                    {new Date(lesson.rescheduled_datetime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                                </Text>
+                            </View>
+
+                            <View className="bg-amber-200/30 px-3 py-1 rounded-full border border-amber-200">
+                                <Text className="text-amber-700 text-[10px] font-bold">SUGESTÃO</Text>
+                            </View>
+                        </View>
+
+                        <View className="mt-4 pt-4 border-t border-amber-200/50">
+                            <Text className="text-amber-800 text-xs font-medium leading-5">
+                                {lesson.rescheduled_by === lesson.instructor_id
+                                    ? "O instrutor propôs este novo horário. Deslize a tela para baixo para aceitar ou recusar."
+                                    : "Você sugeriu este novo horário. O instrutor foi notificado e responderá em breve."}
+                            </Text>
+                        </View>
+                    </View>
+                )}
+
+                {/* Main Info Card */}
+                <View className={`bg-neutral-50 rounded-3xl p-6 mb-8 border border-neutral-100 ${lesson.status.toLowerCase() === 'reschedule_requested' ? 'opacity-60' : ''}`}>
                     <View className="flex-row items-center mb-6">
-                        <View className="bg-primary-50 p-3 rounded-2xl mr-4">
-                            <Calendar size={24} color="#2563EB" />
+                        <View className={`p-3 rounded-2xl mr-4 ${lesson.status.toLowerCase() === 'reschedule_requested' ? 'bg-neutral-200' : 'bg-primary-50'}`}>
+                            <Calendar size={24} color={lesson.status.toLowerCase() === 'reschedule_requested' ? '#6B7280' : '#2563EB'} />
                         </View>
                         <View>
-                            <Text className="text-neutral-400 text-xs font-bold uppercase tracking-wider">DATA</Text>
-                            <Text className="text-neutral-900 font-bold text-lg">{day} de {month}, {year}</Text>
+                            <Text className="text-neutral-400 text-xs font-bold uppercase tracking-wider">
+                                {lesson.status.toLowerCase() === 'reschedule_requested' ? 'HORÁRIO ORIGINAL' : 'DATA'}
+                            </Text>
+                            <Text className={`font-bold text-lg ${lesson.status.toLowerCase() === 'reschedule_requested' ? 'text-neutral-500 line-through' : 'text-neutral-900'}`}>
+                                {day} de {month}, {year}
+                            </Text>
                         </View>
                     </View>
 
                     <View className="flex-row items-center">
-                        <View className="bg-primary-50 p-3 rounded-2xl mr-4">
-                            <Clock size={24} color="#2563EB" />
+                        <View className={`p-3 rounded-2xl mr-4 ${lesson.status.toLowerCase() === 'reschedule_requested' ? 'bg-neutral-200' : 'bg-primary-50'}`}>
+                            <Clock size={24} color={lesson.status.toLowerCase() === 'reschedule_requested' ? '#6B7280' : '#2563EB'} />
                         </View>
                         <View>
                             <Text className="text-neutral-400 text-xs font-bold uppercase tracking-wider">HORÁRIO E DURAÇÃO</Text>
-                            <Text className="text-neutral-900 font-bold text-lg">{hours}:{minutes} • {lesson.duration_minutes} minutos</Text>
-                        </View>
-                    </View>
-
-                    {lesson.status.toLowerCase() === 'reschedule_requested' && lesson.rescheduled_datetime && (
-                        <View className="mt-4 pt-4 border-t border-neutral-100 italic">
-                            <Text className="text-amber-600 text-sm font-medium">
-                                Novo horário proposto: {new Date(lesson.rescheduled_datetime).toLocaleString('pt-BR', {
-                                    day: '2-digit',
-                                    month: 'long',
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                })}
+                            <Text className={`font-bold text-lg ${lesson.status.toLowerCase() === 'reschedule_requested' ? 'text-neutral-500 line-through' : 'text-neutral-900'}`}>
+                                {hours}:{minutes} • {lesson.duration_minutes} minutos
                             </Text>
                         </View>
-                    )}
+                    </View>
                 </View>
 
                 {/* Instructor Block */}

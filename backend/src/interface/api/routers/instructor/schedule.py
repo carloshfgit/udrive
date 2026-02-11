@@ -225,7 +225,7 @@ async def respond_reschedule(
 
     dto = RespondRescheduleDTO(
         scheduling_id=scheduling_id,
-        instructor_id=current_user.id,
+        user_id=current_user.id,
         accepted=request.accepted,
     )
 

@@ -193,7 +193,7 @@ async def request_reschedule(
 
     dto = RequestRescheduleDTO(
         scheduling_id=scheduling_id,
-        student_id=current_user.id,
+        user_id=current_user.id,
         new_datetime=request.new_datetime,
     )
 
