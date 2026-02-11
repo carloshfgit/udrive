@@ -14,6 +14,7 @@ from src.application.dtos.scheduling_dtos import (
     CancelSchedulingDTO,
     CompleteSchedulingDTO,
     ConfirmSchedulingDTO,
+    RequestRescheduleDTO,
     RespondRescheduleDTO,
     StartSchedulingDTO,
 )
@@ -21,14 +22,21 @@ from src.application.use_cases.scheduling import (
     CancelSchedulingUseCase,
     CompleteSchedulingUseCase,
     ConfirmSchedulingUseCase,
+    RequestRescheduleUseCase,
     RespondRescheduleUseCase,
     StartSchedulingUseCase,
 )
 from src.domain.exceptions import DomainException
 from src.domain.entities.scheduling_status import SchedulingStatus
-from src.interface.api.dependencies import CurrentInstructor, SchedulingRepo, UserRepo
+from src.interface.api.dependencies import (
+    AvailabilityRepo,
+    CurrentInstructor,
+    SchedulingRepo,
+    UserRepo,
+)
 from src.interface.api.schemas.scheduling_schemas import (
     CancellationResultResponse,
+    RequestRescheduleRequest,
     RespondRescheduleRequest,
     SchedulingListResponse,
     SchedulingResponse,
@@ -231,6 +239,52 @@ async def respond_reschedule(
                 await dispatcher.emit_reschedule_responded(result, request.accepted)
             except Exception as e:
                 logger.error("event_dispatch_error", dispatch_event="reschedule_responded", error=str(e))
+
+        return SchedulingResponse.model_validate(result)
+    except (ValueError, Exception) as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+
+
+@router.post(
+    "/{scheduling_id}/reschedule",
+    response_model=SchedulingResponse,
+    summary="Solicitar reagendamento",
+    description="Solicita uma nova data/horário para uma aula (ação do instrutor).",
+)
+async def request_reschedule(
+    scheduling_id: UUID,
+    request: RequestRescheduleRequest,
+    current_user: CurrentInstructor,
+    scheduling_repo: SchedulingRepo,
+    user_repo: UserRepo,
+    availability_repo: AvailabilityRepo,
+) -> SchedulingResponse:
+    """Solicita reagendamento de aula."""
+    use_case = RequestRescheduleUseCase(
+        scheduling_repository=scheduling_repo,
+        user_repository=user_repo,
+        availability_repository=availability_repo,
+    )
+
+    dto = RequestRescheduleDTO(
+        scheduling_id=scheduling_id,
+        user_id=current_user.id,
+        new_datetime=request.new_datetime,
+    )
+
+    try:
+        result = await use_case.execute(dto)
+
+        # Emitir evento em tempo real para o aluno
+        dispatcher = get_event_dispatcher()
+        if dispatcher:
+            try:
+                await dispatcher.emit_reschedule_requested(result)
+            except Exception as e:
+                logger.error("event_dispatch_error", dispatch_event="reschedule_requested", error=str(e))
 
         return SchedulingResponse.model_validate(result)
     except (ValueError, Exception) as e:

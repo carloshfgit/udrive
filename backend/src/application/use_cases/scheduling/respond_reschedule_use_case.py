@@ -52,11 +52,19 @@ class RespondRescheduleUseCase:
         if scheduling is None:
             raise SchedulingNotFoundException(str(dto.scheduling_id))
 
-        # 2. Verificar se é o instrutor
-        if dto.instructor_id != scheduling.instructor_id:
+        # 2. Verificar se é participante do agendamento (aluno ou instrutor)
+        if dto.user_id not in (scheduling.student_id, scheduling.instructor_id):
             raise UserNotFoundException(
-                f"Usuário {dto.instructor_id} não é o instrutor deste agendamento"
+                f"Usuário {dto.user_id} não faz parte deste agendamento"
             )
+
+        # 2b. Verificar se não é quem solicitou o reagendamento
+        if dto.user_id == scheduling.rescheduled_by:
+            raise UserNotFoundException(
+                f"Usuário {dto.user_id} não pode responder ao seu próprio pedido de reagendamento"
+            )
+        # Note: Using UserNotFoundException as a catch-all for permission issues here,
+        # but in a real app might want a specific PermissionDeniedException.
 
         # 3. Validar estado
         if scheduling.status != SchedulingStatus.RESCHEDULE_REQUESTED:
@@ -87,6 +95,7 @@ class RespondRescheduleUseCase:
             price=saved_scheduling.price,
             status=saved_scheduling.status.value,
             rescheduled_datetime=saved_scheduling.rescheduled_datetime,
+            rescheduled_by=saved_scheduling.rescheduled_by,
             created_at=saved_scheduling.created_at,
             student_name=student.full_name if student else None,
             instructor_name=instructor.full_name if instructor else None,

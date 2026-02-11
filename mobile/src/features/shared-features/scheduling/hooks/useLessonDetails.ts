@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getStudentSchedulings, startBooking, completeBooking, cancelBooking, getBooking, requestReschedule } from '../api/schedulingApi';
+import { getStudentSchedulings, startBooking, completeBooking, cancelBooking, getBooking, requestReschedule, respondReschedule } from '../api/schedulingApi';
 
 export function useLessonDetails(schedulingId: string) {
     const queryClient = useQueryClient();
@@ -43,6 +43,14 @@ export function useLessonDetails(schedulingId: string) {
         }
     });
 
+    const respondRescheduleMutation = useMutation({
+        mutationFn: (accepted: boolean) => respondReschedule(schedulingId, accepted),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['scheduling', schedulingId] });
+            queryClient.invalidateQueries({ queryKey: ['student-schedulings'] });
+        }
+    });
+
     return {
         lesson: data,
         isLoading,
@@ -55,6 +63,8 @@ export function useLessonDetails(schedulingId: string) {
         cancelLesson: cancelMutation.mutate,
         isCancelling: cancelMutation.isPending,
         requestReschedule: requestRescheduleMutation.mutateAsync,
-        isRequestingReschedule: requestRescheduleMutation.isPending
+        isRequestingReschedule: requestRescheduleMutation.isPending,
+        respondReschedule: respondRescheduleMutation.mutateAsync,
+        isRespondingReschedule: respondRescheduleMutation.isPending
     };
 }

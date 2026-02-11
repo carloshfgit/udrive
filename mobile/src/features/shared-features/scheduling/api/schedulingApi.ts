@@ -61,6 +61,7 @@ export interface BookingResponse {
     started_at?: string;
     student_confirmed_at?: string;
     rescheduled_datetime?: string;
+    rescheduled_by?: string;
 }
 
 export interface SchedulingListResponse {
@@ -214,6 +215,20 @@ export async function requestReschedule(
     const response = await api.post<BookingResponse>(
         `${STUDENT_API}/lessons/${schedulingId}/request-reschedule`,
         { new_datetime: newDatetime }
+    );
+    return response.data;
+}
+
+/**
+ * Responde a uma solicitação de reagendamento (ação do aluno).
+ */
+export async function respondReschedule(
+    schedulingId: string,
+    accepted: boolean
+): Promise<BookingResponse> {
+    const response = await api.post<BookingResponse>(
+        `${STUDENT_API}/lessons/${schedulingId}/respond-reschedule`,
+        { accepted }
     );
     return response.data;
 }

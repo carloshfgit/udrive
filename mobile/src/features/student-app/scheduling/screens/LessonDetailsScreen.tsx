@@ -29,6 +29,8 @@ export function LessonDetailsScreen() {
         isCancelling,
         requestReschedule,
         isRequestingReschedule,
+        respondReschedule,
+        isRespondingReschedule,
         refetch
     } = useLessonDetails(schedulingId);
 
@@ -135,6 +137,19 @@ export function LessonDetailsScreen() {
         } catch (error: any) {
             console.error('Erro ao reagendar:', error);
             Alert.alert("Erro", error.message || "Não foi possível solicitar o reagendamento.");
+        }
+    };
+
+    const handleRespondReschedule = async (accepted: boolean) => {
+        try {
+            await respondReschedule(accepted);
+            Alert.alert(
+                accepted ? "Sucesso" : "Recusado",
+                accepted ? "Reagendamento aceito com sucesso!" : "O pedido de reagendamento foi recusado."
+            );
+        } catch (error: any) {
+            console.error('Erro ao responder reagendamento:', error);
+            Alert.alert("Erro", error.message || "Não foi possível responder ao reagendamento.");
         }
     };
 
@@ -260,11 +275,35 @@ export function LessonDetailsScreen() {
                     )}
 
                     {lesson.status.toLowerCase() === 'reschedule_requested' && (
-                        <View className="bg-amber-50 p-4 rounded-2xl flex-row items-center mb-2 border border-amber-100">
-                            <AlertCircle size={20} color="#D97706" />
-                            <Text className="text-amber-700 text-sm ml-3 flex-1 font-medium">
-                                Você solicitou um reagendamento. Aguarde a aprovação do instrutor.
-                            </Text>
+                        <View className="bg-amber-50 rounded-2xl p-4 mb-2 border border-amber-100">
+                            <View className="flex-row items-center mb-3">
+                                <AlertCircle size={20} color="#D97706" />
+                                <Text className="text-amber-700 text-sm ml-3 flex-1 font-medium">
+                                    {lesson.rescheduled_by === lesson.instructor_id
+                                        ? "O instrutor propôs um novo horário para esta aula."
+                                        : "Você solicitou um reagendamento. Aguarde a aprovação do instrutor."}
+                                </Text>
+                            </View>
+
+                            {lesson.rescheduled_by === lesson.instructor_id && (
+                                <View className="flex-row gap-3">
+                                    <Button
+                                        title="Recusar"
+                                        variant="outline"
+                                        className="flex-1"
+                                        onPress={() => handleRespondReschedule(false)}
+                                        loading={isRespondingReschedule}
+                                        size="sm"
+                                    />
+                                    <Button
+                                        title="Aceitar"
+                                        className="flex-1"
+                                        onPress={() => handleRespondReschedule(true)}
+                                        loading={isRespondingReschedule}
+                                        size="sm"
+                                    />
+                                </View>
+                            )}
                         </View>
                     )}
 

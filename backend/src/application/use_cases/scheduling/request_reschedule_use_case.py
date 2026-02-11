@@ -54,10 +54,10 @@ class RequestRescheduleUseCase:
         if scheduling is None:
             raise SchedulingNotFoundException(str(dto.scheduling_id))
 
-        # 2. Verificar se é o aluno
-        if dto.student_id != scheduling.student_id:
+        # 2. Verificar se é participante do agendamento (aluno ou instrutor)
+        if dto.user_id not in (scheduling.student_id, scheduling.instructor_id):
             raise UserNotFoundException(
-                f"Usuário {dto.student_id} não é o aluno deste agendamento"
+                f"Usuário {dto.user_id} não faz parte deste agendamento"
             )
 
         # 3. Validar estado via entidade (can_request_reschedule já reflete a lógica)
@@ -91,7 +91,7 @@ class RequestRescheduleUseCase:
             )
 
         # 6. Solicitar reagendamento
-        scheduling.request_reschedule(dto.new_datetime)
+        scheduling.request_reschedule(dto.new_datetime, dto.user_id)
         saved_scheduling = await self.scheduling_repository.update(scheduling)
 
         # 7. Buscar nomes para resposta enriquecida
@@ -107,6 +107,7 @@ class RequestRescheduleUseCase:
             price=saved_scheduling.price,
             status=saved_scheduling.status.value,
             rescheduled_datetime=saved_scheduling.rescheduled_datetime,
+            rescheduled_by=saved_scheduling.rescheduled_by,
             created_at=saved_scheduling.created_at,
             student_name=student.full_name if student else None,
             instructor_name=instructor.full_name if instructor else None,

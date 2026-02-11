@@ -12,7 +12,7 @@ from fastapi import APIRouter, HTTPException, Query, status
 from src.domain.exceptions import InstructorNotFoundException, UserNotFoundException
 from src.interface.api.dependencies import (
     AvailabilityRepo,
-    CurrentStudent,
+    CurrentUser,
     InstructorRepo,
     SchedulingRepo,
     UserRepo,
@@ -35,7 +35,7 @@ router = APIRouter(prefix="/instructors", tags=["Student - Instructor Availabili
 )
 async def get_instructor_availability(
     instructor_id: UUID,
-    current_user: CurrentStudent,
+    current_user: CurrentUser,
     availability_repo: AvailabilityRepo,
     user_repo: UserRepo,
 ) -> AvailabilityListResponse:
@@ -85,7 +85,7 @@ async def get_instructor_availability(
 )
 async def get_available_time_slots(
     instructor_id: UUID,
-    current_user: CurrentStudent,
+    current_user: CurrentUser,
     availability_repo: AvailabilityRepo,
     scheduling_repo: SchedulingRepo,
     user_repo: UserRepo,

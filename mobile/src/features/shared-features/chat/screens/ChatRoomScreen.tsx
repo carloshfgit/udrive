@@ -148,7 +148,7 @@ export function ChatRoomScreen() {
             />
 
             <KeyboardAvoidingView
-                behavior="padding"
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                 className="flex-1"
                 keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
             >
@@ -196,7 +196,7 @@ export function ChatRoomScreen() {
                 {/* Input Area */}
                 <View
                     className="p-4 border-t border-neutral-100 flex-row items-center bg-white"
-                    style={{ paddingBottom: Math.max(insets.bottom, 16) }}
+                    style={{ paddingBottom: Platform.OS === 'ios' ? Math.max(insets.bottom, 16) : 16 }}
                 >
                     <View className="flex-1 bg-neutral-100 rounded-full px-4 py-2 mr-2 max-h-32">
                         <TextInput

@@ -44,6 +44,7 @@ class Scheduling:
     started_at: datetime | None = None
     student_confirmed_at: datetime | None = None
     rescheduled_datetime: datetime | None = None
+    rescheduled_by: UUID | None = None
     id: UUID = field(default_factory=uuid4)
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime | None = None
@@ -217,12 +218,13 @@ class Scheduling:
         self.started_at = datetime.now(timezone.utc)
         self.updated_at = datetime.now(timezone.utc)
 
-    def request_reschedule(self, new_datetime: datetime) -> None:
+    def request_reschedule(self, new_datetime: datetime, requester_id: UUID) -> None:
         """
         Solicita o reagendamento da aula.
 
         Args:
             new_datetime: Nova data e hora sugerida.
+            requester_id: ID do usuário que solicita o reagendamento.
 
         Raises:
             ValueError: Se o reagendamento não pode ser solicitado ou data inválida.
@@ -238,6 +240,7 @@ class Scheduling:
 
         self.status = SchedulingStatus.RESCHEDULE_REQUESTED
         self.rescheduled_datetime = new_datetime
+        self.rescheduled_by = requester_id
         self.updated_at = now
 
     def accept_reschedule(self) -> None:
@@ -252,6 +255,7 @@ class Scheduling:
 
         self.scheduled_datetime = self.rescheduled_datetime
         self.rescheduled_datetime = None
+        self.rescheduled_by = None
         self.status = SchedulingStatus.CONFIRMED
         self.updated_at = datetime.now(timezone.utc)
 
@@ -271,6 +275,7 @@ class Scheduling:
         # O pedido de reagendamento geralmente acontece em aulas já confirmadas.
         self.status = SchedulingStatus.CONFIRMED
         self.rescheduled_datetime = None
+        self.rescheduled_by = None
         self.updated_at = datetime.now(timezone.utc)
 
     @property

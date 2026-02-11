@@ -28,6 +28,7 @@ export interface Scheduling {
     student_name?: string | null;
     instructor_name?: string | null;
     rescheduled_datetime?: string | null;
+    rescheduled_by?: string | null;
 }
 
 export interface SchedulingListResponse {
@@ -200,6 +201,20 @@ export async function respondReschedule(
     const response = await api.post<Scheduling>(
         `${INSTRUCTOR_API}/schedule/${schedulingId}/respond-reschedule`,
         { accepted }
+    );
+    return response.data;
+}
+
+/**
+ * Solicita o reagendamento de uma aula (ação do instrutor).
+ */
+export async function requestReschedule(
+    schedulingId: string,
+    newDatetime: string
+): Promise<Scheduling> {
+    const response = await api.post<Scheduling>(
+        `${INSTRUCTOR_API}/schedule/${schedulingId}/reschedule`,
+        { new_datetime: newDatetime }
     );
     return response.data;
 }

@@ -36,10 +36,13 @@ import {
     useConfirmScheduling,
     useCompleteScheduling,
     useCancelScheduling,
+    useRequestReschedule,
     useSchedulingDates,
     INSTRUCTOR_SCHEDULE_QUERY_KEY,
 } from '../hooks/useInstructorSchedule';
+import { RescheduleModal } from '../../student-app/scheduling/components/RescheduleModal';
 import { Scheduling, SchedulingStatus } from '../api/scheduleApi';
+import { useAuth } from '../../auth/hooks/useAuth';
 import type { InstructorScheduleStackParamList } from '../navigation/InstructorScheduleStack';
 
 type NavigationProp = NativeStackNavigationProp<InstructorScheduleStackParamList>;
@@ -86,6 +89,7 @@ interface ScheduleCardProps {
     onConfirm: (id: string) => void;
     onComplete: (id: string) => void;
     onCancel: (id: string) => void;
+    onReschedule: (scheduling: Scheduling) => void;
     isConfirming: boolean;
     isCompleting: boolean;
     isCancelling: boolean;
@@ -96,6 +100,7 @@ function ScheduleCard({
     onConfirm,
     onComplete,
     onCancel,
+    onReschedule,
     isConfirming,
     isCompleting,
     isCancelling,
@@ -162,6 +167,8 @@ function ScheduleCard({
         );
     };
     const navigation = useNavigation<any>();
+    const { user } = useAuth();
+    const isSelfRequested = scheduling.rescheduled_by === user?.id;
 
     return (
         <Card variant="outlined" className="mb-3">
@@ -224,7 +231,7 @@ function ScheduleCard({
                     >
                         <Clock size={18} color="#ffffff" />
                         <Text className="text-white font-semibold ml-2">
-                            Ver Solicitação
+                            {isSelfRequested ? 'Minha Sugestão' : 'Ver Solicitação'}
                         </Text>
                     </TouchableOpacity>
                 )}
@@ -273,26 +280,16 @@ function ScheduleCard({
                     </TouchableOpacity>
                 )}
 
-                {/* Botão de Cancelar - para pending e confirmed */}
+                {/* Botão de Reagendar - para pending e confirmed */}
                 {(scheduling.status === 'pending' || scheduling.status === 'confirmed') && (
                     <TouchableOpacity
-                        onPress={handleCancel}
-                        disabled={isCancelling}
-                        className={`
-                            flex-row items-center justify-center py-3 rounded-xl mt-2
-                            ${isCancelling ? 'bg-red-100' : 'bg-white active:bg-red-50'}
-                        `}
+                        onPress={() => onReschedule(scheduling)}
+                        className="flex-row items-center justify-center py-3 rounded-xl mt-2 bg-white active:bg-amber-50 border border-amber-200"
                     >
-                        {isCancelling ? (
-                            <ActivityIndicator size="small" color="#ef4444" />
-                        ) : (
-                            <>
-                                <XCircle size={18} color="#ef4444" />
-                                <Text className="text-red-500 font-semibold ml-2">
-                                    Cancelar Aula
-                                </Text>
-                            </>
-                        )}
+                        <Clock size={18} color="#D97706" />
+                        <Text className="text-amber-600 font-semibold ml-2">
+                            Reagendar Aula
+                        </Text>
                     </TouchableOpacity>
                 )}
             </View>
@@ -336,6 +333,11 @@ export function InstructorScheduleScreen() {
     const confirmMutation = useConfirmScheduling();
     const completeMutation = useCompleteScheduling();
     const cancelMutation = useCancelScheduling();
+    const rescheduleMutation = useRequestReschedule();
+
+    // Estado do modal de reagendamento
+    const [rescheduleModalVisible, setRescheduleModalVisible] = useState(false);
+    const [schedulingToReschedule, setSchedulingToReschedule] = useState<Scheduling | null>(null);
 
     // Atualizar ao ganhar foco
     useFocusEffect(
@@ -428,18 +430,27 @@ export function InstructorScheduleScreen() {
         }
     };
 
-    // Cancelar aula
-    const handleCancel = async (id: string) => {
-        setCancellingId(id);
+    // Reagendar aula
+    const handleReschedulePress = (scheduling: Scheduling) => {
+        setSchedulingToReschedule(scheduling);
+        setRescheduleModalVisible(true);
+    };
+
+    const handleConfirmReschedule = async (newDatetime: string) => {
+        if (!schedulingToReschedule) return;
+
         try {
-            await cancelMutation.mutateAsync({ schedulingId: id });
-            Alert.alert('Sucesso', 'Aula cancelada!');
+            await rescheduleMutation.mutateAsync({
+                schedulingId: schedulingToReschedule.id,
+                newDatetime,
+            });
+            Alert.alert('Sucesso', 'Solicitação de reagendamento enviada!');
+            setRescheduleModalVisible(false);
+            setSchedulingToReschedule(null);
         } catch (error: any) {
-            console.error('[InstructorScheduleScreen] Cancel error:', error);
-            const message = error?.response?.data?.detail || 'Não foi possível cancelar a aula.';
+            console.error('[InstructorScheduleScreen] Reschedule error:', error);
+            const message = error?.response?.data?.detail || 'Não foi possível solicitar o reagendamento.';
             Alert.alert('Erro', message);
-        } finally {
-            setCancellingId(null);
         }
     };
 
@@ -611,7 +622,8 @@ export function InstructorScheduleScreen() {
                                 scheduling={scheduling}
                                 onConfirm={handleConfirm}
                                 onComplete={handleComplete}
-                                onCancel={handleCancel}
+                                onCancel={() => { }} // Not used but kept for interface compatibility
+                                onReschedule={handleReschedulePress}
                                 isConfirming={confirmingId === scheduling.id}
                                 isCompleting={completingId === scheduling.id}
                                 isCancelling={cancellingId === scheduling.id}
@@ -637,13 +649,24 @@ export function InstructorScheduleScreen() {
                 {/* Dica */}
                 <View className="mx-4 mt-6 bg-blue-50 p-4 rounded-xl">
                     <Text className="text-blue-800 font-medium">
-                        💡 Dica
+                        💡 Dicas
                     </Text>
                     <Text className="text-blue-700 text-sm mt-1">
-                        Configure seus horários disponíveis tocando em "Horários" para que alunos possam agendar aulas com você.
+                        - Configure seus horários disponíveis tocando em "Horários" para que alunos possam agendar aulas com você.\n
+                        - Fique atento aos seus agendamentos e confirme-os para que os alunos possam realizar as aulas.\n
+                        - Observe as datas no calendário, aquelas com um ponto verde são dias com aulas agendadas.
                     </Text>
                 </View>
             </ScrollView>
+
+            <RescheduleModal
+                isVisible={rescheduleModalVisible}
+                onClose={() => setRescheduleModalVisible(false)}
+                onConfirm={handleConfirmReschedule}
+                instructorId={schedulingToReschedule?.instructor_id || ''}
+                durationMinutes={schedulingToReschedule?.duration_minutes || 50}
+                isSubmitting={rescheduleMutation.isPending}
+            />
         </SafeAreaView>
     );
 }

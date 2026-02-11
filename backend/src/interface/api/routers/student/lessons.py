@@ -14,6 +14,7 @@ from src.application.dtos.scheduling_dtos import (
     CompleteSchedulingDTO,
     CreateSchedulingDTO,
     RequestRescheduleDTO,
+    RespondRescheduleDTO,
     StartSchedulingDTO,
 )
 from src.application.use_cases.create_review_use_case import CreateReviewUseCase
@@ -22,6 +23,7 @@ from src.application.use_cases.scheduling import (
     CompleteSchedulingUseCase,
     CreateSchedulingUseCase,
     RequestRescheduleUseCase,
+    RespondRescheduleUseCase,
     StartSchedulingUseCase,
 )
 from src.domain.entities.scheduling_status import SchedulingStatus
@@ -39,6 +41,7 @@ from src.interface.api.schemas.scheduling_schemas import (
     CreateReviewRequest,
     CreateSchedulingRequest,
     RequestRescheduleRequest,
+    RespondRescheduleRequest,
     ReviewResponse,
     SchedulingListResponse,
     SchedulingResponse,
@@ -210,6 +213,50 @@ async def request_reschedule(
         # Note: exceptions should ideally be handled by a global handler 
         # but following local pattern if any or just raising.
         # Actually some routers handle exceptions explicitly.
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+
+
+@router.post(
+    "/{scheduling_id}/respond-reschedule",
+    response_model=SchedulingResponse,
+    summary="Responder a reagendamento",
+    description="Aceita ou recusa uma solicitação de reagendamento (ação do aluno).",
+)
+async def respond_reschedule(
+    scheduling_id: UUID,
+    request: RespondRescheduleRequest,
+    current_user: CurrentStudent,
+    scheduling_repo: SchedulingRepo,
+    user_repo: UserRepo,
+) -> SchedulingResponse:
+    """Aceita ou recusa uma solicitação de reagendamento."""
+    use_case = RespondRescheduleUseCase(
+        scheduling_repository=scheduling_repo,
+        user_repository=user_repo,
+    )
+
+    dto = RespondRescheduleDTO(
+        scheduling_id=scheduling_id,
+        user_id=current_user.id,
+        accepted=request.accepted,
+    )
+
+    try:
+        result = await use_case.execute(dto)
+
+        # Emitir evento em tempo real para o instrutor
+        dispatcher = get_event_dispatcher()
+        if dispatcher:
+            try:
+                await dispatcher.emit_reschedule_responded(result, request.accepted)
+            except Exception as e:
+                logger.error("event_dispatch_error", dispatch_event="reschedule_responded", error=str(e))
+
+        return SchedulingResponse.model_validate(result)
+    except (ValueError, Exception) as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),

@@ -13,6 +13,7 @@ import {
     cancelScheduling,
     getSchedulingDates,
     respondReschedule,
+    requestReschedule,
     SchedulingStatus,
 } from '../api/scheduleApi';
 
@@ -113,6 +114,22 @@ export function useRespondReschedule() {
     return useMutation({
         mutationFn: ({ schedulingId, accepted }: { schedulingId: string; accepted: boolean }) =>
             respondReschedule(schedulingId, accepted),
+        onSuccess: () => {
+            // Invalidar cache da agenda para recarregar
+            queryClient.invalidateQueries({ queryKey: INSTRUCTOR_SCHEDULE_QUERY_KEY });
+        },
+    });
+}
+
+/**
+ * Hook para solicitar reagendamento (ação do instrutor).
+ */
+export function useRequestReschedule() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({ schedulingId, newDatetime }: { schedulingId: string; newDatetime: string }) =>
+            requestReschedule(schedulingId, newDatetime),
         onSuccess: () => {
             // Invalidar cache da agenda para recarregar
             queryClient.invalidateQueries({ queryKey: INSTRUCTOR_SCHEDULE_QUERY_KEY });

@@ -103,7 +103,7 @@ class RequestRescheduleDTO:
     """DTO para solicitar reagendamento."""
 
     scheduling_id: UUID
-    student_id: UUID
+    user_id: UUID
     new_datetime: datetime
 
 
@@ -112,7 +112,7 @@ class RespondRescheduleDTO:
     """DTO para responder a uma solicitação de reagendamento."""
 
     scheduling_id: UUID
-    instructor_id: UUID
+    user_id: UUID
     accepted: bool
 
 
@@ -137,6 +137,7 @@ class SchedulingResponseDTO:
     started_at: datetime | None = None
     student_confirmed_at: datetime | None = None
     rescheduled_datetime: datetime | None = None
+    rescheduled_by: UUID | None = None
     created_at: datetime | None = None
 
     # Dados opcionais enriquecidos

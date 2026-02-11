@@ -125,6 +125,7 @@ class SchedulingResponse(BaseModel):
     started_at: datetime | None = None
     student_confirmed_at: datetime | None = None
     rescheduled_datetime: datetime | None = None
+    rescheduled_by: UUID | None = None
     created_at: datetime
     
     # Campos enriquecidos (opcionais, preenchidos se disponíveis)

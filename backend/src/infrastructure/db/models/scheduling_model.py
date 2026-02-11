@@ -105,6 +105,11 @@ class SchedulingModel(Base):
         DateTime(timezone=True),
         nullable=True,
     )
+    rescheduled_by: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+    )
 
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(
@@ -165,6 +170,7 @@ class SchedulingModel(Base):
             started_at=self.started_at,
             student_confirmed_at=self.student_confirmed_at,
             rescheduled_datetime=self.rescheduled_datetime,
+            rescheduled_by=self.rescheduled_by,
             created_at=self.created_at,
             updated_at=self.updated_at,
             student_name=self.student.full_name if "student" in self.__dict__ and self.student else None,
@@ -192,6 +198,7 @@ class SchedulingModel(Base):
             started_at=scheduling.started_at,
             student_confirmed_at=scheduling.student_confirmed_at,
             rescheduled_datetime=scheduling.rescheduled_datetime,
+            rescheduled_by=scheduling.rescheduled_by,
             created_at=scheduling.created_at,
             updated_at=scheduling.updated_at,
         )
