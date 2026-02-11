@@ -7,11 +7,15 @@
 
 import React from 'react';
 import { useAuthStore } from '../lib/store';
+import { useWebSocket } from '../shared/hooks/useWebSocket';
 import { StudentTabNavigator } from '../features/student-app/navigation/StudentTabNavigator';
 import { InstructorTabNavigator } from '../features/instructor-app/navigation/InstructorTabNavigator';
 
 export function RootNavigator() {
     const { user } = useAuthStore();
+
+    // Ativa conexão WebSocket globalmente quando autenticado
+    useWebSocket();
 
     // Instrutor vai para InstructorTabNavigator
     if (user?.user_type === 'instructor') {

@@ -1,6 +1,6 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { View, FlatList, RefreshControl, SafeAreaView } from 'react-native';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { MessageSquare } from 'lucide-react-native';
 import { Header } from '../../../../shared/components/Header';
 import { Button } from '../../../../shared/components/Button';
@@ -16,11 +16,6 @@ export function InstructorChatListScreen() {
 
     const { data: conversations, isLoading, refetch, isError } = useConversations();
 
-    useFocusEffect(
-        useCallback(() => {
-            refetch();
-        }, [refetch])
-    );
 
     const onRefresh = async () => {
         setRefreshing(true);

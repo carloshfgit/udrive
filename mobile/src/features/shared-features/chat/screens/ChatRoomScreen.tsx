@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
     View,
     Text,
@@ -20,6 +20,9 @@ import { ptBR } from 'date-fns/locale';
 import { Header } from '../../../../shared/components/Header';
 import { useMessages } from '../hooks/useMessages';
 import { MessageResponse } from '../api/chatApi';
+import { wsService } from '../../../../lib/websocket';
+import { useWebSocketStore } from '../../../../lib/websocketStore';
+import type { WSMessage } from '../../../../lib/websocket';
 
 export function ChatRoomScreen() {
     const route = useRoute<any>();
@@ -27,9 +30,12 @@ export function ChatRoomScreen() {
     const { otherUserId, otherUserName } = route.params;
 
     const [messageText, setMessageText] = useState('');
+    const [isTyping, setIsTyping] = useState(false);
     const { messages, sendMessage, isSending, isLoading } = useMessages(otherUserId);
+    const isConnected = useWebSocketStore((s) => s.isConnected);
     const insets = useSafeAreaInsets();
     const flatListRef = useRef<FlatList>(null);
+    const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Rola a lista quando o teclado aparecer
     useEffect(() => {
@@ -46,6 +52,45 @@ export function ChatRoomScreen() {
             keyboardDidShowListener.remove();
         };
     }, []);
+
+    // Listener para indicador de typing do outro usuário
+    useEffect(() => {
+        const unsubscribe = wsService.onMessage((message: WSMessage) => {
+            if (
+                message.type === 'typing_indicator' &&
+                (message.data as Record<string, string>)?.user_id === otherUserId
+            ) {
+                setIsTyping(true);
+
+                // Limpar indicador após 3 segundos
+                if (typingTimeoutRef.current) {
+                    clearTimeout(typingTimeoutRef.current);
+                }
+                typingTimeoutRef.current = setTimeout(() => {
+                    setIsTyping(false);
+                }, 3000);
+            }
+        });
+
+        return () => {
+            unsubscribe();
+            if (typingTimeoutRef.current) {
+                clearTimeout(typingTimeoutRef.current);
+            }
+        };
+    }, [otherUserId]);
+
+    // Enviar indicador de typing ao digitar
+    const handleTextChange = useCallback(
+        (text: string) => {
+            setMessageText(text);
+
+            if (isConnected && text.trim()) {
+                wsService.send({ type: 'typing', receiver_id: otherUserId });
+            }
+        },
+        [isConnected, otherUserId]
+    );
 
     const handleSend = async () => {
         if (!messageText.trim() || isSending) return;
@@ -137,6 +182,15 @@ export function ChatRoomScreen() {
                             }
                         />
                     )}
+
+                    {/* Indicador de "digitando..." */}
+                    {isTyping && (
+                        <View className="px-2 pb-1">
+                            <Text className="text-xs text-neutral-400 italic">
+                                {otherUserName} está digitando...
+                            </Text>
+                        </View>
+                    )}
                 </View>
 
                 {/* Input Area */}
@@ -148,7 +202,7 @@ export function ChatRoomScreen() {
                         <TextInput
                             placeholder="Mensagem..."
                             value={messageText}
-                            onChangeText={setMessageText}
+                            onChangeText={handleTextChange}
                             multiline
                             className="text-neutral-900 text-sm py-1"
                             blurOnSubmit={false}
