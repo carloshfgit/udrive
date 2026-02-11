@@ -74,9 +74,10 @@ export function useWebSocket() {
                                 return [...old, message.data];
                             }
                         );
-                        // Invalidar lista de conversas para atualizar último preview
+                        // Invalidar lista de conversas e contagem global para atualização em tempo real
                         queryClient.invalidateQueries({ queryKey: ['chat-conversations'] });
                         queryClient.invalidateQueries({ queryKey: ['chat-student-conversations'] });
+                        queryClient.invalidateQueries({ queryKey: ['chat-unread-count'] });
                     }
                     break;
                 }
@@ -101,14 +102,20 @@ export function useWebSocket() {
                 case 'messages_read': {
                     // Nossas mensagens foram lidas pelo outro usuário
                     queryClient.invalidateQueries({ queryKey: ['chat-messages'] });
+                    queryClient.invalidateQueries({ queryKey: ['chat-conversations'] });
+                    queryClient.invalidateQueries({ queryKey: ['chat-student-conversations'] });
+                    queryClient.invalidateQueries({ queryKey: ['chat-unread-count'] });
                     break;
                 }
 
                 case 'unread_count': {
-                    // Contagem atualizada de mensagens não lidas
+                    // Contagem atualizada de mensagens não lidas (enviada explicitamente pelo servidor)
                     const count = (message.data as Record<string, number>)?.count;
                     if (count !== undefined) {
                         queryClient.setQueryData(['chat-unread-count'], { unread_count: count });
+                        // Invalidar listas para atualizar os badges nos itens da lista
+                        queryClient.invalidateQueries({ queryKey: ['chat-conversations'] });
+                        queryClient.invalidateQueries({ queryKey: ['chat-student-conversations'] });
                     }
                     break;
                 }
@@ -149,11 +156,27 @@ export function useWebSocket() {
     useEffect(() => {
         if (!isAuthenticated) {
             wsService.disconnect();
+            wsService.setTokenGetter(null);
             return;
         }
 
         // Configurar callback de status
         wsService.setStatusCallback(setStatus);
+
+        // Configurar getter de token para que o WebSocket possa
+        // obter tokens atualizados ao reconectar (ex: após refresh pelo Axios interceptor)
+        const getValidToken = async (): Promise<string | null> => {
+            try {
+                // Buscar o token mais recente do SecureStore.
+                // Se o interceptor do Axios já fez refresh, o token novo já estará lá.
+                const token = await tokenManager.getAccessToken();
+                return token;
+            } catch (error) {
+                console.error('[useWebSocket] Erro ao obter token:', error);
+                return null;
+            }
+        };
+        wsService.setTokenGetter(getValidToken);
 
         // Conectar com o token atual
         const connectAsync = async () => {
@@ -170,6 +193,7 @@ export function useWebSocket() {
         return () => {
             unsubscribe();
             wsService.setStatusCallback(null);
+            wsService.setTokenGetter(null);
         };
     }, [isAuthenticated, setStatus, handleMessage]);
 

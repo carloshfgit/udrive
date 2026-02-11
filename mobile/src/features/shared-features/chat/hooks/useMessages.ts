@@ -43,13 +43,35 @@ export function useMessages(otherUserId: string) {
         [isConnected, otherUserId, sendMutationRest]
     );
 
-    // Invalida a lista de conversas quando as mensagens são carregadas com sucesso
+    // Marcar mensagens como lidas automaticamente quando o chat está aberto
+    useEffect(() => {
+        if (!isConnected || !query.data || query.data.length === 0) return;
+
+        // Filtrar mensagens não lidas enviadas pelo outro usuário
+        const unreadIds = query.data
+            .filter((m) => !m.is_read && m.sender_id === otherUserId)
+            .map((m) => m.id);
+
+        if (unreadIds.length > 0) {
+            wsService.send({
+                type: 'mark_as_read',
+                message_ids: unreadIds,
+                sender_id: otherUserId, // Opcional, mas ajuda o servidor a saber quem notificar
+            });
+
+            // Otimismo: invalidar queries locais para limpar o estado de não lidas visualmente
+            queryClient.invalidateQueries({ queryKey: ['chat-unread-count'] });
+        }
+    }, [query.data, isConnected, otherUserId, queryClient]);
+
+    // Invalida a lista de conversas e contagem global quando as mensagens são carregadas com sucesso
     // Isso garante que os indicadores de não lidas sejam atualizados após abrir o chat
     useEffect(() => {
         if (query.isSuccess && query.data) {
             const timer = setTimeout(() => {
                 queryClient.invalidateQueries({ queryKey: ['chat-conversations'] });
                 queryClient.invalidateQueries({ queryKey: ['chat-student-conversations'] });
+                queryClient.invalidateQueries({ queryKey: ['chat-unread-count'] });
             }, 500);
 
             return () => clearTimeout(timer);
