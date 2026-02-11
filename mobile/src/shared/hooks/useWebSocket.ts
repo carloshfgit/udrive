@@ -12,6 +12,7 @@
  */
 
 import { useEffect, useCallback, useRef } from 'react';
+import { AppState, AppStateStatus } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { tokenManager } from '../../lib/axios';
@@ -168,9 +169,15 @@ export function useWebSocket() {
         wsService.setStatusCallback(setStatus);
 
         // Configurar getter de token para que o WebSocket possa
-        // obter tokens atualizados ao reconectar (ex: após refresh pelo Axios interceptor)
-        const getValidToken = async (): Promise<string | null> => {
+        // obter tokens atualizados ao reconectar (ex: após refresh pelo Axios interceptor
+        // ou quando o próprio WS solicita refresh forçado)
+        const getValidToken = async (forceRefresh = false): Promise<string | null> => {
             try {
+                if (forceRefresh) {
+                    console.log('[useWebSocket] Forçando refresh de token...');
+                    return await tokenManager.refreshToken();
+                }
+
                 // Buscar o token mais recente do SecureStore.
                 // Se o interceptor do Axios já fez refresh, o token novo já estará lá.
                 const token = await tokenManager.getAccessToken();
@@ -200,6 +207,23 @@ export function useWebSocket() {
             wsService.setTokenGetter(null);
         };
     }, [isAuthenticated, setStatus, handleMessage]);
+
+    // =========================================================================
+    // Reconnection on App Resume
+    // =========================================================================
+
+    const appState = useRef(AppState.currentState);
+
+    useEffect(() => {
+        const subscription = AppState.addEventListener('change', (nextAppState) => {
+            const isBackground = nextAppState.match(/inactive|background/);
+            wsService.setAppInBackground(!!isBackground);
+        });
+
+        return () => {
+            subscription.remove();
+        };
+    }, []);
 
     // =========================================================================
     // API pública do hook
