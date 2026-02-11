@@ -40,14 +40,14 @@ export function RescheduleDetailsScreen() {
     };
 
     const handleResponse = async (accepted: boolean) => {
-        const action = accepted ? 'aceitar' : 'recusar';
+        const action = accepted ? 'aceitar' : (isSelfRequested ? 'cancelar' : 'recusar');
         Alert.alert(
-            `${accepted ? 'Aceitar' : 'Recusar'} Reagendamento`,
+            `${accepted ? 'Aceitar' : (isSelfRequested ? 'Cancelar' : 'Recusar')} Reagendamento`,
             `Deseja realmente ${action} esta sugestão de novo horário?`,
             [
                 { text: 'Voltar', style: 'cancel' },
                 {
-                    text: accepted ? 'Sim, Aceitar' : 'Sim, Recusar',
+                    text: accepted ? 'Sim, Aceitar' : (isSelfRequested ? 'Sim, Cancelar' : 'Sim, Recusar'),
                     style: accepted ? 'default' : 'destructive',
                     onPress: async () => {
                         setIsSubmitting(true);
@@ -56,7 +56,7 @@ export function RescheduleDetailsScreen() {
                                 schedulingId: scheduling.id,
                                 accepted
                             });
-                            Alert.alert('Sucesso', `O reagendamento foi ${accepted ? 'aceito' : 'recusado'} com sucesso.`);
+                            Alert.alert('Sucesso', `O reagendamento foi ${accepted ? 'aceito' : (isSelfRequested ? 'cancelado' : 'recusado')} com sucesso.`);
                             navigation.goBack();
                         } catch (error: any) {
                             Alert.alert('Erro', error.message || 'Ocorreu um erro ao processar a resposta.');

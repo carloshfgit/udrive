@@ -58,13 +58,11 @@ class RespondRescheduleUseCase:
                 f"Usuário {dto.user_id} não faz parte deste agendamento"
             )
 
-        # 2b. Verificar se não é quem solicitou o reagendamento
-        if dto.user_id == scheduling.rescheduled_by:
-            raise UserNotFoundException(
-                f"Usuário {dto.user_id} não pode responder ao seu próprio pedido de reagendamento"
+        # 2b. Verificar se não é quem solicitou o reagendamento (exceto se for para cancelar/recusar seu próprio pedido)
+        if dto.user_id == scheduling.rescheduled_by and dto.accepted:
+            raise ValueError(
+                f"Usuário {dto.user_id} não pode aceitar seu próprio pedido de reagendamento"
             )
-        # Note: Using UserNotFoundException as a catch-all for permission issues here,
-        # but in a real app might want a specific PermissionDeniedException.
 
         # 3. Validar estado
         if scheduling.status != SchedulingStatus.RESCHEDULE_REQUESTED:
