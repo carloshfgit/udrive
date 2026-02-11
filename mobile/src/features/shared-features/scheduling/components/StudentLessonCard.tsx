@@ -50,6 +50,8 @@ export function StudentLessonCard({
             case 'canceled':
             case 'cancelled':
                 return 'error';
+            case 'reschedule_requested':
+                return 'warning';
             default: return 'default';
         }
     };
@@ -63,6 +65,8 @@ export function StudentLessonCard({
             case 'canceled':
             case 'cancelled':
                 return 'Cancelada';
+            case 'reschedule_requested':
+                return 'Reagendamento';
             default: return status;
         }
     };

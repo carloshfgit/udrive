@@ -72,7 +72,7 @@ export function LessonDetailsScreen() {
     };
 
     const getStatusLabel = (status: string): string => {
-        if (status.toLowerCase() === 'reschedule_requested') return 'REAGENDAMENTO SOLICITADO';
+        if (status.toLowerCase() === 'reschedule_requested') return 'REAGENDAMENTO';
         return status.toUpperCase();
     };
 

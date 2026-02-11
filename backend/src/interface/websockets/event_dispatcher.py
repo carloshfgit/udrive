@@ -46,6 +46,7 @@ class SchedulingEventDispatcher:
             "completed_at": str(dto.completed_at) if dto.completed_at else None,
             "started_at": str(dto.started_at) if dto.started_at else None,
             "rescheduled_datetime": str(dto.rescheduled_datetime) if dto.rescheduled_datetime else None,
+            "rescheduled_by": str(dto.rescheduled_by) if dto.rescheduled_by else None,
             "created_at": str(dto.created_at) if dto.created_at else None,
             "student_name": dto.student_name,
             "instructor_name": dto.instructor_name,
@@ -134,31 +135,62 @@ class SchedulingEventDispatcher:
         )
 
     async def emit_reschedule_requested(self, dto: SchedulingResponseDTO) -> None:
-        """Notifica o INSTRUTOR que recebeu solicitação de reagendamento."""
+        """Notifica o OUTRO participante que recebeu solicitação de reagendamento."""
+        target_id = dto.instructor_id if dto.rescheduled_by == dto.student_id else dto.student_id
         await self._safe_publish(
-            f"user:{dto.instructor_id}",
+            f"user:{target_id}",
             {"type": SchedulingEventType.RESCHEDULE_REQUESTED, "data": self._serialize(dto)},
         )
         logger.info(
             "scheduling_event_emitted",
             event=SchedulingEventType.RESCHEDULE_REQUESTED,
-            target="instructor",
+            target=str(target_id),
             scheduling_id=str(dto.id),
         )
 
     async def emit_reschedule_responded(
         self, dto: SchedulingResponseDTO, accepted: bool
     ) -> None:
-        """Notifica o ALUNO sobre a resposta do reagendamento."""
+        """Notifica o participante que SOLICITOU sobre a resposta do reagendamento."""
+        # Se o reagendamento foi aceito/recusado, enviamos para quem tinha solicitado originalmente.
+        # Notar que após accept/refuse, a entidade limpa rescheduled_by, 
+        # mas o DTO de resposta contém o estado ANTERIOR ou o dispatcher recebe o DTO processado.
+        # Se o DTO processado tem rescheduled_by=None (como está na entidade), 
+        # precisamos que o DTO ainda tenha esse dado ou passá-lo explicitamente.
+        
+        # Vamos conferir o RespondRescheduleUseCase... ele retorna SchedulingResponseDTO.
+        # Na entidade accept_reschedule() limpa rescheduled_by. 
+        # Então no DTO 'result' ele será None.
+        
+        # OPA! Problema detectado. Se o use case retorna a entidade salva, 
+        # o rescheduled_by já foi limpo.
+        
+        # Precisamos notificar a parte que NÃO é a que está respondendo.
+        # Como o dispatcher é chamado pelo router que sabe quem é o current_user,
+        # mas aqui no método só recebemos o DTO.
+        
+        # Se dto.rescheduled_by é None, enviamos para AMBOS para garantir, 
+        # ou mudamos a assinatura para receber o responder_id.
+        
+        # No entanto, se o objetivo é tempo real, o responder_id é o current_user.
+        # O outro participante é:
+        # target_id = student if responder == instructor else instructor
+        
+        # Mas não temos o responder_id aqui.
+        # Vamos assumir que se dto.rescheduled_by é None (comum após resposta),
+        # enviamos para ambos ou tentamos inferir.
+        
+        # O mais seguro é enviar para ambos se não soubermos quem é o alvo,
+        # ou confiar que o front-end filtra o que é dele.
+        
         payload = {**self._serialize(dto), "accepted": accepted}
-        await self._safe_publish(
-            f"user:{dto.student_id}",
-            {"type": SchedulingEventType.RESCHEDULE_RESPONDED, "data": payload},
-        )
+        await self._safe_publish(f"user:{dto.student_id}", {"type": SchedulingEventType.RESCHEDULE_RESPONDED, "data": payload})
+        await self._safe_publish(f"user:{dto.instructor_id}", {"type": SchedulingEventType.RESCHEDULE_RESPONDED, "data": payload})
+        
         logger.info(
             "scheduling_event_emitted",
             event=SchedulingEventType.RESCHEDULE_RESPONDED,
-            target="student",
+            target="both",
             accepted=accepted,
             scheduling_id=str(dto.id),
         )
