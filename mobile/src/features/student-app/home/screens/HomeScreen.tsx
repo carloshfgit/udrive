@@ -44,7 +44,15 @@ export function HomeScreen() {
                 }
             >
                 {/* 1. Tutorial Carousel */}
-                <QuickStepsTutorial />
+                <QuickStepsTutorial
+                    onStepPress={(id) => {
+                        if (id === '1') {
+                            navigation.navigate('Profile', { screen: 'PersonalInfo' });
+                        } else if (id === '2') {
+                            navigation.navigate('Search');
+                        }
+                    }}
+                />
 
                 {/* 2. Next Lesson Card */}
                 <NextClassCard

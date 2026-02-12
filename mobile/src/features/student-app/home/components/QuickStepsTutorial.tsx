@@ -1,9 +1,11 @@
-import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
-import { User, Calendar, MapPin, CreditCard } from 'lucide-react-native';
+import React, { useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, Dimensions, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
+import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
+import { User, Calendar, MapPin, CreditCard, MessageSquare } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.75;
+const GAP = 16;
 
 interface TutorialStep {
     id: string;
@@ -18,7 +20,7 @@ const STEPS: TutorialStep[] = [
     {
         id: '1',
         title: 'Complete seu Perfil',
-        description: 'Adicione sua foto e informe seus dados para começar.',
+        description: 'Toque aqui para adicionar sua foto e informar seus dados para começar.',
         icon: <User size={24} color="#3B82F6" />,
         color: 'bg-blue-50',
     },
@@ -43,9 +45,44 @@ const STEPS: TutorialStep[] = [
         icon: <CreditCard size={24} color="#8B5CF6" />,
         color: 'bg-purple-50',
     },
+    {
+        id: '5',
+        title: 'Converse com seu Instrutor',
+        description: 'Defina o ponto de encontro e tire suas dúvidas.',
+        icon: <MessageSquare size={24} color="#5cb3f6ff" />,
+        color: 'bg-blue-50',
+    },
 ];
 
-export function QuickStepsTutorial() {
+interface QuickStepsTutorialProps {
+    onStepPress?: (stepId: string) => void;
+}
+
+export function QuickStepsTutorial({ onStepPress }: QuickStepsTutorialProps) {
+    const [activeIndex, setActiveIndex] = useState(0);
+    const scrollViewRef = React.useRef<ScrollView>(null);
+
+    React.useEffect(() => {
+        const interval = setInterval(() => {
+            const nextIndex = (activeIndex + 1) % STEPS.length;
+            scrollViewRef.current?.scrollTo({
+                x: nextIndex * (CARD_WIDTH + GAP),
+                animated: true,
+            });
+            setActiveIndex(nextIndex);
+        }, 5000); // Mudar a cada 5 segundos
+
+        return () => clearInterval(interval);
+    }, [activeIndex]);
+
+    const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+        const scrollOffset = event.nativeEvent.contentOffset.x;
+        const index = Math.round(scrollOffset / (CARD_WIDTH + GAP));
+        if (index !== activeIndex) {
+            setActiveIndex(index);
+        }
+    };
+
     return (
         <View className="py-6">
             <View className="px-6 mb-4">
@@ -55,16 +92,20 @@ export function QuickStepsTutorial() {
             </View>
 
             <ScrollView
+                ref={scrollViewRef}
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={{ paddingHorizontal: 24 }}
-                snapToInterval={CARD_WIDTH + 16}
+                snapToInterval={CARD_WIDTH + GAP}
                 decelerationRate="fast"
+                onScroll={handleScroll}
+                scrollEventThrottle={16}
             >
                 {STEPS.map((step) => (
                     <TouchableOpacity
                         key={step.id}
                         activeOpacity={0.8}
+                        onPress={() => onStepPress?.(step.id)}
                         style={{ width: CARD_WIDTH }}
                         className={`mr-4 p-5 rounded-3xl ${step.color} border border-white shadow-sm`}
                     >
@@ -80,6 +121,27 @@ export function QuickStepsTutorial() {
                     </TouchableOpacity>
                 ))}
             </ScrollView>
+
+            {/* Pagination Indicators */}
+            <View className="flex-row justify-center mt-6 gap-2">
+                {STEPS.map((_, index) => {
+                    const isActive = index === activeIndex;
+                    const animatedStyle = useAnimatedStyle(() => ({
+                        width: withTiming(isActive ? 24 : 6, { duration: 300 }),
+                        backgroundColor: withTiming(
+                            isActive ? '#2563EB' : '#E5E7EB', // primary-600 vs neutral-200
+                            { duration: 300 }
+                        ),
+                    }));
+
+                    return (
+                        <Animated.View
+                            key={index}
+                            style={[{ height: 6, borderRadius: 999 }, animatedStyle]}
+                        />
+                    );
+                })}
+            </View>
         </View>
     );
 }
