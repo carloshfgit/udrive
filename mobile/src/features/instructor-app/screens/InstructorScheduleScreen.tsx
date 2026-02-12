@@ -652,9 +652,11 @@ export function InstructorScheduleScreen() {
                         💡 Dicas
                     </Text>
                     <Text className="text-blue-700 text-sm mt-1">
-                        - Configure seus horários disponíveis tocando em "Horários" para que alunos possam agendar aulas com você.\n
-                        - Fique atento aos seus agendamentos e confirme-os para que os alunos possam realizar as aulas.\n
-                        - Observe as datas no calendário, aquelas com um ponto verde são dias com aulas agendadas.
+                        {[
+                            '- Configure seus horários disponíveis tocando em "Horários" para que alunos possam agendar aulas com você.',
+                            '- Fique atento aos seus agendamentos e confirme-os para que os alunos possam realizar as aulas.',
+                            '- Observe as datas no calendário, aquelas com um ponto verde são dias com aulas agendadas.',
+                        ].join('\n')}
                     </Text>
                 </View>
             </ScrollView>

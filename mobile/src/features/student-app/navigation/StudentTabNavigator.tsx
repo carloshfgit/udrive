@@ -1,11 +1,10 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Home, Search, BookOpen, Calendar, User } from 'lucide-react-native';
+import { Home, Search, Calendar, User } from 'lucide-react-native';
 
 // Student-specific screens (same level)
 import { HomeScreen } from '../home/screens/HomeScreen';
 import { SearchStackNavigator } from '../search/navigation/SearchStackNavigator';
-import { LearningCenterScreen } from '../learning/screens/LearningCenterScreen';
 
 // Shared features (different directory)
 import { SchedulingStackNavigator } from '../scheduling/navigation/SchedulingStackNavigator';
@@ -50,14 +49,6 @@ export function StudentTabNavigator() {
                 options={{
                     tabBarLabel: 'Buscar',
                     tabBarIcon: ({ color, size }) => <Search color={color} size={size} />,
-                }}
-            />
-            <Tab.Screen
-                name="Learning"
-                component={LearningCenterScreen}
-                options={{
-                    tabBarLabel: 'Aprender',
-                    tabBarIcon: ({ color, size }) => <BookOpen color={color} size={size} />,
                 }}
             />
             <Tab.Screen
