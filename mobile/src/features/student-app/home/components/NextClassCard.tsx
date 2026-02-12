@@ -4,7 +4,7 @@ import { StudentLessonCard } from '../../../shared-features/scheduling/component
 import { BookingResponse } from '../../../shared-features/scheduling/api/schedulingApi';
 
 interface NextClassCardProps {
-    booking?: BookingResponse;
+    booking?: BookingResponse | null;
     onPressDetails: (booking: BookingResponse) => void;
     onBookFirst?: () => void;
 }

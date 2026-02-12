@@ -22,6 +22,7 @@ from src.application.use_cases.scheduling import (
     CancelSchedulingUseCase,
     CompleteSchedulingUseCase,
     CreateSchedulingUseCase,
+    GetNextStudentSchedulingUseCase,
     RequestRescheduleUseCase,
     RespondRescheduleUseCase,
     StartSchedulingUseCase,
@@ -140,6 +141,26 @@ async def list_student_schedulings(
         offset=offset,
         has_more=(offset + limit) < total,
     )
+
+
+@router.get(
+    "/next",
+    response_model=SchedulingResponse | None,
+    summary="Obter próxima aula",
+    description="Busca a próxima aula confirmada ou pendente do aluno.",
+)
+async def get_next_student_lesson(
+    current_user: CurrentStudent,
+    scheduling_repo: SchedulingRepo,
+) -> SchedulingResponse | None:
+    """Busca a próxima aula do aluno."""
+    use_case = GetNextStudentSchedulingUseCase(scheduling_repo)
+    result = await use_case.execute(current_user.id)
+    
+    if result is None:
+        return None
+        
+    return SchedulingResponse.model_validate(result)
 
 
 @router.get(

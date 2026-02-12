@@ -5,7 +5,7 @@
  */
 
 import api, { STUDENT_API } from '../../../../lib/axios';
-import { SchedulingListResponse } from '../../../shared-features/scheduling/api/schedulingApi';
+import { SchedulingListResponse, BookingResponse } from '../../../shared-features/scheduling/api/schedulingApi';
 
 export interface StudentProfileResponse {
     id: string;
@@ -39,5 +39,13 @@ export async function getUpcomingLessons(): Promise<SchedulingListResponse> {
             limit: 5,
         }
     });
+    return response.data;
+}
+
+/**
+ * Busca a próxima aula do aluno.
+ */
+export async function getNextLesson(): Promise<BookingResponse | null> {
+    const response = await api.get<BookingResponse | null>(`${STUDENT_API}/lessons/next`);
     return response.data;
 }

@@ -13,6 +13,7 @@ from .manage_availability import ManageAvailabilityUseCase
 from .request_reschedule_use_case import RequestRescheduleUseCase
 from .respond_reschedule_use_case import RespondRescheduleUseCase
 from .start_scheduling import StartSchedulingUseCase
+from .get_next_student_scheduling_use_case import GetNextStudentSchedulingUseCase
 
 __all__ = [
     "CreateSchedulingUseCase",
@@ -24,4 +25,5 @@ __all__ = [
     "RequestRescheduleUseCase",
     "RespondRescheduleUseCase",
     "StartSchedulingUseCase",
+    "GetNextStudentSchedulingUseCase",
 ]

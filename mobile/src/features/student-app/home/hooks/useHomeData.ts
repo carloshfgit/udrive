@@ -5,13 +5,13 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
-import { getHomeProfile, getUpcomingLessons, StudentProfileResponse } from '../api/homeApi';
+import { getHomeProfile, getUpcomingLessons, getNextLesson, StudentProfileResponse } from '../api/homeApi';
 import { SchedulingListResponse, BookingResponse } from '../../../shared-features/scheduling/api/schedulingApi';
 
 export interface UseHomeDataResult {
     profile: StudentProfileResponse | undefined;
     upcomingLessons: BookingResponse[];
-    nextLesson: BookingResponse | undefined;
+    nextLesson: BookingResponse | null | undefined;
     isLoading: boolean;
     isError: boolean;
     error: Error | null;
@@ -29,26 +29,32 @@ export function useHomeData(): UseHomeDataResult {
         staleTime: 1000 * 60 * 5, // 5 minutos
     });
 
-    // 2. Busca próximas aulas confirmadas
+    // 2. Busca próximas aulas confirmadas (para lista)
     const lessonsQuery = useQuery<SchedulingListResponse, Error>({
         queryKey: ['student', 'lessons', 'upcoming'],
         queryFn: getUpcomingLessons,
         staleTime: 1000 * 60 * 2, // 2 minutos
     });
 
+    // 3. Busca a aula MAIS próxima (especificamente para o card da Home)
+    const nextLessonQuery = useQuery<BookingResponse | null, Error>({
+        queryKey: ['student', 'lessons', 'next'],
+        queryFn: getNextLesson,
+        staleTime: 1000 * 60 * 2, // 2 minutos
+    });
+
     const upcomingLessons = lessonsQuery.data?.schedulings || [];
+    const nextLesson = nextLessonQuery.data;
 
-    // A próxima aula é a primeira da lista (assumindo que o baceknd já ordena por data)
-    const nextLesson = upcomingLessons.length > 0 ? upcomingLessons[0] : undefined;
-
-    const isLoading = profileQuery.isLoading || lessonsQuery.isLoading;
-    const isError = profileQuery.isError || lessonsQuery.isError;
-    const error = profileQuery.error || lessonsQuery.error;
+    const isLoading = profileQuery.isLoading || lessonsQuery.isLoading || nextLessonQuery.isLoading;
+    const isError = profileQuery.isError || lessonsQuery.isError || nextLessonQuery.isError;
+    const error = profileQuery.error || lessonsQuery.error || nextLessonQuery.error;
 
     const refetch = async () => {
         await Promise.all([
             profileQuery.refetch(),
             lessonsQuery.refetch(),
+            nextLessonQuery.refetch(),
         ]);
     };
 

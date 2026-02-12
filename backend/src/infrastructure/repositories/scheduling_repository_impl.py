@@ -231,6 +231,36 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
         model = result.unique().scalar_one_or_none()
         return model.to_entity() if model else None
 
+    async def get_next_student_scheduling(
+        self,
+        student_id: UUID,
+    ) -> Scheduling | None:
+        from datetime import datetime, timezone
+        now = datetime.now(timezone.utc)
+
+        stmt = (
+            select(SchedulingModel)
+            .where(
+                SchedulingModel.student_id == student_id,
+                SchedulingModel.scheduled_datetime >= now,
+                SchedulingModel.status.notin_([SchedulingStatus.CANCELLED, SchedulingStatus.COMPLETED])
+            )
+            .order_by(SchedulingModel.scheduled_datetime.asc())
+            .limit(1)
+            .options(
+                joinedload(SchedulingModel.student).load_only(UserModel.id, UserModel.full_name),
+                joinedload(SchedulingModel.instructor).options(
+                    load_only(UserModel.id, UserModel.full_name),
+                    joinedload(UserModel.instructor_profile)
+                ),
+                joinedload(SchedulingModel.review)
+            )
+        )
+
+        result = await self._session.execute(stmt)
+        model = result.unique().scalar_one_or_none()
+        return model.to_entity() if model else None
+
     async def count_by_instructor(
         self, 
         instructor_id: UUID, 
