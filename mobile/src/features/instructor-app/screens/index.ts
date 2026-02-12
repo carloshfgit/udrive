@@ -5,7 +5,7 @@
  */
 
 export { InstructorHomeScreen } from './InstructorHomeScreen';
-export { InstructorScheduleScreen } from './InstructorScheduleScreen';
+export { default as InstructorScheduleScreen } from './InstructorScheduleScreen';
 export { InstructorAvailabilityScreen } from './InstructorAvailabilityScreen';
 export { InstructorDashboardScreen } from './InstructorDashboardScreen';
 export { InstructorProfileScreen } from './InstructorProfileScreen';
