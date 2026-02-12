@@ -57,6 +57,12 @@ export function InstructorTabNavigator() {
             <Tab.Screen
                 name="InstructorSchedule"
                 component={InstructorScheduleStack}
+                listeners={({ navigation }) => ({
+                    tabPress: (e) => {
+                        e.preventDefault();
+                        navigation.navigate('InstructorSchedule', { screen: 'InstructorScheduleMain' });
+                    },
+                })}
                 options={{
                     tabBarLabel: 'Agenda',
                     tabBarIcon: ({ color, size }) => <Calendar color={color} size={size} />,
@@ -65,6 +71,12 @@ export function InstructorTabNavigator() {
             <Tab.Screen
                 name="InstructorChat"
                 component={InstructorChatStack}
+                listeners={({ navigation }) => ({
+                    tabPress: (e) => {
+                        e.preventDefault();
+                        navigation.navigate('InstructorChat', { screen: 'ChatList' });
+                    },
+                })}
                 options={{
                     tabBarLabel: 'Mensagens',
                     tabBarIcon: ({ color, size }) => <MessageSquare color={color} size={size} />,
@@ -81,6 +93,12 @@ export function InstructorTabNavigator() {
             <Tab.Screen
                 name="InstructorProfile"
                 component={InstructorProfileStack}
+                listeners={({ navigation }) => ({
+                    tabPress: (e) => {
+                        e.preventDefault();
+                        navigation.navigate('InstructorProfile', { screen: 'InstructorProfileMain' });
+                    },
+                })}
                 options={{
                     tabBarLabel: 'Perfil',
                     tabBarIcon: ({ color, size }) => <User color={color} size={size} />,

@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Dimensions, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, useWindowDimensions, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { User, Calendar, CheckSquare, CreditCard, MessageSquare } from 'lucide-react-native';
+import { useNavigation } from '@react-navigation/native';
 
-const { width } = Dimensions.get('window');
-const CARD_WIDTH = width * 0.75;
-const GAP = 16;
+const GAP = 12;
 
 interface TutorialStep {
     id: string;
@@ -55,8 +54,30 @@ const STEPS: TutorialStep[] = [
 ];
 
 export function InstructorQuickSteps() {
+    const { width } = useWindowDimensions();
+    const CARD_WIDTH = Math.min(width * 0.8, 340);
+    const navigation = useNavigation<any>();
     const [activeIndex, setActiveIndex] = useState(0);
     const scrollViewRef = React.useRef<ScrollView>(null);
+
+    const handleStepPress = (id: string) => {
+        switch (id) {
+            case '1': // Complete seu Perfil
+                navigation.navigate('InstructorProfile', { screen: 'EditPublicProfile' });
+                break;
+            case '3': // Configure sua Agenda
+                navigation.navigate('InstructorSchedule', { screen: 'InstructorAvailability' });
+                break;
+            case '4': // Aceite Aulas
+                navigation.navigate('InstructorSchedule', { screen: 'InstructorScheduleMain' });
+                break;
+            case '5': // Converse com seu Aluno
+                navigation.navigate('InstructorChat');
+                break;
+            default:
+                break;
+        }
+    };
 
     React.useEffect(() => {
         const interval = setInterval(() => {
@@ -66,10 +87,10 @@ export function InstructorQuickSteps() {
                 animated: true,
             });
             setActiveIndex(nextIndex);
-        }, 5000); // Mudar a cada 5 segundos
+        }, 5000);
 
         return () => clearInterval(interval);
-    }, [activeIndex]);
+    }, [activeIndex, CARD_WIDTH]);
 
     const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         const scrollOffset = event.nativeEvent.contentOffset.x;
@@ -83,7 +104,7 @@ export function InstructorQuickSteps() {
         <View className="py-6">
             <View className="px-6 mb-4">
                 <Text className="text-neutral-900 text-lg font-black tracking-tight">
-                    Passos Rápidos ⚡️
+                    Siga esses passos para começar ⚡️
                 </Text>
             </View>
 
@@ -93,6 +114,7 @@ export function InstructorQuickSteps() {
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={{ paddingHorizontal: 24 }}
                 snapToInterval={CARD_WIDTH + GAP}
+                snapToAlignment="start"
                 decelerationRate="fast"
                 onScroll={handleScroll}
                 scrollEventThrottle={16}
@@ -101,8 +123,9 @@ export function InstructorQuickSteps() {
                     <TouchableOpacity
                         key={step.id}
                         activeOpacity={0.8}
+                        onPress={() => handleStepPress(step.id)}
                         style={{ width: CARD_WIDTH }}
-                        className={`mr-4 p-5 rounded-3xl ${step.color} border border-white shadow-sm`}
+                        className={`mr-3 p-5 rounded-3xl ${step.color} border border-white shadow-sm`}
                     >
                         <View className="w-12 h-12 bg-white rounded-2xl items-center justify-center mb-4 shadow-sm">
                             {step.icon}

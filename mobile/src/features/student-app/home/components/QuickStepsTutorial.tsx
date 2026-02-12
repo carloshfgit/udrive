@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Dimensions, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, useWindowDimensions, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { User, Calendar, MapPin, CreditCard, MessageSquare } from 'lucide-react-native';
 
-const { width } = Dimensions.get('window');
-const CARD_WIDTH = width * 0.75;
-const GAP = 16;
+const GAP = 12;
 
 interface TutorialStep {
     id: string;
@@ -59,6 +57,8 @@ interface QuickStepsTutorialProps {
 }
 
 export function QuickStepsTutorial({ onStepPress }: QuickStepsTutorialProps) {
+    const { width } = useWindowDimensions();
+    const CARD_WIDTH = Math.min(width * 0.8, 340);
     const [activeIndex, setActiveIndex] = useState(0);
     const scrollViewRef = React.useRef<ScrollView>(null);
 
@@ -70,10 +70,10 @@ export function QuickStepsTutorial({ onStepPress }: QuickStepsTutorialProps) {
                 animated: true,
             });
             setActiveIndex(nextIndex);
-        }, 5000); // Mudar a cada 5 segundos
+        }, 5000);
 
         return () => clearInterval(interval);
-    }, [activeIndex]);
+    }, [activeIndex, CARD_WIDTH]);
 
     const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         const scrollOffset = event.nativeEvent.contentOffset.x;
@@ -97,6 +97,7 @@ export function QuickStepsTutorial({ onStepPress }: QuickStepsTutorialProps) {
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={{ paddingHorizontal: 24 }}
                 snapToInterval={CARD_WIDTH + GAP}
+                snapToAlignment="start"
                 decelerationRate="fast"
                 onScroll={handleScroll}
                 scrollEventThrottle={16}
@@ -107,7 +108,7 @@ export function QuickStepsTutorial({ onStepPress }: QuickStepsTutorialProps) {
                         activeOpacity={0.8}
                         onPress={() => onStepPress?.(step.id)}
                         style={{ width: CARD_WIDTH }}
-                        className={`mr-4 p-5 rounded-3xl ${step.color} border border-white shadow-sm`}
+                        className={`mr-3 p-5 rounded-3xl ${step.color} border border-white shadow-sm`}
                     >
                         <View className="w-12 h-12 bg-white rounded-2xl items-center justify-center mb-4 shadow-sm">
                             {step.icon}
