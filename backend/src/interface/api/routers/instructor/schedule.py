@@ -84,6 +84,23 @@ async def list_instructor_schedule(
 
 
 @router.get(
+    "/next",
+    response_model=SchedulingResponse | None,
+    summary="Obter próxima aula",
+    description="Retorna a aula mais próxima que ainda não ocorreu.",
+)
+async def get_next_scheduling(
+    current_user: CurrentInstructor,
+    scheduling_repo: SchedulingRepo,
+) -> SchedulingResponse | None:
+    """Busca a próxima aula do instrutor."""
+    result = await scheduling_repo.get_next_instructor_scheduling(current_user.id)
+    if result is None:
+        return None
+    return SchedulingResponse.model_validate(result)
+
+
+@router.get(
     "/by-date",
     response_model=SchedulingListResponse,
     summary="Listar agenda por data",

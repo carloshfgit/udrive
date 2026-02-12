@@ -145,7 +145,7 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
         )
 
         if status:
-            if isinstance(status, (list, tuple, Sequence)):
+            if isinstance(status, (list, tuple)):
                 stmt = stmt.where(SchedulingModel.status.in_(status))
             else:
                 stmt = stmt.where(SchedulingModel.status == status)
@@ -161,7 +161,7 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
         stmt = select(func.count()).select_from(SchedulingModel).where(SchedulingModel.student_id == student_id)
 
         if status:
-            if isinstance(status, (list, tuple, Sequence)):
+            if isinstance(status, (list, tuple)):
                 stmt = stmt.where(SchedulingModel.status.in_(status))
             else:
                 stmt = stmt.where(SchedulingModel.status == status)
@@ -200,6 +200,36 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
 
         result = await self._session.execute(stmt)
         return [row.to_entity() for row in result.unique().scalars().all()]
+
+    async def get_next_instructor_scheduling(
+        self,
+        instructor_id: UUID,
+    ) -> Scheduling | None:
+        from datetime import datetime, timezone
+        now = datetime.now(timezone.utc)
+
+        stmt = (
+            select(SchedulingModel)
+            .where(
+                SchedulingModel.instructor_id == instructor_id,
+                SchedulingModel.scheduled_datetime >= now,
+                SchedulingModel.status.notin_([SchedulingStatus.CANCELLED, SchedulingStatus.COMPLETED])
+            )
+            .order_by(SchedulingModel.scheduled_datetime.asc())
+            .limit(1)
+            .options(
+                joinedload(SchedulingModel.student).load_only(UserModel.id, UserModel.full_name),
+                joinedload(SchedulingModel.instructor).options(
+                    load_only(UserModel.id, UserModel.full_name),
+                    joinedload(UserModel.instructor_profile)
+                ),
+                joinedload(SchedulingModel.review)
+            )
+        )
+
+        result = await self._session.execute(stmt)
+        model = result.unique().scalar_one_or_none()
+        return model.to_entity() if model else None
 
     async def count_by_instructor(
         self, 

@@ -14,6 +14,9 @@ import {
     useRequestReschedule
 } from '../hooks/useInstructorSchedule';
 import { useNavigation } from '@react-navigation/native';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+
 
 export function InstructorHomeScreen() {
     const { user } = useAuthStore();
@@ -59,9 +62,18 @@ export function InstructorHomeScreen() {
 
                 {/* Próxima Aula */}
                 <View className="px-6 mb-6">
-                    <Text className="text-neutral-900 text-lg font-black tracking-tight mb-4">
-                        Próxima Aula 📅
+                    <Text className="text-neutral-900 text-lg font-black tracking-tight mb-2">
+                        Próxima Aula
                     </Text>
+                    {nextClass && (
+                        <Text className="text-neutral-500 text-sm font-medium mb-4">
+                            {format(new Date(nextClass.scheduled_datetime), "EEEE, d 'de' MMMM", { locale: ptBR })
+                                .replace('-feira', '')
+                                .split(' ')
+                                .map((word, index) => (index === 0 || index === 3) ? word.charAt(0).toUpperCase() + word.slice(1) : word)
+                                .join(' ')}
+                        </Text>
+                    )}
                     {nextClass ? (
                         <ScheduleCard
                             scheduling={nextClass}
@@ -92,7 +104,7 @@ export function InstructorHomeScreen() {
                 {/* Seção de Avisos (Placeholder conforme solicitado) */}
                 <View className="px-6 mb-8">
                     <Text className="text-neutral-900 text-lg font-black tracking-tight mb-4">
-                        Avisos 📢
+                        Avisos e Novidades 📢
                     </Text>
                     <Card variant="outlined" className="p-6 border-neutral-100 bg-white rounded-[32px] border-dashed">
                         <Text className="text-neutral-400 text-center italic">

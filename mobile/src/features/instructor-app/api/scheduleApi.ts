@@ -91,6 +91,16 @@ export async function getInstructorSchedule(params?: {
 }
 
 /**
+ * Busca a próxima aula do instrutor.
+ */
+export async function getNextInstructorClass(): Promise<Scheduling | null> {
+    const response = await api.get<Scheduling | null>(
+        `${INSTRUCTOR_API}/schedule/next`
+    );
+    return response.data;
+}
+
+/**
  * Confirma um agendamento pendente.
  */
 export async function confirmScheduling(schedulingId: string): Promise<Scheduling> {

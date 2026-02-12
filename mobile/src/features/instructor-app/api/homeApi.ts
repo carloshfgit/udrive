@@ -4,26 +4,13 @@
  * Funções auxiliares para consolidar dados da Home.
  */
 
-import { getInstructorSchedule, getScheduleByDate, Scheduling } from './scheduleApi';
+import { getNextInstructorClass, getScheduleByDate, Scheduling } from './scheduleApi';
 
 /**
  * Obtém a próxima aula confirmada do instrutor.
  */
 export async function getNextClass(): Promise<Scheduling | null> {
-    const response = await getInstructorSchedule({
-        status_filter: 'confirmed',
-        limit: 10, // Buscamos algumas para filtrar as que já passaram se necessário
-    });
-
-    const now = new Date();
-
-    // Filtrar aulas que ainda não aconteceram e ordenar por data ASC
-    const upcoming = response.schedulings
-        .map(s => ({ ...s, date: new Date(s.scheduled_datetime) }))
-        .filter(s => s.date > now)
-        .sort((a, b) => a.date.getTime() - b.date.getTime());
-
-    return upcoming.length > 0 ? upcoming[0] : null;
+    return getNextInstructorClass();
 }
 
 /**

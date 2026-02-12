@@ -117,6 +117,22 @@ class ISchedulingRepository(ABC):
         ...
 
     @abstractmethod
+    async def get_next_instructor_scheduling(
+        self,
+        instructor_id: UUID,
+    ) -> Scheduling | None:
+        """
+        Busca a próxima aula (pendente, confirmada ou reagendamento) do instrutor.
+
+        Args:
+            instructor_id: ID do instrutor.
+
+        Returns:
+            A aula mais próxima no futuro ou None.
+        """
+        ...
+
+    @abstractmethod
     async def check_conflict(
         self,
         instructor_id: UUID,
