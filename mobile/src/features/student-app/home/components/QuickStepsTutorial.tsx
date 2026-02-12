@@ -18,14 +18,14 @@ const STEPS: TutorialStep[] = [
     {
         id: '1',
         title: 'Complete seu Perfil',
-        description: 'Adicione suas fotos e documentos para começar.',
+        description: 'Adicione sua foto e informe seus dados para começar.',
         icon: <User size={24} color="#3B82F6" />,
         color: 'bg-blue-50',
     },
     {
         id: '2',
         title: 'Encontre um Instrutor',
-        description: 'Busque instrutores próximos a você no mapa.',
+        description: 'Busque instrutores próximos a você.',
         icon: <MapPin size={24} color="#10B981" />,
         color: 'bg-emerald-50',
     },

@@ -6,12 +6,14 @@ import { BookingResponse } from '../../../shared-features/scheduling/api/schedul
 interface NextClassCardProps {
     booking?: BookingResponse | null;
     onPressDetails: (booking: BookingResponse) => void;
+    onSeeAll: () => void;
     onBookFirst?: () => void;
 }
 
 export function NextClassCard({
     booking,
     onPressDetails,
+    onSeeAll,
     onBookFirst
 }: NextClassCardProps) {
     return (
@@ -21,7 +23,10 @@ export function NextClassCard({
                     Sua Próxima Aula 🚗
                 </Text>
                 {booking && (
-                    <TouchableOpacity activeOpacity={0.7}>
+                    <TouchableOpacity
+                        activeOpacity={0.7}
+                        onPress={onSeeAll}
+                    >
                         <Text className="text-primary-600 text-sm font-bold">Ver todas</Text>
                     </TouchableOpacity>
                 )}

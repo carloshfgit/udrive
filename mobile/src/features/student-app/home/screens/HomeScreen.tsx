@@ -1,5 +1,6 @@
 import React from 'react';
 import { ScrollView, View, Text, RefreshControl, SafeAreaView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useHomeData } from '../hooks/useHomeData';
 import { WelcomeHeader } from '../components/WelcomeHeader';
 import { QuickStepsTutorial } from '../components/QuickStepsTutorial';
@@ -8,6 +9,7 @@ import { LessonProgressBar } from '../components/LessonProgressBar';
 import { LoadingState } from '../../../../shared/components/LoadingState';
 
 export function HomeScreen() {
+    const navigation = useNavigation<any>();
     const {
         profile,
         nextLesson,
@@ -48,12 +50,18 @@ export function HomeScreen() {
                 <NextClassCard
                     booking={nextLesson}
                     onPressDetails={(booking) => {
-                        console.log('Ver detalhes:', booking.id);
-                        // TODO: Navigate to lesson details
+                        navigation.navigate('Scheduling', {
+                            screen: 'LessonDetails',
+                            params: { schedulingId: booking.id }
+                        });
+                    }}
+                    onSeeAll={() => {
+                        navigation.navigate('Scheduling', {
+                            screen: 'MyLessons'
+                        });
                     }}
                     onBookFirst={() => {
-                        console.log('Buscar instrutor');
-                        // TODO: Navigate to search/map
+                        navigation.navigate('Search');
                     }}
                 />
 
