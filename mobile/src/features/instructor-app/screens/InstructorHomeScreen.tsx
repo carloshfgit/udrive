@@ -1,74 +1,105 @@
-/**
- * InstructorHomeScreen
- *
- * Tela inicial/feed do instrutor - Placeholder.
- */
-
 import React from 'react';
-import { View, Text, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, SafeAreaView, ScrollView, RefreshControl } from 'react-native';
 import { useAuthStore } from '../../../lib/store';
 import { Card } from '../../../shared/components';
+import { InstructorWelcomeHeader } from '../components/home/InstructorWelcomeHeader';
+import { InstructorQuickSteps } from '../components/home/InstructorQuickSteps';
+import { InstructorEarningsSection } from '../components/home/InstructorEarningsSection';
+import { ScheduleCard } from '../components/ScheduleCard';
+import { useInstructorHome } from '../hooks/useInstructorHome';
+import {
+    useConfirmScheduling,
+    useCompleteScheduling,
+    useCancelScheduling,
+    useRequestReschedule
+} from '../hooks/useInstructorSchedule';
+import { useNavigation } from '@react-navigation/native';
 
 export function InstructorHomeScreen() {
     const { user } = useAuthStore();
+    const navigation = useNavigation<any>();
 
-    const firstName = user?.full_name?.split(' ')[0] || 'Instrutor';
+    // Hooks de dados da Home
+    const {
+        nextClass,
+        dailySummary,
+        isLoading,
+        refetch,
+    } = useInstructorHome();
+
+    // Hooks de mutação (reutilizados da agenda)
+    const { mutate: confirm, isPending: isConfirming } = useConfirmScheduling();
+    const { mutate: complete, isPending: isCompleting } = useCompleteScheduling();
+    const { mutate: cancel, isPending: isCancelling } = useCancelScheduling();
+
+    const handleReschedule = (scheduling: any) => {
+        navigation.navigate('InstructorSchedule', {
+            screen: 'Reschedule',
+            params: { scheduling }
+        });
+    };
 
     return (
         <SafeAreaView className="flex-1 bg-white">
-            {/* Header */}
-            <View className="px-4 py-4">
-                <Text className="text-2xl font-bold text-gray-900">
-                    Olá, {firstName}! 👋
-                </Text>
-                <Text className="text-gray-500 mt-1">
-                    Confira seu dia de trabalho
-                </Text>
-            </View>
+            <InstructorWelcomeHeader
+                name={user?.full_name}
+                avatarUrl={user?.avatarUrl}
+            />
 
             <ScrollView
-                className="flex-1 px-4"
-                contentContainerClassName="pb-8"
+                className="flex-1"
+                contentContainerStyle={{ paddingBottom: 32 }}
                 showsVerticalScrollIndicator={false}
+                refreshControl={
+                    <RefreshControl refreshing={isLoading} onRefresh={refetch} />
+                }
             >
-                {/* Card: Próximas Aulas */}
-                <Card variant="outlined" className="mb-4">
-                    <View className="p-4">
-                        <Text className="text-lg font-semibold text-gray-900">
-                            📅 Próximas Aulas
-                        </Text>
-                        <Text className="text-gray-500 mt-2">
-                            Você não tem aulas agendadas para hoje.
-                        </Text>
-                    </View>
-                </Card>
+                {/* Tutorial / Quick Steps */}
+                <InstructorQuickSteps />
 
-                {/* Card: Ganhos do Dia */}
-                <Card variant="outlined" className="mb-4">
-                    <View className="p-4">
-                        <Text className="text-lg font-semibold text-gray-900">
-                            💰 Ganhos de Hoje
-                        </Text>
-                        <Text className="text-3xl font-bold text-blue-600 mt-2">
-                            R$ 0,00
-                        </Text>
-                        <Text className="text-gray-400 text-sm mt-1">
-                            0 aulas realizadas
-                        </Text>
-                    </View>
-                </Card>
+                {/* Próxima Aula */}
+                <View className="px-6 mb-6">
+                    <Text className="text-neutral-900 text-lg font-black tracking-tight mb-4">
+                        Próxima Aula 📅
+                    </Text>
+                    {nextClass ? (
+                        <ScheduleCard
+                            scheduling={nextClass}
+                            onConfirm={(id) => confirm(id)}
+                            onComplete={(id) => complete(id)}
+                            onCancel={(id) => cancel({ schedulingId: id })}
+                            onReschedule={handleReschedule}
+                            isConfirming={isConfirming}
+                            isCompleting={isCompleting}
+                            isCancelling={isCancelling}
+                        />
+                    ) : (
+                        <Card variant="outlined" className="p-8 border-neutral-100 bg-neutral-50 rounded-[32px] items-center justify-center">
+                            <Text className="text-neutral-400 text-center font-medium">
+                                Nenhuma aula confirmada para os próximos dias.
+                            </Text>
+                        </Card>
+                    )}
+                </View>
 
-                {/* Card: Avisos */}
-                <Card variant="outlined" className="mb-4">
-                    <View className="p-4">
-                        <Text className="text-lg font-semibold text-gray-900">
-                            📢 Avisos
+                {/* Ganhos do Dia */}
+                <InstructorEarningsSection
+                    total={dailySummary?.total || 0}
+                    count={dailySummary?.count || 0}
+                    isLoading={isLoading}
+                />
+
+                {/* Seção de Avisos (Placeholder conforme solicitado) */}
+                <View className="px-6 mb-8">
+                    <Text className="text-neutral-900 text-lg font-black tracking-tight mb-4">
+                        Avisos 📢
+                    </Text>
+                    <Card variant="outlined" className="p-6 border-neutral-100 bg-white rounded-[32px] border-dashed">
+                        <Text className="text-neutral-400 text-center italic">
+                            Seção de avisos em breve...
                         </Text>
-                        <Text className="text-gray-500 mt-2">
-                            Nenhum aviso no momento.
-                        </Text>
-                    </View>
-                </Card>
+                    </Card>
+                </View>
             </ScrollView>
         </SafeAreaView>
     );
