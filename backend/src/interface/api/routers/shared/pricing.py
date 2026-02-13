@@ -12,6 +12,7 @@ from src.application.dtos.payment_dtos import StudentPriceDTO
 from src.application.use_cases.payment.calculate_student_price import (
     CalculateStudentPriceUseCase,
 )
+from src.infrastructure.config import settings
 
 router = APIRouter(prefix="/pricing", tags=["Shared - Pricing"])
 
@@ -21,8 +22,9 @@ router = APIRouter(prefix="/pricing", tags=["Shared - Pricing"])
     response_model=StudentPriceDTO,
     summary="Calcular preço final para o aluno",
     description=(
-        "Retorna o breakdown completo do preço: valor do instrutor, "
-        "comissão da plataforma (13%), estimativa de taxas Stripe e total final."
+        f"Retorna o breakdown completo do preço: valor do instrutor, "
+        f"comissão da plataforma ({settings.platform_fee_percentage}%), "
+        f"estimativa de taxas Stripe e total final."
     ),
 )
 async def calculate_price(

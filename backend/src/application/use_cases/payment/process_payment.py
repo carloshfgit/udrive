@@ -12,6 +12,7 @@ from src.application.dtos.payment_dtos import (
     PaymentResponseDTO,
     ProcessPaymentDTO,
 )
+from src.infrastructure.config import settings
 from src.application.use_cases.payment.calculate_split import CalculateSplitUseCase
 from src.application.use_cases.payment.calculate_student_price import (
     CalculateStudentPriceUseCase,
@@ -145,7 +146,7 @@ class ProcessPaymentUseCase:
                 student_id=dto.student_id,
                 instructor_id=scheduling.instructor_id,
                 amount=student_price.total_student_price,
-                platform_fee_percentage=Decimal("13.00"),
+                platform_fee_percentage=Decimal(str(settings.platform_fee_percentage)),
                 platform_fee_amount=student_price.platform_fee_amount,
                 instructor_amount=scheduling.price,
                 stripe_fee_amount=student_price.stripe_fee_estimate,

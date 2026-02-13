@@ -10,14 +10,12 @@ from dataclasses import dataclass
 from decimal import Decimal, ROUND_HALF_UP
 
 from src.application.dtos.payment_dtos import StudentPriceDTO
+from src.infrastructure.config import settings
 
 # Taxas Stripe (Brasil)
 STRIPE_CARD_PERCENTAGE = Decimal("0.0399")  # 3.99%
 STRIPE_CARD_FIXED = Decimal("0.39")  # R$ 0,39
 STRIPE_PIX_PERCENTAGE = Decimal("0.0119")  # 1.19%
-
-# Comissão da plataforma
-PLATFORM_FEE_PERCENTAGE = Decimal("0.13")  # 13%
 
 TWO_PLACES = Decimal("0.01")
 
@@ -60,8 +58,9 @@ class CalculateStudentPriceUseCase:
                 f"Método de pagamento inválido: {payment_method}. Use 'card' ou 'pix'."
             )
 
-        # Comissão da plataforma (13% sobre preço do instrutor)
-        platform_fee = (instructor_rate * PLATFORM_FEE_PERCENTAGE).quantize(
+        # Comissão da plataforma (valor do env sobre preço do instrutor)
+        platform_fee_pct = Decimal(str(settings.platform_fee_percentage)) / Decimal("100")
+        platform_fee = (instructor_rate * platform_fee_pct).quantize(
             TWO_PLACES, rounding=ROUND_HALF_UP
         )
 

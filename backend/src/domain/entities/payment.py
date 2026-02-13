@@ -9,7 +9,8 @@ from datetime import datetime
 from decimal import Decimal
 from uuid import UUID, uuid4
 
-from .payment_status import PaymentStatus
+from src.infrastructure.config import settings
+from src.domain.entities.payment_status import PaymentStatus
 
 
 @dataclass
@@ -40,7 +41,7 @@ class Payment:
     student_id: UUID
     instructor_id: UUID
     amount: Decimal
-    platform_fee_percentage: Decimal = Decimal("13.00")  # 13% padrão
+    platform_fee_percentage: Decimal = Decimal(str(settings.platform_fee_percentage))  # Padrão do env
     platform_fee_amount: Decimal = Decimal("0.00")
     instructor_amount: Decimal = Decimal("0.00")
     stripe_fee_amount: Decimal = Decimal("0.00")

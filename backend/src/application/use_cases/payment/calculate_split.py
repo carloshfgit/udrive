@@ -8,10 +8,9 @@ from dataclasses import dataclass
 from decimal import Decimal
 
 from src.application.dtos.payment_dtos import SplitCalculationDTO
+from src.infrastructure.config import settings
 
 
-# Taxa padrão da plataforma (13%)
-DEFAULT_PLATFORM_FEE_PERCENTAGE = Decimal("13.00")
 
 
 @dataclass
@@ -29,7 +28,7 @@ class CalculateSplitUseCase:
         4. Retornar SplitCalculationDTO
     """
 
-    platform_fee_percentage: Decimal = DEFAULT_PLATFORM_FEE_PERCENTAGE
+    platform_fee_percentage: Decimal = Decimal(str(settings.platform_fee_percentage))
 
     def execute(self, total_amount: Decimal) -> SplitCalculationDTO:
         """
