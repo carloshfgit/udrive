@@ -9,7 +9,7 @@ import logging
 from datetime import datetime, timezone
 
 from src.infrastructure.tasks.celery_app import celery_app
-from src.infrastructure.db.database import AsyncSessionLocal
+from src.infrastructure.db.database import AsyncSessionLocal, engine
 from src.infrastructure.repositories.scheduling_repository_impl import (
     SchedulingRepositoryImpl,
 )
@@ -48,6 +48,18 @@ async def _expire_stale_reservations() -> None:
                 logger.error(f"Erro ao expirar reserva {scheduling.id}: {e}")
 
         await session.commit()
+
+
+@celery_app.task(name="src.infrastructure.tasks.payment_tasks.expire_stale_reservations")
+def expire_stale_reservations() -> None:
+    """Tarefa Celery para expirar reservas de slots."""
+    async def run_task():
+        try:
+            await _expire_stale_reservations()
+        finally:
+            await engine.dispose()
+
+    asyncio.run(run_task())
 
 
 async def _auto_confirm_completed_lessons() -> None:
@@ -93,13 +105,13 @@ async def _auto_confirm_completed_lessons() -> None:
         await session.commit()
 
 
-@celery_app.task(name="src.infrastructure.tasks.payment_tasks.expire_stale_reservations")
-def expire_stale_reservations() -> None:
-    """Tarefa Celery para expirar reservas de slots."""
-    asyncio.run(_expire_stale_reservations())
-
-
 @celery_app.task(name="src.infrastructure.tasks.payment_tasks.auto_confirm_completed_lessons")
 def auto_confirm_completed_lessons() -> None:
     """Tarefa Celery para auto-confirmar aulas encerradas."""
-    asyncio.run(_auto_confirm_completed_lessons())
+    async def run_task():
+        try:
+            await _auto_confirm_completed_lessons()
+        finally:
+            await engine.dispose()
+
+    asyncio.run(run_task())
