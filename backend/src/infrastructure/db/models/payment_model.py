@@ -39,6 +39,8 @@ class PaymentModel(Base):
     )
     platform_fee_amount: Mapped[float] = mapped_column(DECIMAL(10, 2), nullable=False)
     instructor_amount: Mapped[float] = mapped_column(DECIMAL(10, 2), nullable=False)
+    stripe_fee_amount: Mapped[float | None] = mapped_column(DECIMAL(10, 2), nullable=True)
+    total_student_amount: Mapped[float | None] = mapped_column(DECIMAL(10, 2), nullable=True)
     status: Mapped[PaymentStatus] = mapped_column(
         Enum(PaymentStatus), nullable=False, default=PaymentStatus.PENDING, index=True
     )
@@ -74,6 +76,8 @@ class PaymentModel(Base):
             platform_fee_percentage=self.platform_fee_percentage,
             platform_fee_amount=self.platform_fee_amount,
             instructor_amount=self.instructor_amount,
+            stripe_fee_amount=self.stripe_fee_amount or Decimal("0.00"),
+            total_student_amount=self.total_student_amount or Decimal("0.00"),
             status=self.status,
             stripe_payment_intent_id=self.stripe_payment_intent_id,
             stripe_transfer_id=self.stripe_transfer_id,
@@ -95,6 +99,8 @@ class PaymentModel(Base):
             platform_fee_percentage=entity.platform_fee_percentage,
             platform_fee_amount=entity.platform_fee_amount,
             instructor_amount=entity.instructor_amount,
+            stripe_fee_amount=entity.stripe_fee_amount,
+            total_student_amount=entity.total_student_amount,
             status=entity.status,
             stripe_payment_intent_id=entity.stripe_payment_intent_id,
             stripe_transfer_id=entity.stripe_transfer_id,

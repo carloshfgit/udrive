@@ -16,6 +16,7 @@ from .payment_dtos import (
     RefundResultDTO,
     SplitCalculationDTO,
     StripeConnectResponseDTO,
+    StudentPriceDTO,
 )
 from .profile_dtos import (
     InstructorProfileResponseDTO,
@@ -82,5 +83,6 @@ __all__ = [
     "PaymentHistoryResponseDTO",
     "StripeConnectResponseDTO",
     "InstructorEarningsDTO",
+    "StudentPriceDTO",
 ]
 

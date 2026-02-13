@@ -45,6 +45,7 @@ class Scheduling:
     student_confirmed_at: datetime | None = None
     rescheduled_datetime: datetime | None = None
     rescheduled_by: UUID | None = None
+    original_scheduled_datetime: datetime | None = None
     id: UUID = field(default_factory=uuid4)
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime | None = None
@@ -67,26 +68,36 @@ class Scheduling:
         """
         Calcula o percentual de reembolso baseado na regra de cancelamento.
 
-        Regras:
-            - > 24h antes da aula: 100% reembolso
-            - < 24h antes da aula: 50% reembolso (multa de 50%)
+        Regras (PAYMENT_FLOW.md):
+            - >= 48h antes da aula: 100% reembolso
+            - Entre 24h e 48h: 50% reembolso
+            - < 24h antes da aula: 0% reembolso
+
+        Para aulas reagendadas, usa original_scheduled_datetime como
+        referência (trava de janela original pós-reagendamento).
 
         Returns:
-            Percentual de reembolso (0-100).
+            Percentual de reembolso (0, 50 ou 100).
         """
         now = datetime.now(timezone.utc)
-        if self.scheduled_datetime.tzinfo is None:
+
+        # Trava: usar data original se aula foi reagendada
+        reference = self.original_scheduled_datetime or self.scheduled_datetime
+
+        if reference.tzinfo is None:
             # Se for naive, assume UTC (convenção do projeto)
-            lesson_datetime = self.scheduled_datetime.replace(tzinfo=timezone.utc)
+            lesson_datetime = reference.replace(tzinfo=timezone.utc)
         else:
-            lesson_datetime = self.scheduled_datetime
+            lesson_datetime = reference
 
         time_until_lesson = lesson_datetime - now
         hours_until_lesson = time_until_lesson.total_seconds() / 3600
 
-        if hours_until_lesson > 24:
+        if hours_until_lesson >= 48:
             return 100
-        return 50
+        elif hours_until_lesson >= 24:
+            return 50
+        return 0
 
     def can_cancel(self) -> bool:
         """
@@ -247,11 +258,17 @@ class Scheduling:
         """
         Aceita o reagendamento sugerido.
 
+        Salva a data original para trava de reembolso pós-reagendamento.
+
         Raises:
             ValueError: Se não houver solicitação de reagendamento pendente.
         """
         if self.status != SchedulingStatus.RESCHEDULE_REQUESTED or not self.rescheduled_datetime:
             raise ValueError("Não há solicitação de reagendamento pendente para aceitar.")
+
+        # Salvar data original apenas na primeira vez (preservar o valor original)
+        if self.original_scheduled_datetime is None:
+            self.original_scheduled_datetime = self.scheduled_datetime
 
         self.scheduled_datetime = self.rescheduled_datetime
         self.rescheduled_datetime = None

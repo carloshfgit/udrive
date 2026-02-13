@@ -53,6 +53,17 @@ class ConnectStripeAccountDTO:
 
 
 @dataclass
+class StudentPriceDTO:
+    """DTO de cálculo de preço all-inclusive para o aluno."""
+
+    instructor_amount: Decimal
+    platform_fee_amount: Decimal
+    stripe_fee_estimate: Decimal
+    total_student_price: Decimal
+    payment_method: str
+
+
+@dataclass
 class SplitCalculationDTO:
     """DTO com cálculo do split de pagamento."""
 
@@ -75,6 +86,8 @@ class PaymentResponseDTO:
     instructor_amount: Decimal
     status: str
     stripe_payment_intent_id: str | None = None
+    stripe_fee_amount: Decimal | None = None
+    total_student_amount: Decimal | None = None
     refund_amount: Decimal | None = None
     refunded_at: datetime | None = None
     created_at: datetime | None = None

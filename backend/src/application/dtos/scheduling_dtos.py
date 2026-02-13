@@ -32,6 +32,7 @@ class CancelSchedulingDTO:
     scheduling_id: UUID
     cancelled_by: UUID
     reason: str | None = None
+    is_emergency: bool = False
 
 
 @dataclass(frozen=True)
@@ -154,6 +155,7 @@ class CancellationResultDTO:
     refund_percentage: int
     refund_amount: Decimal
     cancelled_at: datetime
+    emergency_refund_requested: bool = False
 
 
 @dataclass

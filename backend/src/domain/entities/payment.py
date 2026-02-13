@@ -39,9 +39,11 @@ class Payment:
     student_id: UUID
     instructor_id: UUID
     amount: Decimal
-    platform_fee_percentage: Decimal = Decimal("15.00")  # 15% padrão
+    platform_fee_percentage: Decimal = Decimal("20.00")  # 20% padrão
     platform_fee_amount: Decimal = Decimal("0.00")
     instructor_amount: Decimal = Decimal("0.00")
+    stripe_fee_amount: Decimal = Decimal("0.00")
+    total_student_amount: Decimal = Decimal("0.00")
     status: PaymentStatus = PaymentStatus.PENDING
     stripe_payment_intent_id: str | None = None
     stripe_transfer_id: str | None = None

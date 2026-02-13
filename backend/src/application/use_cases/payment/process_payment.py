@@ -5,9 +5,13 @@ Caso de uso para processar pagamento de agendamento com split atômico.
 """
 
 from dataclasses import dataclass
+from decimal import Decimal
 
 from src.application.dtos.payment_dtos import PaymentResponseDTO, ProcessPaymentDTO
 from src.application.use_cases.payment.calculate_split import CalculateSplitUseCase
+from src.application.use_cases.payment.calculate_student_price import (
+    CalculateStudentPriceUseCase,
+)
 from src.domain.entities.payment import Payment
 from src.domain.entities.transaction import Transaction
 from src.domain.exceptions import (
@@ -52,6 +56,7 @@ class ProcessPaymentUseCase:
     user_repository: IUserRepository
     payment_gateway: IPaymentGateway
     calculate_split_use_case: CalculateSplitUseCase
+    calculate_student_price_use_case: CalculateStudentPriceUseCase
 
     async def execute(self, dto: ProcessPaymentDTO) -> PaymentResponseDTO:
         """
@@ -88,18 +93,22 @@ class ProcessPaymentUseCase:
         if instructor_profile is None or not instructor_profile.stripe_account_id:
             raise StripeAccountNotConnectedException(str(scheduling.instructor_id))
 
-        # 4. Calcular split
-        split_result = self.calculate_split_use_case.execute(scheduling.price)
+        # 4. Calcular preço all-inclusive para o aluno
+        student_price = self.calculate_student_price_use_case.execute(
+            instructor_rate=scheduling.price,
+        )
 
         # 5. Criar Payment com status PENDING
         payment = Payment(
             scheduling_id=dto.scheduling_id,
             student_id=dto.student_id,
             instructor_id=scheduling.instructor_id,
-            amount=scheduling.price,
-            platform_fee_percentage=split_result.platform_fee_percentage,
-            platform_fee_amount=split_result.platform_fee_amount,
-            instructor_amount=split_result.instructor_amount,
+            amount=student_price.total_student_price,
+            platform_fee_percentage=Decimal("20.00"),
+            platform_fee_amount=student_price.platform_fee_amount,
+            instructor_amount=scheduling.price,
+            stripe_fee_amount=student_price.stripe_fee_estimate,
+            total_student_amount=student_price.total_student_price,
         )
 
         saved_payment = await self.payment_repository.create(payment)
@@ -107,10 +116,10 @@ class ProcessPaymentUseCase:
         # 6. Chamar gateway com split atômico
         try:
             payment_intent_result = await self.payment_gateway.create_payment_intent(
-                amount=scheduling.price,
+                amount=student_price.total_student_price,
                 currency="brl",
                 instructor_stripe_account_id=instructor_profile.stripe_account_id,
-                instructor_amount=split_result.instructor_amount,
+                instructor_amount=scheduling.price,
                 metadata={
                     "scheduling_id": str(dto.scheduling_id),
                     "payment_id": str(saved_payment.id),
@@ -151,6 +160,8 @@ class ProcessPaymentUseCase:
             instructor_amount=saved_payment.instructor_amount,
             status=saved_payment.status.value,
             stripe_payment_intent_id=saved_payment.stripe_payment_intent_id,
+            stripe_fee_amount=saved_payment.stripe_fee_amount,
+            total_student_amount=saved_payment.total_student_amount,
             created_at=saved_payment.created_at,
             student_name=student.full_name if student else None,
             instructor_name=instructor.full_name if instructor else None,
