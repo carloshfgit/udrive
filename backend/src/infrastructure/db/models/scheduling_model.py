@@ -118,6 +118,10 @@ class SchedulingModel(Base):
         DateTime(timezone=True),
         nullable=True,
     )
+    reschedule_count: Mapped[int] = mapped_column(
+        default=0,
+        nullable=False,
+    )
 
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(
@@ -181,6 +185,7 @@ class SchedulingModel(Base):
             rescheduled_by=self.rescheduled_by,
             original_scheduled_datetime=self.original_scheduled_datetime,
             reserved_until=self.reserved_until,
+            reschedule_count=self.reschedule_count,
             created_at=self.created_at,
             updated_at=self.updated_at,
             student_name=self.student.full_name if "student" in self.__dict__ and self.student else None,
@@ -211,6 +216,7 @@ class SchedulingModel(Base):
             rescheduled_by=scheduling.rescheduled_by,
             original_scheduled_datetime=scheduling.original_scheduled_datetime,
             reserved_until=scheduling.reserved_until,
+            reschedule_count=scheduling.reschedule_count,
             created_at=scheduling.created_at,
             updated_at=scheduling.updated_at,
         )

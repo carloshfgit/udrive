@@ -31,6 +31,15 @@ class ProcessRefundDTO:
 
 
 @dataclass(frozen=True)
+class CreateDisputeDTO:
+    """DTO para criar uma disputa."""
+
+    scheduling_id: UUID
+    reason: str
+    student_id: UUID
+
+
+@dataclass(frozen=True)
 class GetPaymentHistoryDTO:
     """DTO para obter histórico de pagamentos."""
 

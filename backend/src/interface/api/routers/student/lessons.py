@@ -27,6 +27,8 @@ from src.application.use_cases.scheduling import (
     RespondRescheduleUseCase,
     StartSchedulingUseCase,
 )
+from src.application.use_cases.payment.create_dispute import CreateDisputeUseCase
+from src.application.dtos.payment_dtos import CreateDisputeDTO
 from src.domain.entities.scheduling_status import SchedulingStatus
 from src.interface.api.dependencies import (
     AvailabilityRepo,
@@ -49,6 +51,7 @@ from src.interface.api.schemas.scheduling_schemas import (
     ReviewResponse,
     SchedulingListResponse,
     SchedulingResponse,
+    CreateDisputeRequest,
 )
 from src.interface.websockets.event_dispatcher import get_event_dispatcher
 
@@ -481,6 +484,40 @@ async def evaluate_lesson(
         )
         return ReviewResponse.model_validate(result)
     except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+
+
+@router.post(
+    "/{scheduling_id}/dispute",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Reportar problema (Disputa)",
+    description="Permite que o aluno reporte um problema com a aula, bloqueando o repasse ao instrutor.",
+)
+async def create_dispute(
+    scheduling_id: UUID,
+    request: CreateDisputeRequest,
+    current_user: CurrentStudent,
+    scheduling_repo: SchedulingRepo,
+    payment_repo: PaymentRepo,
+) -> None:
+    """Reporta um problema com a aula."""
+    use_case = CreateDisputeUseCase(
+        scheduling_repository=scheduling_repo,
+        payment_repository=payment_repo,
+    )
+
+    dto = CreateDisputeDTO(
+        scheduling_id=scheduling_id,
+        reason=request.reason,
+        student_id=current_user.id,
+    )
+
+    try:
+        await use_case.execute(dto)
+    except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),

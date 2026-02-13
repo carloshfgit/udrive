@@ -36,3 +36,6 @@ class SchedulingStatus(str, Enum):
 
     RESCHEDULE_REQUESTED = "reschedule_requested"
     """Reagendamento solicitado pelo aluno, aguardando aprovação do instrutor."""
+
+    DISPUTED = "disputed"
+    """Aula em disputa (problema reportado pelo aluno)."""

@@ -14,6 +14,7 @@ from src.domain.exceptions import (
     PaymentNotFoundException,
     PaymentNotHeldException,
     StripeAccountNotConnectedException,
+    DomainException,
 )
 from src.domain.interfaces.instructor_repository import IInstructorRepository
 from src.domain.interfaces.payment_gateway import IPaymentGateway
@@ -66,6 +67,9 @@ class ReleasePaymentUseCase:
             raise PaymentNotFoundException(str(scheduling_id))
 
         # 2. Validar status HELD
+        if payment.status == "disputed": # Explicit check for safety
+            raise DomainException(f"Pagamento {payment.id} está em disputa e não pode ser liberado.")
+            
         if not payment.is_held:
             raise PaymentNotHeldException(str(payment.id))
 

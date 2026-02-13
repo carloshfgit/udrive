@@ -47,6 +47,7 @@ class Scheduling:
     rescheduled_by: UUID | None = None
     original_scheduled_datetime: datetime | None = None
     reserved_until: datetime | None = None
+    reschedule_count: int = 0
     id: UUID = field(default_factory=uuid4)
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime | None = None
@@ -178,6 +179,10 @@ class Scheduling:
         Returns:
             True se pode solicitar reagendamento.
         """
+        # Limite de 1 reagendamento por aula
+        if self.reschedule_count >= 1:
+            return False
+
         return self.status in (SchedulingStatus.PENDING, SchedulingStatus.CONFIRMED)
 
     def can_complete(self) -> bool:
@@ -316,13 +321,13 @@ class Scheduling:
         if self.status != SchedulingStatus.RESCHEDULE_REQUESTED or not self.rescheduled_datetime:
             raise ValueError("Não há solicitação de reagendamento pendente para aceitar.")
 
-        # Salvar data original apenas na primeira vez (preservar o valor original)
         if self.original_scheduled_datetime is None:
             self.original_scheduled_datetime = self.scheduled_datetime
 
         self.scheduled_datetime = self.rescheduled_datetime
         self.rescheduled_datetime = None
         self.rescheduled_by = None
+        self.reschedule_count += 1
         self.status = SchedulingStatus.CONFIRMED
         self.updated_at = datetime.now(timezone.utc)
 
@@ -343,6 +348,17 @@ class Scheduling:
         self.status = SchedulingStatus.CONFIRMED
         self.rescheduled_datetime = None
         self.rescheduled_by = None
+        self.updated_at = datetime.now(timezone.utc)
+
+    def mark_disputed(self) -> None:
+        """
+        Marca o agendamento como em disputa.
+        """
+        if self.status not in (SchedulingStatus.CONFIRMED, SchedulingStatus.COMPLETED):
+            raise ValueError(
+                f"Só é possível disputar uma aula confirmada ou concluída. Status: {self.status}"
+            )
+        self.status = SchedulingStatus.DISPUTED
         self.updated_at = datetime.now(timezone.utc)
 
     @property

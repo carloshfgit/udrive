@@ -108,6 +108,12 @@ class RespondRescheduleRequest(BaseModel):
     accepted: bool
 
 
+class CreateDisputeRequest(BaseModel):
+    """Schema para criar uma disputa."""
+
+    reason: str = Field(..., min_length=10, max_length=1000, description="Motivo da disputa")
+
+
 class SchedulingResponse(BaseModel):
     """Schema de resposta para agendamento."""
 
