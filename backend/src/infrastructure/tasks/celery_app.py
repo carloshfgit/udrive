@@ -14,6 +14,7 @@ celery_app = Celery(
     "godrive",
     broker="redis://redis:6379/0",
     backend="redis://redis:6379/1",
+    include=["src.infrastructure.tasks.payment_tasks"],
 )
 
 celery_app.conf.update(
@@ -34,5 +35,4 @@ celery_app.conf.update(
     },
 )
 
-# Descobrir tarefas automaticamente nos pacotes de tasks
-celery_app.autodiscover_tasks(["src.infrastructure.tasks"])
+# As tarefas são carregadas via o argumento 'include' no construtor do Celery acima.
