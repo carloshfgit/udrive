@@ -95,6 +95,8 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
         model.started_at = scheduling.started_at
         model.student_confirmed_at = scheduling.student_confirmed_at
         model.rescheduled_by = scheduling.rescheduled_by
+        model.original_scheduled_datetime = scheduling.original_scheduled_datetime
+        model.reserved_until = scheduling.reserved_until
         model.updated_at = scheduling.updated_at
 
         # Commit da transação
@@ -434,3 +436,47 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
         result = await self._session.execute(stmt)
         return [row[0] for row in result.all()]
 
+    async def list_expired_reservations(self) -> list[Scheduling]:
+        """Lista reservas temporárias que expiraram."""
+        from datetime import datetime, timezone
+
+        now = datetime.now(timezone.utc)
+        stmt = (
+            select(SchedulingModel)
+            .where(
+                SchedulingModel.status == SchedulingStatus.RESERVED,
+                SchedulingModel.reserved_until < now,
+            )
+        )
+        result = await self._session.execute(stmt)
+        return [row.to_entity() for row in result.scalars().all()]
+
+    async def list_unconfirmed_completed_lessons(
+        self, hours_after_end: int = 24
+    ) -> list[Scheduling]:
+        """
+        Lista aulas CONFIRMED iniciadas cujo término + hours_after_end já passou,
+        sem confirmação do aluno.
+        """
+        from datetime import datetime, timedelta, timezone
+
+        now = datetime.now(timezone.utc)
+        cutoff = now - timedelta(hours=hours_after_end)
+
+        # Término da aula = scheduled_datetime + duration_minutes
+        # Elegível se: end_time <= cutoff (ou seja, terminaram há pelo menos 24h)
+        stmt = (
+            select(SchedulingModel)
+            .where(
+                SchedulingModel.status == SchedulingStatus.CONFIRMED,
+                SchedulingModel.started_at.isnot(None),
+                SchedulingModel.student_confirmed_at.is_(None),
+                (
+                    SchedulingModel.scheduled_datetime
+                    + func.make_interval(0, 0, 0, 0, 0, SchedulingModel.duration_minutes)
+                )
+                <= cutoff,
+            )
+        )
+        result = await self._session.execute(stmt)
+        return [row.to_entity() for row in result.scalars().all()]

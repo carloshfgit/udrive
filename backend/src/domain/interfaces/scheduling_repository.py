@@ -266,3 +266,28 @@ class ISchedulingRepository(ABC):
         """
         ...
 
+    @abstractmethod
+    async def list_expired_reservations(self) -> list[Scheduling]:
+        """
+        Lista reservas temporárias que expiraram (reserved_until < now).
+
+        Returns:
+            Lista de agendamentos com status RESERVED e reserva expirada.
+        """
+        ...
+
+    @abstractmethod
+    async def list_unconfirmed_completed_lessons(
+        self, hours_after_end: int = 24
+    ) -> list[Scheduling]:
+        """
+        Lista aulas confirmadas e iniciadas cujo término + hours_after_end já passou,
+        mas que não possuem confirmação do aluno (auto-confirmação).
+
+        Args:
+            hours_after_end: Horas após o término para considerar elegível.
+
+        Returns:
+            Lista de agendamentos elegíveis para auto-confirmação.
+        """
+        ...

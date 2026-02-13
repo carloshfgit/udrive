@@ -17,7 +17,7 @@ from uuid import UUID
 class ProcessPaymentDTO:
     """DTO para processar pagamento de agendamento."""
 
-    scheduling_id: UUID
+    scheduling_ids: list[UUID]
     student_id: UUID
 
 
@@ -99,6 +99,14 @@ class PaymentResponseDTO:
     instructor_name: str | None = None
     scheduling_datetime: datetime | None = None
 
+@dataclass
+class CartPaymentResponseDTO:
+    """DTO de resposta para checkout de carrinho (multi-aula)."""
+
+    payments: list[PaymentResponseDTO]
+    transfer_group: str
+    total_amount: Decimal
+    client_secret: str
 
 @dataclass
 class RefundResultDTO:

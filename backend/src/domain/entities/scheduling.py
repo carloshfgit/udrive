@@ -46,6 +46,7 @@ class Scheduling:
     rescheduled_datetime: datetime | None = None
     rescheduled_by: UUID | None = None
     original_scheduled_datetime: datetime | None = None
+    reserved_until: datetime | None = None
     id: UUID = field(default_factory=uuid4)
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime | None = None
@@ -99,6 +100,54 @@ class Scheduling:
             return 50
         return 0
 
+    def reserve(self, duration_minutes: int = 15) -> None:
+        """
+        Reserva temporariamente o slot para checkout.
+
+        Args:
+            duration_minutes: Duração da reserva em minutos (default 15).
+
+        Raises:
+            ValueError: Se o agendamento não está PENDING.
+        """
+        if self.status != SchedulingStatus.PENDING:
+            raise ValueError(
+                f"Só é possível reservar um agendamento pendente. Status: {self.status}"
+            )
+        self.status = SchedulingStatus.RESERVED
+        self.reserved_until = datetime.now(timezone.utc) + timedelta(minutes=duration_minutes)
+        self.updated_at = datetime.now(timezone.utc)
+
+    def is_reservation_expired(self) -> bool:
+        """
+        Verifica se a reserva temporária expirou.
+
+        Returns:
+            True se status é RESERVED e reserved_until < agora.
+        """
+        if self.status != SchedulingStatus.RESERVED or self.reserved_until is None:
+            return False
+        return datetime.now(timezone.utc) > self.reserved_until
+
+    def expire_reservation(self) -> None:
+        """
+        Expira uma reserva temporária, cancelando o agendamento.
+
+        Raises:
+            ValueError: Se não está RESERVED ou se ainda não expirou.
+        """
+        if self.status != SchedulingStatus.RESERVED:
+            raise ValueError(
+                f"Só é possível expirar uma reserva. Status: {self.status}"
+            )
+        if not self.is_reservation_expired():
+            raise ValueError("Reserva ainda não expirou")
+
+        self.status = SchedulingStatus.CANCELLED
+        self.cancellation_reason = "Reserva expirada"
+        self.cancelled_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(timezone.utc)
+
     def can_cancel(self) -> bool:
         """
         Verifica se o agendamento pode ser cancelado.
@@ -108,6 +157,7 @@ class Scheduling:
         """
         return self.status in (
             SchedulingStatus.PENDING,
+            SchedulingStatus.RESERVED,
             SchedulingStatus.CONFIRMED,
             SchedulingStatus.RESCHEDULE_REQUESTED,
         )

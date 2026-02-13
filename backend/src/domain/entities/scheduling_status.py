@@ -12,13 +12,18 @@ class SchedulingStatus(str, Enum):
     Estados possíveis de um agendamento.
 
     Fluxo de transição:
+        PENDING -> RESERVED -> CONFIRMED -> COMPLETED
         PENDING -> CONFIRMED -> COMPLETED
         PENDING -> CANCELLED
+        RESERVED -> CANCELLED (expiração)
         CONFIRMED -> CANCELLED
     """
 
     PENDING = "pending"
     """Aguardando confirmação do instrutor."""
+
+    RESERVED = "reserved"
+    """Slot temporariamente reservado (aguardando checkout, expira em ~15min)."""
 
     CONFIRMED = "confirmed"
     """Confirmado pelo instrutor."""

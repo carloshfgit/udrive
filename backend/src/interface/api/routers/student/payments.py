@@ -7,9 +7,14 @@ Endpoints para operações de pagamento do aluno.
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.application.dtos.payment_dtos import PaymentResponseDTO, ProcessPaymentDTO
+from src.application.dtos.payment_dtos import (
+    CartPaymentResponseDTO,
+    PaymentResponseDTO,
+    ProcessPaymentDTO,
+)
 from src.application.use_cases.payment import (
     CalculateSplitUseCase,
+    CalculateStudentPriceUseCase,
     ProcessPaymentUseCase,
 )
 from src.domain.exceptions import (
@@ -40,7 +45,7 @@ router = APIRouter(prefix="/payments", tags=["Student - Payments"])
 
 @router.post(
     "/checkout",
-    response_model=PaymentResponseDTO,
+    response_model=CartPaymentResponseDTO,
     status_code=status.HTTP_201_CREATED,
     summary="Processar pagamento de aula",
     description="Inicia o processo de pagamento utilizando Stripe com split atômico.",
@@ -49,7 +54,7 @@ async def checkout(
     dto: ProcessPaymentDTO,
     current_user: CurrentStudent,
     db: AsyncSession = Depends(get_db),
-) -> PaymentResponseDTO:
+) -> CartPaymentResponseDTO:
     """
     Endpoint para realizar checkout.
     Apenas alunos podem iniciar pagamento.
@@ -62,6 +67,7 @@ async def checkout(
     user_repo = UserRepositoryImpl(db)
     payment_gateway = StripePaymentGateway()
     calculate_split = CalculateSplitUseCase()
+    calculate_student_price = CalculateStudentPriceUseCase()
 
     use_case = ProcessPaymentUseCase(
         scheduling_repository=scheduling_repo,
@@ -71,6 +77,7 @@ async def checkout(
         user_repository=user_repo,
         payment_gateway=payment_gateway,
         calculate_split_use_case=calculate_split,
+        calculate_student_price_use_case=calculate_student_price,
     )
 
     # Forçar ID do aluno logado para segurança
