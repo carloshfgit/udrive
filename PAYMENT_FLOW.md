@@ -47,7 +47,7 @@ O percentual de reembolso é calculado com base na antecedência do cancelamento
 
 *   **Split de Pagamento:** O sistema utiliza o Stripe Connect para realizar o split (divisão) de valores. A plataforma recebe apenas a comissão de intermediação.
 *   **Tributação:** O modelo de split garante que a plataforma seja tributada apenas sobre o valor da sua taxa, e não sobre o valor total da aula, evitando a bitributação.
-*   **Retenção de Taxas:** Em casos de reembolso, as taxas de transação do Stripe podem ser retidas dependendo da configuração financeira da plataforma.
+*   **Retenção de Taxas:** Em casos de REEMBOLSO, as taxas de transação do Stripe podem ser retidas dependendo da configuração financeira da plataforma, nesses casos o app arcará com as taxas de transação.
 
 ## 6. Modelo de Precificação e Taxas
 
