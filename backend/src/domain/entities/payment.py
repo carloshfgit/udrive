@@ -40,7 +40,7 @@ class Payment:
     student_id: UUID
     instructor_id: UUID
     amount: Decimal
-    platform_fee_percentage: Decimal = Decimal("20.00")  # 20% padrão
+    platform_fee_percentage: Decimal = Decimal("13.00")  # 13% padrão
     platform_fee_amount: Decimal = Decimal("0.00")
     instructor_amount: Decimal = Decimal("0.00")
     stripe_fee_amount: Decimal = Decimal("0.00")

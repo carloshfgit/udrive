@@ -5,6 +5,7 @@ Caso de uso para calcular o preço final all-inclusive para o aluno.
 O modelo garante que o instrutor receba exatamente o valor definido.
 """
 
+import math
 from dataclasses import dataclass
 from decimal import Decimal, ROUND_HALF_UP
 
@@ -16,7 +17,7 @@ STRIPE_CARD_FIXED = Decimal("0.39")  # R$ 0,39
 STRIPE_PIX_PERCENTAGE = Decimal("0.0119")  # 1.19%
 
 # Comissão da plataforma
-PLATFORM_FEE_PERCENTAGE = Decimal("0.20")  # 20%
+PLATFORM_FEE_PERCENTAGE = Decimal("0.13")  # 13%
 
 TWO_PLACES = Decimal("0.01")
 
@@ -27,7 +28,7 @@ class CalculateStudentPriceUseCase:
     Calcula o preço final que o aluno pagará.
 
     Composição:
-        total = preço_instrutor + comissão_20% + taxas_stripe
+        total = preço_instrutor + comissão_13% + taxas_stripe
 
     O cálculo usa fórmula reversa para que, após o Stripe descontar
     suas taxas, o valor líquido cubra exatamente o preço base + comissão.
@@ -59,7 +60,7 @@ class CalculateStudentPriceUseCase:
                 f"Método de pagamento inválido: {payment_method}. Use 'card' ou 'pix'."
             )
 
-        # Comissão da plataforma (20% sobre preço do instrutor)
+        # Comissão da plataforma (13% sobre preço do instrutor)
         platform_fee = (instructor_rate * PLATFORM_FEE_PERCENTAGE).quantize(
             TWO_PLACES, rounding=ROUND_HALF_UP
         )
@@ -83,10 +84,26 @@ class CalculateStudentPriceUseCase:
             )
             total = subtotal + stripe_fee
 
+        # Arredondamento para o próximo múltiplo de 5 (sempre para cima)
+        raw_total = total
+        total_rounded = Decimal(math.ceil(total / 5) * 5)
+
+        # Charm pricing: se múltiplo de 10, subtrai R$ 0,10 (ex: 100 → 99,90)
+        if total_rounded % 10 == 0:
+            total_rounded -= Decimal("0.10")
+
+        # Surplus do arredondamento é absorvido pela comissão da plataforma
+        surplus = (total_rounded - raw_total).quantize(
+            TWO_PLACES, rounding=ROUND_HALF_UP
+        )
+        platform_fee += surplus
+        total = total_rounded
+
         return StudentPriceDTO(
             instructor_amount=instructor_rate,
             platform_fee_amount=platform_fee,
             stripe_fee_estimate=stripe_fee,
             total_student_price=total,
             payment_method=payment_method,
+            rounding_surplus=surplus,
         )

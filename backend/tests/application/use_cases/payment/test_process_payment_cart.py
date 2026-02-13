@@ -62,9 +62,9 @@ class TestProcessPaymentCart:
 
         # Mock price calculation
         mock_repos["calc_price"].execute.side_effect = [
-            StudentPriceDTO(instructor_amount=Decimal("100.00"), platform_fee_amount=Decimal("20.00"), 
+            StudentPriceDTO(instructor_amount=Decimal("100.00"), platform_fee_amount=Decimal("13.00"), 
                             stripe_fee_estimate=Decimal("5.00"), total_student_price=Decimal("125.00"), payment_method="card"),
-            StudentPriceDTO(instructor_amount=Decimal("150.00"), platform_fee_amount=Decimal("30.00"), 
+            StudentPriceDTO(instructor_amount=Decimal("150.00"), platform_fee_amount=Decimal("19.50"), 
                             stripe_fee_estimate=Decimal("7.50"), total_student_price=Decimal("187.50"), payment_method="card"),
         ]
 

@@ -22,7 +22,7 @@ router = APIRouter(prefix="/pricing", tags=["Shared - Pricing"])
     summary="Calcular preço final para o aluno",
     description=(
         "Retorna o breakdown completo do preço: valor do instrutor, "
-        "comissão da plataforma (20%), estimativa de taxas Stripe e total final."
+        "comissão da plataforma (13%), estimativa de taxas Stripe e total final."
     ),
 )
 async def calculate_price(

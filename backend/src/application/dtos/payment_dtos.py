@@ -70,6 +70,7 @@ class StudentPriceDTO:
     stripe_fee_estimate: Decimal
     total_student_price: Decimal
     payment_method: str
+    rounding_surplus: Decimal = Decimal("0.00")
 
 
 @dataclass

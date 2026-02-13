@@ -145,7 +145,7 @@ class ProcessPaymentUseCase:
                 student_id=dto.student_id,
                 instructor_id=scheduling.instructor_id,
                 amount=student_price.total_student_price,
-                platform_fee_percentage=Decimal("20.00"),
+                platform_fee_percentage=Decimal("13.00"),
                 platform_fee_amount=student_price.platform_fee_amount,
                 instructor_amount=scheduling.price,
                 stripe_fee_amount=student_price.stripe_fee_estimate,
