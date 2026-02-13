@@ -38,7 +38,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         # Permissões de features do browser
         response.headers["Permissions-Policy"] = (
             "accelerometer=(), camera=(), geolocation=(), gyroscope=(), "
-            "magnetometer=(), microphone=(), payment=(), usb=()"
+            "magnetometer=(), microphone=(), payment=(self), usb=()"
         )
 
         # HSTS apenas em produção (requer HTTPS)

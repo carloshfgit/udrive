@@ -5,6 +5,7 @@ Implementação do gateway de pagamento usando a biblioteca oficial do Stripe.
 """
 
 from decimal import Decimal
+from uuid import UUID
 
 import stripe
 
@@ -24,7 +25,7 @@ class StripePaymentGateway(IPaymentGateway):
     def __init__(self):
         # Inicializa com chave da configuração
         # Nota: Pode ser None se não configurado, métodos devem tratar isso
-        stripe.api_key = settings.STRIPE_SECRET_KEY
+        stripe.api_key = settings.stripe_secret_key
 
     def _ensure_configured(self):
         """Verifica se a chave API está configurada."""
@@ -101,40 +102,57 @@ class StripePaymentGateway(IPaymentGateway):
         except stripe.StripeError as e:
             raise RuntimeError(f"Stripe Transfer Error: {str(e)}") from e
 
+    async def confirm_payment_intent(
+        self, payment_intent_id: str
+    ) -> PaymentIntentResult:
+        """Confirma um PaymentIntent no Stripe."""
+        self._ensure_configured()
+
+        try:
+            intent = await stripe.PaymentIntent.confirm_async(payment_intent_id)
+
+            return PaymentIntentResult(
+                payment_intent_id=intent.id,
+                client_secret=intent.client_secret,
+                status=intent.status,
+            )
+        except stripe.StripeError as e:
+            raise RuntimeError(f"Stripe Confirm Error: {str(e)}") from e
+
     async def process_refund(
-        self, payment_intent_id: str, amount: Decimal | None = None, reason: str | None = None
+        self, payment_intent_id: str, amount: Decimal, reason: str | None = None
     ) -> RefundResult:
         self._ensure_configured()
 
         try:
-            # Se amount for None, é reembolso total
-            amount_cents = int(amount * 100) if amount else None
+            # Converter para centavos (int)
+            amount_cents = int(amount * 100)
 
             refund_params = {
                 "payment_intent": payment_intent_id,
+                "amount": amount_cents,
             }
-            
-            if amount_cents:
-                refund_params["amount"] = amount_cents
-                
+
             if reason:
-                 # Stripe aceita: 'duplicate', 'fraudulent', 'requested_by_customer'
-                 # Vamos mapear 'requested_by_customer' como default seguro se razão for livre
-                 refund_params["reason"] = "requested_by_customer"
-                 refund_params["metadata"] = {"original_reason": reason}
+                # Stripe aceita: 'duplicate', 'fraudulent', 'requested_by_customer'
+                # Vamos mapear 'requested_by_customer' como default seguro se razão for livre
+                refund_params["reason"] = "requested_by_customer"
+                refund_params["metadata"] = {"original_reason": reason}
 
             refund = await stripe.Refund.create_async(**refund_params)
 
             return RefundResult(
                 refund_id=refund.id,
                 status=refund.status or "succeeded",
-                amount=Decimal(refund.amount) / 100 if refund.amount else Decimal("0.00"),
+                amount=Decimal(refund.amount) / 100
+                if refund.amount
+                else Decimal("0.00"),
             )
         except stripe.StripeError as e:
-             raise RuntimeError(f"Stripe Refund Error: {str(e)}") from e
+            raise RuntimeError(f"Stripe Refund Error: {str(e)}") from e
 
     async def create_connected_account(
-        self, email: str, instructor_id: str
+        self, email: str, instructor_id: UUID
     ) -> ConnectedAccountResult:
         self._ensure_configured()
 
@@ -150,12 +168,12 @@ class StripePaymentGateway(IPaymentGateway):
                 },
                 metadata={"instructor_id": str(instructor_id)},
             )
-            
+
             return ConnectedAccountResult(
                 account_id=account.id,
             )
         except stripe.StripeError as e:
-             raise RuntimeError(f"Stripe Account Error: {str(e)}") from e
+            raise RuntimeError(f"Stripe Account Error: {str(e)}") from e
 
     async def create_account_link(
         self, account_id: str, refresh_url: str, return_url: str

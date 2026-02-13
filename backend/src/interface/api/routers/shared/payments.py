@@ -51,7 +51,7 @@ async def stripe_webhook(
         )
 
     # 2. Validar assinatura
-    webhook_secret = settings.STRIPE_WEBHOOK_SECRET
+    webhook_secret = settings.stripe_webhook_secret
     if not webhook_secret:
         logger.error("STRIPE_WEBHOOK_SECRET não configurado")
         raise HTTPException(
