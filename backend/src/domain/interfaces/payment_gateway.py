@@ -58,6 +58,24 @@ class ConnectedAccountResult:
     onboarding_url: str | None = None
 
 
+@dataclass
+class TransferResult:
+    """
+    Resultado da criação de um Transfer no Stripe.
+
+    Attributes:
+        transfer_id: ID do Transfer no Stripe.
+        amount: Valor transferido.
+        status: Status do transfer.
+        destination: ID da conta destino.
+    """
+
+    transfer_id: str
+    amount: Decimal
+    status: str
+    destination: str
+
+
 class IPaymentGateway(ABC):
     """
     Interface abstrata para gateway de pagamento.
@@ -71,25 +89,49 @@ class IPaymentGateway(ABC):
         self,
         amount: Decimal,
         currency: str,
-        instructor_stripe_account_id: str,
-        instructor_amount: Decimal,
+        transfer_group: str | None = None,
         metadata: dict | None = None,
     ) -> PaymentIntentResult:
         """
-        Cria um PaymentIntent com split atômico.
+        Cria um PaymentIntent (Separate Charges).
 
-        O pagamento é dividido atomicamente entre a plataforma e o instrutor
-        usando transfer_data do Stripe.
+        O pagamento é cobrado na conta da plataforma. O Transfer para o
+        instrutor será criado separadamente via create_transfer após
+        confirmação de conclusão da aula.
 
         Args:
-            amount: Valor total em centavos.
+            amount: Valor total em BRL.
             currency: Código da moeda (ex: 'brl').
-            instructor_stripe_account_id: ID da conta Stripe do instrutor.
-            instructor_amount: Valor a ser transferido ao instrutor.
+            transfer_group: Grupo de reconciliação (vincula charge ao transfer futuro).
             metadata: Metadados adicionais.
 
         Returns:
             PaymentIntentResult com IDs e client_secret.
+        """
+        ...
+
+    @abstractmethod
+    async def create_transfer(
+        self,
+        amount: Decimal,
+        destination_account_id: str,
+        transfer_group: str | None = None,
+        metadata: dict | None = None,
+    ) -> TransferResult:
+        """
+        Cria um Transfer para a conta conectada do instrutor.
+
+        Usado após a confirmação de conclusão da aula para liberar
+        o pagamento retido em custódia.
+
+        Args:
+            amount: Valor a transferir em BRL.
+            destination_account_id: ID da conta Stripe do instrutor.
+            transfer_group: Grupo de reconciliação.
+            metadata: Metadados adicionais.
+
+        Returns:
+            TransferResult com ID e status do transfer.
         """
         ...
 

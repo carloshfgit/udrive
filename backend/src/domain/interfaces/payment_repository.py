@@ -58,6 +58,21 @@ class IPaymentRepository(ABC):
         ...
 
     @abstractmethod
+    async def get_by_stripe_payment_intent_id(
+        self, payment_intent_id: str
+    ) -> Payment | None:
+        """
+        Busca pagamento pelo ID do PaymentIntent no Stripe.
+
+        Args:
+            payment_intent_id: ID do PaymentIntent.
+
+        Returns:
+            Pagamento encontrado ou None.
+        """
+        ...
+
+    @abstractmethod
     async def update(self, payment: Payment) -> Payment:
         """
         Atualiza um pagamento existente.

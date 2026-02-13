@@ -13,6 +13,7 @@ from src.domain.interfaces.payment_gateway import (
     IPaymentGateway,
     PaymentIntentResult,
     RefundResult,
+    TransferResult,
 )
 from src.infrastructure.config import settings
 
@@ -34,29 +35,29 @@ class StripePaymentGateway(IPaymentGateway):
         self,
         amount: Decimal,
         currency: str,
-        instructor_stripe_account_id: str,
-        instructor_amount: Decimal,
+        transfer_group: str | None = None,
         metadata: dict[str, str] | None = None,
     ) -> PaymentIntentResult:
         self._ensure_configured()
 
         # Converter para centavos (int)
         amount_cents = int(amount * 100)
-        instructor_amount_cents = int(instructor_amount * 100)
 
-        # Criar PaymentIntent com transfer_data para split
-        # Documentação: https://stripe.com/docs/connect/destination-charges
+        # Criar PaymentIntent como Separate Charge (sem transfer_data)
+        # O Transfer para o instrutor será criado após conclusão da aula
+        # Documentação: https://stripe.com/docs/connect/separate-charges-and-transfers
         try:
-            intent = await stripe.PaymentIntent.create_async(
-                amount=amount_cents,
-                currency=currency.lower(),
-                automatic_payment_methods={"enabled": True},
-                metadata=metadata or {},
-                transfer_data={
-                    "destination": instructor_stripe_account_id,
-                    "amount": instructor_amount_cents,
-                },
-            )
+            params: dict = {
+                "amount": amount_cents,
+                "currency": currency.lower(),
+                "automatic_payment_methods": {"enabled": True},
+                "metadata": metadata or {},
+            }
+
+            if transfer_group:
+                params["transfer_group"] = transfer_group
+
+            intent = await stripe.PaymentIntent.create_async(**params)
 
             return PaymentIntentResult(
                 payment_intent_id=intent.id,
@@ -65,6 +66,40 @@ class StripePaymentGateway(IPaymentGateway):
             )
         except stripe.StripeError as e:
             raise RuntimeError(f"Stripe Error: {str(e)}") from e
+
+    async def create_transfer(
+        self,
+        amount: Decimal,
+        destination_account_id: str,
+        transfer_group: str | None = None,
+        metadata: dict | None = None,
+    ) -> TransferResult:
+        """Cria Transfer para conta conectada do instrutor."""
+        self._ensure_configured()
+
+        amount_cents = int(amount * 100)
+
+        try:
+            params: dict = {
+                "amount": amount_cents,
+                "currency": "brl",
+                "destination": destination_account_id,
+                "metadata": metadata or {},
+            }
+
+            if transfer_group:
+                params["transfer_group"] = transfer_group
+
+            transfer = await stripe.Transfer.create_async(**params)
+
+            return TransferResult(
+                transfer_id=transfer.id,
+                amount=Decimal(transfer.amount) / 100,
+                status=transfer.object,  # "transfer"
+                destination=destination_account_id,
+            )
+        except stripe.StripeError as e:
+            raise RuntimeError(f"Stripe Transfer Error: {str(e)}") from e
 
     async def process_refund(
         self, payment_intent_id: str, amount: Decimal | None = None, reason: str | None = None
@@ -93,7 +128,7 @@ class StripePaymentGateway(IPaymentGateway):
             return RefundResult(
                 refund_id=refund.id,
                 status=refund.status or "succeeded",
-                amount_refunded=Decimal(refund.amount) / 100 if refund.amount else Decimal("0.00"),
+                amount=Decimal(refund.amount) / 100 if refund.amount else Decimal("0.00"),
             )
         except stripe.StripeError as e:
              raise RuntimeError(f"Stripe Refund Error: {str(e)}") from e
@@ -118,9 +153,6 @@ class StripePaymentGateway(IPaymentGateway):
             
             return ConnectedAccountResult(
                 account_id=account.id,
-                type=account.type,
-                country=account.country,
-                details_submitted=account.details_submitted,
             )
         except stripe.StripeError as e:
              raise RuntimeError(f"Stripe Account Error: {str(e)}") from e

@@ -54,6 +54,14 @@ from src.infrastructure.services.auth_service_impl import AuthServiceImpl
 from src.infrastructure.services.location_service_impl import LocationServiceImpl
 from src.infrastructure.external.redis_cache import RedisCacheService, cache_service
 
+# Payment-related imports
+from src.domain.interfaces.payment_repository import IPaymentRepository
+from src.domain.interfaces.transaction_repository import ITransactionRepository
+from src.domain.interfaces.payment_gateway import IPaymentGateway
+from src.infrastructure.repositories.payment_repository_impl import PaymentRepositoryImpl
+from src.infrastructure.repositories.transaction_repository_impl import TransactionRepositoryImpl
+from src.infrastructure.external.stripe_gateway import StripePaymentGateway
+
 
 # =============================================================================
 # Database Session
@@ -105,6 +113,21 @@ def get_review_repository(session: DBSession) -> IReviewRepository:
 def get_message_repository(session: DBSession) -> IMessageRepository:
     """Fornece uma instância do repositório de mensagens."""
     return MessageRepositoryImpl(session)
+
+
+def get_payment_repository(session: DBSession) -> IPaymentRepository:
+    """Fornece uma instância do repositório de pagamentos."""
+    return PaymentRepositoryImpl(session)
+
+
+def get_transaction_repository(session: DBSession) -> ITransactionRepository:
+    """Fornece uma instância do repositório de transações."""
+    return TransactionRepositoryImpl(session)
+
+
+def get_payment_gateway() -> IPaymentGateway:
+    """Fornece uma instância do gateway de pagamento Stripe."""
+    return StripePaymentGateway()
 
 
 # =============================================================================
@@ -242,6 +265,9 @@ AuthService = Annotated[IAuthService, Depends(get_auth_service)]
 LocationService = Annotated[ILocationService, Depends(get_location_service)]
 CacheService = Annotated[RedisCacheService, Depends(get_cache_service)]
 MessageRepo = Annotated[IMessageRepository, Depends(get_message_repository)]
+PaymentRepo = Annotated[IPaymentRepository, Depends(get_payment_repository)]
+TransactionRepo = Annotated[ITransactionRepository, Depends(get_transaction_repository)]
+PaymentGateway = Annotated[IPaymentGateway, Depends(get_payment_gateway)]
 
 CurrentUser = Annotated[User, Depends(get_current_active_user)]
 CurrentStudent = Annotated[User, Depends(require_student)]

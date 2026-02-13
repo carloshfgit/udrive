@@ -1,13 +1,15 @@
 """
 Complete Scheduling Use Case
 
-Caso de uso para marcar um agendamento como concluído.
+Caso de uso para marcar um agendamento como concluído e liberar pagamento.
 """
 
+import logging
 from dataclasses import dataclass
 from datetime import datetime
 
 from src.application.dtos.scheduling_dtos import CompleteSchedulingDTO, SchedulingResponseDTO
+from src.application.use_cases.payment.release_payment import ReleasePaymentUseCase
 from src.domain.entities.scheduling_status import SchedulingStatus
 from src.domain.exceptions import (
     InvalidSchedulingStateException,
@@ -18,6 +20,8 @@ from src.domain.exceptions import (
 from src.domain.interfaces.scheduling_repository import ISchedulingRepository
 from src.domain.interfaces.user_repository import IUserRepository
 
+logger = logging.getLogger(__name__)
+
 
 @dataclass
 class CompleteSchedulingUseCase:
@@ -27,14 +31,16 @@ class CompleteSchedulingUseCase:
     Fluxo:
         1. Buscar agendamento por ID
         2. Validar se está CONFIRMED
-        3. Verificar se usuário é o instrutor do agendamento
+        3. Verificar se usuário é o aluno ou instrutor do agendamento
         4. Validar que a data/hora agendada já passou
         5. Atualizar status para COMPLETED
-        6. Retornar SchedulingResponseDTO
+        6. Liberar pagamento ao instrutor (Transfer via Stripe)
+        7. Retornar SchedulingResponseDTO
     """
 
     scheduling_repository: ISchedulingRepository
     user_repository: IUserRepository
+    release_payment_use_case: ReleasePaymentUseCase
 
     async def execute(self, dto: CompleteSchedulingDTO) -> SchedulingResponseDTO:
         """
@@ -85,7 +91,18 @@ class CompleteSchedulingUseCase:
         # 4. Salvar
         saved_scheduling = await self.scheduling_repository.update(scheduling)
 
-        # 5. Buscar nomes para resposta enriquecida
+        # 5. Liberar pagamento ao instrutor (Transfer via Stripe)
+        try:
+            await self.release_payment_use_case.execute(saved_scheduling.id)
+        except Exception as e:
+            # Não reverter a conclusão do scheduling — permitir retentativa via cron/admin
+            logger.error(
+                "Falha ao liberar pagamento para scheduling %s: %s",
+                saved_scheduling.id,
+                str(e),
+            )
+
+        # 6. Buscar nomes para resposta enriquecida
         student = await self.user_repository.get_by_id(saved_scheduling.student_id)
         instructor = await self.user_repository.get_by_id(saved_scheduling.instructor_id)
 

@@ -31,7 +31,11 @@ from src.domain.entities.scheduling_status import SchedulingStatus
 from src.interface.api.dependencies import (
     AvailabilityRepo,
     CurrentInstructor,
+    InstructorRepo,
+    PaymentGateway,
+    PaymentRepo,
     SchedulingRepo,
+    TransactionRepo,
     UserRepo,
 )
 from src.interface.api.schemas.scheduling_schemas import (
@@ -358,6 +362,10 @@ async def complete_scheduling(
     current_user: CurrentInstructor,
     scheduling_repo: SchedulingRepo,
     user_repo: UserRepo,
+    payment_repo: PaymentRepo,
+    transaction_repo: TransactionRepo,
+    instructor_repo: InstructorRepo,
+    payment_gateway: PaymentGateway,
 ) -> SchedulingResponse:
     """Marca um agendamento como concluído."""
     # Verificar permissão
@@ -375,7 +383,14 @@ async def complete_scheduling(
         )
 
     try:
-        use_case = CompleteSchedulingUseCase(scheduling_repo, user_repo)
+        from src.application.use_cases.payment.release_payment import ReleasePaymentUseCase
+        release_payment_uc = ReleasePaymentUseCase(
+            payment_repository=payment_repo,
+            transaction_repository=transaction_repo,
+            payment_gateway=payment_gateway,
+            instructor_repository=instructor_repo,
+        )
+        use_case = CompleteSchedulingUseCase(scheduling_repo, user_repo, release_payment_uc)
         dto = CompleteSchedulingDTO(
             scheduling_id=scheduling_id,
             user_id=current_user.id,

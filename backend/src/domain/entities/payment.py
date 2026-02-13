@@ -31,6 +31,7 @@ class Payment:
         status: Status do pagamento.
         stripe_payment_intent_id: ID do PaymentIntent no Stripe.
         stripe_transfer_id: ID do Transfer no Stripe.
+        transfer_group: Grupo de reconciliação Stripe (agrupa charges e transfers).
         refund_amount: Valor reembolsado (se aplicável).
         refunded_at: Data/hora do reembolso (se aplicável).
     """
@@ -47,6 +48,7 @@ class Payment:
     status: PaymentStatus = PaymentStatus.PENDING
     stripe_payment_intent_id: str | None = None
     stripe_transfer_id: str | None = None
+    transfer_group: str | None = None
     refund_amount: Decimal | None = None
     refunded_at: datetime | None = None
     id: UUID = field(default_factory=uuid4)
@@ -81,9 +83,9 @@ class Payment:
         Verifica se o pagamento pode ser reembolsado.
 
         Returns:
-            True se pode ser reembolsado.
+            True se pode ser reembolsado (COMPLETED ou HELD).
         """
-        return self.status == PaymentStatus.COMPLETED
+        return self.status in (PaymentStatus.COMPLETED, PaymentStatus.HELD)
 
     def process_refund(self, refund_percentage: int) -> Decimal:
         """
@@ -136,20 +138,52 @@ class Payment:
         self.status = PaymentStatus.PROCESSING
         self.updated_at = datetime.utcnow()
 
+    def mark_held(self) -> None:
+        """
+        Marca o pagamento como retido em custódia (escrow).
+
+        Transição: PROCESSING → HELD.
+        Ocorre quando o Stripe confirma o pagamento via webhook.
+        """
+        if self.status != PaymentStatus.PROCESSING:
+            raise ValueError(
+                f"Pagamento não pode ser retido. Status atual: {self.status}"
+            )
+
+        self.status = PaymentStatus.HELD
+        self.updated_at = datetime.utcnow()
+
     def mark_completed(self, stripe_transfer_id: str | None = None) -> None:
         """
-        Marca o pagamento como concluído.
+        Marca o pagamento como concluído (transfer realizado).
+
+        Transição: HELD → COMPLETED.
 
         Args:
             stripe_transfer_id: ID do Transfer no Stripe.
         """
-        if self.status != PaymentStatus.PROCESSING:
+        if self.status != PaymentStatus.HELD:
             raise ValueError(
                 f"Pagamento não pode ser concluído. Status atual: {self.status}"
             )
 
         self.stripe_transfer_id = stripe_transfer_id
         self.status = PaymentStatus.COMPLETED
+        self.updated_at = datetime.utcnow()
+
+    def mark_disputed(self) -> None:
+        """
+        Marca o pagamento como em disputa.
+
+        Transição: HELD → DISPUTED.
+        Ocorre quando o aluno reporta um problema antes da confirmação automática.
+        """
+        if self.status != PaymentStatus.HELD:
+            raise ValueError(
+                f"Pagamento não pode ser disputado. Status atual: {self.status}"
+            )
+
+        self.status = PaymentStatus.DISPUTED
         self.updated_at = datetime.utcnow()
 
     def mark_failed(self) -> None:
@@ -166,6 +200,11 @@ class Payment:
     def is_completed(self) -> bool:
         """Verifica se foi concluído."""
         return self.status == PaymentStatus.COMPLETED
+
+    @property
+    def is_held(self) -> bool:
+        """Verifica se está retido em custódia."""
+        return self.status == PaymentStatus.HELD
 
     @property
     def is_refunded(self) -> bool:

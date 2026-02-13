@@ -1,73 +1,93 @@
 """
 Shared Payments Router
 
-Endpoints de pagamento compartilhados entre alunos e instrutores.
+Endpoints de pagamento compartilhados (webhook Stripe).
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Request
-from sqlalchemy.ext.asyncio import AsyncSession
+import logging
 
-from src.application.dtos.payment_dtos import (
-    GetPaymentHistoryDTO,
-    PaymentHistoryResponseDTO,
+import stripe
+from fastapi import APIRouter, HTTPException, Request, status
+
+from src.application.use_cases.payment.handle_stripe_webhook import (
+    HandleStripeWebhookUseCase,
 )
-from src.application.use_cases.payment import GetPaymentHistoryUseCase
-from src.domain.exceptions import UserNotFoundException
-from src.infrastructure.db.database import get_db
-from src.infrastructure.repositories.payment_repository_impl import (
-    PaymentRepositoryImpl,
-)
-from src.infrastructure.repositories.scheduling_repository_impl import (
-    SchedulingRepositoryImpl,
-)
-from src.infrastructure.repositories.user_repository_impl import UserRepositoryImpl
-from src.interface.api.dependencies import CurrentUser
+from src.infrastructure.config import settings
+from src.interface.api.dependencies import PaymentRepo
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/payments", tags=["Shared - Payments"])
 
 
-@router.get(
-    "/history",
-    response_model=PaymentHistoryResponseDTO,
-    summary="Histórico de pagamentos",
-    description="Retorna histórico de pagamentos do usuário atual (aluno ou instrutor).",
+@router.post(
+    "/stripe/webhook",
+    status_code=status.HTTP_200_OK,
+    summary="Stripe Webhook",
+    description="Recebe eventos do Stripe para atualização de status de pagamentos.",
 )
-async def get_payment_history(
-    current_user: CurrentUser,
-    limit: int = 50,
-    offset: int = 0,
-    db: AsyncSession = Depends(get_db),
-) -> PaymentHistoryResponseDTO:
-    """Histórico financeiro."""
-    user_repo = UserRepositoryImpl(db)
-    payment_repo = PaymentRepositoryImpl(db)
-    scheduling_repo = SchedulingRepositoryImpl(db)
+async def stripe_webhook(
+    request: Request,
+    payment_repo: PaymentRepo,
+) -> dict:
+    """
+    Endpoint de webhook do Stripe.
 
-    use_case = GetPaymentHistoryUseCase(
-        user_repository=user_repo,
-        payment_repository=payment_repo,
-        scheduling_repository=scheduling_repo,
-    )
+    1. Lê o payload bruto da requisição
+    2. Valida a assinatura com o webhook secret
+    3. Despacha o evento para o HandleStripeWebhookUseCase
 
-    dto = GetPaymentHistoryDTO(
-        user_id=current_user.id,
-        limit=limit,
-        offset=offset,
-    )
+    Returns:
+        dict com status do processamento.
+    """
+    # 1. Ler payload bruto
+    payload = await request.body()
+    sig_header = request.headers.get("stripe-signature")
+
+    if not sig_header:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Missing Stripe signature header",
+        )
+
+    # 2. Validar assinatura
+    webhook_secret = settings.STRIPE_WEBHOOK_SECRET
+    if not webhook_secret:
+        logger.error("STRIPE_WEBHOOK_SECRET não configurado")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Webhook secret not configured",
+        )
 
     try:
-        return await use_case.execute(dto)
-    except UserNotFoundException as e:
-        raise HTTPException(status_code=404, detail=str(e)) from e
+        event = stripe.Webhook.construct_event(
+            payload=payload,
+            sig_header=sig_header,
+            secret=webhook_secret,
+        )
+    except ValueError:
+        logger.error("Payload inválido no webhook Stripe")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid payload",
+        )
+    except stripe.SignatureVerificationError:
+        logger.error("Assinatura inválida no webhook Stripe")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid signature",
+        )
 
+    # 3. Processar evento
+    logger.info("Webhook Stripe recebido: %s", event["type"])
 
-@router.post("/webhook", include_in_schema=False)
-async def stripe_webhook(request: Request):
-    """
-    Webhook para receber atualizações do Stripe.
-    A ser implementado completamente para tratar:
-    - payment_intent.succeeded
-    - payment_intent.payment_failed
-    """
-    # TODO: Implementar lógica de validação de assinatura e processamento de eventos
-    return {"status": "received"}
+    use_case = HandleStripeWebhookUseCase(
+        payment_repository=payment_repo,
+    )
+
+    result = await use_case.execute(
+        event_type=event["type"],
+        event_data=event["data"]["object"],
+    )
+
+    return result

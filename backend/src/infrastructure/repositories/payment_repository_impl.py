@@ -34,6 +34,7 @@ class PaymentRepositoryImpl(IPaymentRepository):
             model.status = payment.status
             model.stripe_payment_intent_id = payment.stripe_payment_intent_id
             model.stripe_transfer_id = payment.stripe_transfer_id
+            model.transfer_group = payment.transfer_group
             model.refund_amount = payment.refund_amount
             model.refunded_at = payment.refunded_at
             model.updated_at = payment.updated_at
@@ -47,6 +48,16 @@ class PaymentRepositoryImpl(IPaymentRepository):
 
     async def get_by_scheduling_id(self, scheduling_id: UUID) -> Payment | None:
         query = select(PaymentModel).where(PaymentModel.scheduling_id == scheduling_id)
+        result = await self.session.execute(query)
+        model = result.scalar_one_or_none()
+        return model.to_entity() if model else None
+
+    async def get_by_stripe_payment_intent_id(
+        self, payment_intent_id: str
+    ) -> Payment | None:
+        query = select(PaymentModel).where(
+            PaymentModel.stripe_payment_intent_id == payment_intent_id
+        )
         result = await self.session.execute(query)
         model = result.scalar_one_or_none()
         return model.to_entity() if model else None

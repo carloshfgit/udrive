@@ -88,6 +88,8 @@ class PaymentResponseDTO:
     stripe_payment_intent_id: str | None = None
     stripe_fee_amount: Decimal | None = None
     total_student_amount: Decimal | None = None
+    client_secret: str | None = None
+    transfer_group: str | None = None
     refund_amount: Decimal | None = None
     refunded_at: datetime | None = None
     created_at: datetime | None = None

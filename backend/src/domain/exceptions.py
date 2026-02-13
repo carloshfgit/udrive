@@ -329,6 +329,18 @@ class PaymentAlreadyProcessedException(DomainException):
         )
 
 
+class PaymentNotHeldException(DomainException):
+    """Exceção lançada quando tenta liberar pagamento que não está em custódia."""
+
+    def __init__(self, identifier: str | None = None) -> None:
+        message = (
+            f"Pagamento {identifier} não está em custódia (HELD)"
+            if identifier
+            else "Pagamento não está em custódia (HELD)"
+        )
+        super().__init__(message, "PAYMENT_NOT_HELD")
+
+
 # === Chat Exceptions ===
 
 

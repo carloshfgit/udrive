@@ -26,3 +26,5 @@ class PaymentStatus(str, Enum):
     FAILED = "failed"
     REFUNDED = "refunded"
     PARTIALLY_REFUNDED = "partially_refunded"
+    HELD = "held"
+    DISPUTED = "disputed"

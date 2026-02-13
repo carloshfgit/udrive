@@ -46,6 +46,7 @@ class PaymentModel(Base):
     )
     stripe_payment_intent_id: Mapped[str | None] = mapped_column(nullable=True)
     stripe_transfer_id: Mapped[str | None] = mapped_column(nullable=True)
+    transfer_group: Mapped[str | None] = mapped_column(nullable=True)
     refund_amount: Mapped[float | None] = mapped_column(DECIMAL(10, 2), nullable=True)
     refunded_at: Mapped[datetime | None] = mapped_column(nullable=True)
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
@@ -81,6 +82,7 @@ class PaymentModel(Base):
             status=self.status,
             stripe_payment_intent_id=self.stripe_payment_intent_id,
             stripe_transfer_id=self.stripe_transfer_id,
+            transfer_group=self.transfer_group,
             refund_amount=self.refund_amount,
             refunded_at=self.refunded_at,
             created_at=self.created_at,
@@ -104,6 +106,7 @@ class PaymentModel(Base):
             status=entity.status,
             stripe_payment_intent_id=entity.stripe_payment_intent_id,
             stripe_transfer_id=entity.stripe_transfer_id,
+            transfer_group=entity.transfer_group,
             refund_amount=entity.refund_amount,
             refunded_at=entity.refunded_at,
             created_at=entity.created_at,

@@ -32,8 +32,11 @@ from src.interface.api.dependencies import (
     AvailabilityRepo,
     CurrentStudent,
     InstructorRepo,
+    PaymentGateway,
+    PaymentRepo,
     ReviewRepo,
     SchedulingRepo,
+    TransactionRepo,
     UserRepo,
 )
 from src.interface.api.schemas.scheduling_schemas import (
@@ -331,6 +334,10 @@ async def complete_lesson(
     current_user: CurrentStudent,
     scheduling_repo: SchedulingRepo,
     user_repo: UserRepo,
+    payment_repo: PaymentRepo,
+    transaction_repo: TransactionRepo,
+    instructor_repo: InstructorRepo,
+    payment_gateway: PaymentGateway,
 ) -> SchedulingResponse:
     """Marca a aula como concluída."""
     # Verificar permissão
@@ -347,7 +354,14 @@ async def complete_lesson(
             detail="Acesso não autorizado",
         )
 
-    use_case = CompleteSchedulingUseCase(scheduling_repo, user_repo)
+    from src.application.use_cases.payment.release_payment import ReleasePaymentUseCase
+    release_payment_uc = ReleasePaymentUseCase(
+        payment_repository=payment_repo,
+        transaction_repository=transaction_repo,
+        payment_gateway=payment_gateway,
+        instructor_repository=instructor_repo,
+    )
+    use_case = CompleteSchedulingUseCase(scheduling_repo, user_repo, release_payment_uc)
     dto = CompleteSchedulingDTO(
         scheduling_id=scheduling_id,
         user_id=current_user.id,

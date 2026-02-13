@@ -1,7 +1,7 @@
 """
 Process Payment Use Case
 
-Caso de uso para processar pagamento de agendamento com split atômico.
+Caso de uso para processar pagamento de agendamento com modelo de custódia.
 """
 
 from dataclasses import dataclass
@@ -33,20 +33,19 @@ class ProcessPaymentUseCase:
     """
     Caso de uso para processar pagamento de aula.
 
-    Fluxo:
+    Fluxo (Separate Charges and Transfers — Escrow):
         1. Buscar agendamento e validar status (CONFIRMED)
         2. Verificar se já existe pagamento para este agendamento
         3. Verificar se instrutor tem conta Stripe conectada
-        4. Calcular split (usar CalculateSplitUseCase)
-        5. Criar Payment com status PENDING
-        6. Chamar IPaymentGateway.create_payment_intent com transfer_data
-        7. Atualizar Payment com stripe_payment_intent_id
+        4. Calcular preço all-inclusive para o aluno
+        5. Criar Payment com status PENDING e transfer_group
+        6. Chamar IPaymentGateway.create_payment_intent (sem transfer_data)
+        7. Atualizar Payment com stripe_payment_intent_id (status PROCESSING)
         8. Criar Transaction do tipo PAYMENT
-        9. Retornar PaymentResponseDTO
+        9. Retornar PaymentResponseDTO com client_secret
 
-    Regras de negócio (DEV_PLAN.md):
-        - Split atômico no Stripe (transfer_data ao criar PaymentIntent)
-        - Não acumular saldo na plataforma
+    O pagamento ficará em PROCESSING até o webhook confirmar (→ HELD).
+    O Transfer para o instrutor só será criado após conclusão da aula (→ COMPLETED).
     """
 
     scheduling_repository: ISchedulingRepository
@@ -98,7 +97,7 @@ class ProcessPaymentUseCase:
             instructor_rate=scheduling.price,
         )
 
-        # 5. Criar Payment com status PENDING
+        # 5. Criar Payment com status PENDING e transfer_group
         payment = Payment(
             scheduling_id=dto.scheduling_id,
             student_id=dto.student_id,
@@ -110,16 +109,17 @@ class ProcessPaymentUseCase:
             stripe_fee_amount=student_price.stripe_fee_estimate,
             total_student_amount=student_price.total_student_price,
         )
+        # Gerar transfer_group para reconciliação futura
+        payment.transfer_group = f"payment_{payment.id}"
 
         saved_payment = await self.payment_repository.create(payment)
 
-        # 6. Chamar gateway com split atômico
+        # 6. Chamar gateway — Separate Charge (sem transfer_data)
         try:
             payment_intent_result = await self.payment_gateway.create_payment_intent(
                 amount=student_price.total_student_price,
                 currency="brl",
-                instructor_stripe_account_id=instructor_profile.stripe_account_id,
-                instructor_amount=scheduling.price,
+                transfer_group=saved_payment.transfer_group,
                 metadata={
                     "scheduling_id": str(dto.scheduling_id),
                     "payment_id": str(saved_payment.id),
@@ -133,7 +133,7 @@ class ProcessPaymentUseCase:
             await self.payment_repository.update(saved_payment)
             raise PaymentFailedException(str(e)) from e
 
-        # 7. Atualizar Payment com stripe_payment_intent_id
+        # 7. Atualizar Payment com stripe_payment_intent_id (status → PROCESSING)
         saved_payment.mark_processing(payment_intent_result.payment_intent_id)
         saved_payment = await self.payment_repository.update(saved_payment)
 
@@ -141,7 +141,7 @@ class ProcessPaymentUseCase:
         transaction = Transaction.create_payment_transaction(
             payment_id=saved_payment.id,
             student_id=dto.student_id,
-            amount=scheduling.price,
+            amount=student_price.total_student_price,
             stripe_reference_id=payment_intent_result.payment_intent_id,
         )
         await self.transaction_repository.create(transaction)
@@ -162,6 +162,8 @@ class ProcessPaymentUseCase:
             stripe_payment_intent_id=saved_payment.stripe_payment_intent_id,
             stripe_fee_amount=saved_payment.stripe_fee_amount,
             total_student_amount=saved_payment.total_student_amount,
+            client_secret=payment_intent_result.client_secret,
+            transfer_group=saved_payment.transfer_group,
             created_at=saved_payment.created_at,
             student_name=student.full_name if student else None,
             instructor_name=instructor.full_name if instructor else None,
