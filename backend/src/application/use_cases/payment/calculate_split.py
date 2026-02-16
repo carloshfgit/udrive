@@ -10,8 +10,10 @@ from decimal import Decimal
 from src.application.dtos.payment_dtos import SplitCalculationDTO
 
 
-# Taxa padrão da plataforma (15%)
-DEFAULT_PLATFORM_FEE_PERCENTAGE = Decimal("15.00")
+from src.infrastructure.config import settings
+
+# Taxa padrão da plataforma (deriva do .env)
+DEFAULT_PLATFORM_FEE_PERCENTAGE = Decimal(str(settings.platform_fee_percentage))
 
 
 @dataclass

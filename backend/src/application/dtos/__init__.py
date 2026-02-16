@@ -6,16 +6,18 @@ Data Transfer Objects para operações da camada de aplicação.
 
 from .auth_dtos import LoginDTO, RegisterUserDTO, TokenPairDTO
 from .payment_dtos import (
+    CheckoutResponseDTO,
     ConnectGatewayAccountDTO,
+    CreateCheckoutDTO,
     GetPaymentHistoryDTO,
     InstructorEarningsDTO,
     PaymentHistoryResponseDTO,
     PaymentResponseDTO,
-    ProcessPaymentDTO,
     ProcessRefundDTO,
     RefundResultDTO,
     SplitCalculationDTO,
     GatewayConnectResponseDTO,
+    WebhookNotificationDTO,
 )
 from .profile_dtos import (
     InstructorProfileResponseDTO,
@@ -72,7 +74,9 @@ __all__ = [
     "AvailabilityResponseDTO",
     "AvailabilityListResponseDTO",
     # Payment DTOs
-    "ProcessPaymentDTO",
+    "CreateCheckoutDTO",
+    "CheckoutResponseDTO",
+    "WebhookNotificationDTO",
     "ProcessRefundDTO",
     "GetPaymentHistoryDTO",
     "ConnectGatewayAccountDTO",

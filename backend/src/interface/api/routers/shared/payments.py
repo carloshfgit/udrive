@@ -4,7 +4,7 @@ Shared Payments Router
 Endpoints de pagamento compartilhados entre alunos e instrutores.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.dtos.payment_dtos import (
@@ -59,15 +59,3 @@ async def get_payment_history(
         return await use_case.execute(dto)
     except UserNotFoundException as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
-
-
-@router.post("/webhook", include_in_schema=False)
-async def stripe_webhook(request: Request):
-    """
-    Webhook para receber atualizações do Stripe.
-    A ser implementado completamente para tratar:
-    - payment_intent.succeeded
-    - payment_intent.payment_failed
-    """
-    # TODO: Implementar lógica de validação de assinatura e processamento de eventos
-    return {"status": "received"}

@@ -58,6 +58,19 @@ class IPaymentRepository(ABC):
         ...
 
     @abstractmethod
+    async def get_by_gateway_payment_id(self, gateway_payment_id: str) -> Payment | None:
+        """
+        Busca pagamento pelo ID do pagamento no gateway.
+
+        Args:
+            gateway_payment_id: ID do pagamento no gateway (ex: MP payment ID).
+
+        Returns:
+            Pagamento encontrado ou None.
+        """
+        ...
+
+    @abstractmethod
     async def update(self, payment: Payment) -> Payment:
         """
         Atualiza um pagamento existente.

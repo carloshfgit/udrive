@@ -1,12 +1,14 @@
 """
-Process Payment Use Case
+Create Checkout Use Case
 
-Caso de uso para processar pagamento de agendamento com split atômico.
+Caso de uso para criar checkout do Mercado Pago (Checkout Pro).
+Orquestra a criação de preferência de pagamento e retorna a URL
+para o aluno ser redirecionado ao Mercado Pago.
 """
 
 from dataclasses import dataclass
 
-from src.application.dtos.payment_dtos import PaymentResponseDTO, ProcessPaymentDTO
+from src.application.dtos.payment_dtos import CheckoutResponseDTO, CreateCheckoutDTO
 from src.application.use_cases.payment.calculate_split import CalculateSplitUseCase
 from src.domain.entities.payment import Payment
 from src.domain.entities.transaction import Transaction
@@ -21,53 +23,57 @@ from src.domain.interfaces.payment_gateway import IPaymentGateway
 from src.domain.interfaces.payment_repository import IPaymentRepository
 from src.domain.interfaces.scheduling_repository import ISchedulingRepository
 from src.domain.interfaces.transaction_repository import ITransactionRepository
-from src.domain.interfaces.user_repository import IUserRepository
+from src.infrastructure.config import Settings
+
+
+# Deep links para retorno do Checkout Pro
+BACK_URLS = {
+    "success": "godrive://payment/success",
+    "failure": "godrive://payment/error",
+    "pending": "godrive://payment/pending",
+}
 
 
 @dataclass
-class ProcessPaymentUseCase:
+class CreateCheckoutUseCase:
     """
-    Caso de uso para processar pagamento de aula.
+    Caso de uso para criar checkout via Mercado Pago Checkout Pro.
 
     Fluxo:
         1. Buscar agendamento e validar status (CONFIRMED)
         2. Verificar se já existe pagamento para este agendamento
-        3. Verificar se instrutor tem conta de pagamento conectada
-        4. Calcular split (usar CalculateSplitUseCase)
+        3. Verificar se instrutor tem conta MP vinculada
+        4. Calcular split (comissão plataforma + valor instrutor)
         5. Criar Payment com status PENDING
-        6. Chamar IPaymentGateway.create_checkout
-        7. Atualizar Payment com gateway_payment_id
+        6. Chamar gateway.create_checkout() com dados completos
+        7. Atualizar Payment com preference_id → status PROCESSING
         8. Criar Transaction do tipo PAYMENT
-        9. Retornar PaymentResponseDTO
-
-    Regras de negócio (DEV_PLAN.md):
-        - Split atômico no Stripe (transfer_data ao criar PaymentIntent)
-        - Não acumular saldo na plataforma
+        9. Retornar CheckoutResponseDTO com checkout_url (init_point)
     """
 
     scheduling_repository: ISchedulingRepository
     payment_repository: IPaymentRepository
     transaction_repository: ITransactionRepository
     instructor_repository: IInstructorRepository
-    user_repository: IUserRepository
     payment_gateway: IPaymentGateway
     calculate_split_use_case: CalculateSplitUseCase
+    settings: Settings
 
-    async def execute(self, dto: ProcessPaymentDTO) -> PaymentResponseDTO:
+    async def execute(self, dto: CreateCheckoutDTO) -> CheckoutResponseDTO:
         """
-        Executa o processamento do pagamento.
+        Executa a criação do checkout.
 
         Args:
-            dto: Dados do pagamento a processar.
+            dto: Dados para criar o checkout.
 
         Returns:
-            PaymentResponseDTO: Pagamento processado.
+            CheckoutResponseDTO com URL de pagamento.
 
         Raises:
             SchedulingNotFoundException: Se agendamento não existir.
             PaymentAlreadyProcessedException: Se já existe pagamento.
-            GatewayAccountNotConnectedException: Se instrutor sem conta conectada.
-            PaymentFailedException: Se falhar no gateway.
+            GatewayAccountNotConnectedException: Se instrutor sem conta MP.
+            PaymentFailedException: Se falha na criação da preferência.
         """
         # 1. Buscar e validar agendamento
         scheduling = await self.scheduling_repository.get_by_id(dto.scheduling_id)
@@ -81,7 +87,7 @@ class ProcessPaymentUseCase:
         if existing_payment is not None:
             raise PaymentAlreadyProcessedException()
 
-        # 3. Verificar conta Stripe do instrutor
+        # 3. Verificar conta MP do instrutor
         instructor_profile = await self.instructor_repository.get_by_user_id(
             scheduling.instructor_id
         )
@@ -101,23 +107,35 @@ class ProcessPaymentUseCase:
             platform_fee_amount=split_result.platform_fee_amount,
             instructor_amount=split_result.instructor_amount,
         )
-
         saved_payment = await self.payment_repository.create(payment)
 
-        # 6. Chamar gateway para criar checkout
-        # TODO: Na Fase 3, este fluxo será expandido para retornar o init_point do MP
-        # Para a Fase 1, apenas garantimos compatibilidade com a interface
+        # 6. Criar checkout no Mercado Pago
         try:
+            # Montar dados do payer (melhora taxa de aprovação)
+            payer = None
+            if dto.student_email:
+                payer = {"email": dto.student_email}
+
+            # Montar notification_url
+            base_url = self.settings.mp_redirect_uri.rsplit("/oauth", 1)[0]
+            notification_url = f"{base_url}/webhooks/mercadopago"
+
             checkout_result = await self.payment_gateway.create_checkout(
-                items=[{
-                    "id": str(dto.scheduling_id),
-                    "title": "Aula de Direção",
-                    "unit_price": scheduling.price,
-                    "quantity": 1
-                }],
+                items=[
+                    {
+                        "id": f"AULA-{dto.scheduling_id}",
+                        "title": "Aula de Direção - GoDrive",
+                        "description": f"Aula de direção em {scheduling.scheduled_datetime.strftime('%d/%m/%Y às %H:%M')}",
+                        "category_id": "services",
+                        "quantity": 1,
+                        "unit_price": scheduling.price,
+                    }
+                ],
                 marketplace_fee=split_result.platform_fee_amount,
                 seller_access_token=instructor_profile.mp_access_token,
-                back_urls={}, # Será definido na Fase 3
+                back_urls=BACK_URLS,
+                payer=payer,
+                statement_descriptor="GODRIVE AULA",
                 external_reference=str(dto.scheduling_id),
                 metadata={
                     "scheduling_id": str(dto.scheduling_id),
@@ -125,16 +143,17 @@ class ProcessPaymentUseCase:
                     "student_id": str(dto.student_id),
                     "instructor_id": str(scheduling.instructor_id),
                 },
+                notification_url=notification_url,
             )
         except Exception as e:
-            # Marca pagamento como falho
+            # Marca pagamento como falho se a criação da preferência falhar
             saved_payment.mark_failed()
             await self.payment_repository.update(saved_payment)
             raise PaymentFailedException(str(e)) from e
 
-        # 7. Atualizar Payment com gateway_payment_id (ou preference_id dependendo da estratégia)
-        # No Checkout Pro, usamos o preference_id inicialmente.
+        # 7. Atualizar Payment com preference_id → status PROCESSING
         saved_payment.mark_processing(checkout_result.preference_id)
+        saved_payment.gateway_preference_id = checkout_result.preference_id
         saved_payment = await self.payment_repository.update(saved_payment)
 
         # 8. Criar Transaction do tipo PAYMENT
@@ -146,22 +165,11 @@ class ProcessPaymentUseCase:
         )
         await self.transaction_repository.create(transaction)
 
-        # 9. Buscar nomes para enriquecer resposta
-        student = await self.user_repository.get_by_id(dto.student_id)
-        instructor = await self.user_repository.get_by_id(scheduling.instructor_id)
-
-        return PaymentResponseDTO(
-            id=saved_payment.id,
-            scheduling_id=saved_payment.scheduling_id,
-            student_id=saved_payment.student_id,
-            instructor_id=saved_payment.instructor_id,
-            amount=saved_payment.amount,
-            platform_fee_amount=saved_payment.platform_fee_amount,
-            instructor_amount=saved_payment.instructor_amount,
+        # 9. Retornar URL de checkout
+        return CheckoutResponseDTO(
+            payment_id=saved_payment.id,
+            preference_id=checkout_result.preference_id,
+            checkout_url=checkout_result.checkout_url,
+            sandbox_url=checkout_result.sandbox_url,
             status=saved_payment.status.value,
-            gateway_payment_id=saved_payment.gateway_payment_id,
-            created_at=saved_payment.created_at,
-            student_name=student.full_name if student else None,
-            instructor_name=instructor.full_name if instructor else None,
-            scheduling_datetime=scheduling.scheduled_datetime,
         )

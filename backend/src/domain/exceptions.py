@@ -329,6 +329,28 @@ class PaymentAlreadyProcessedException(DomainException):
         )
 
 
+class InvalidWebhookSignatureException(DomainException):
+    """Exceção lançada quando a assinatura do webhook é inválida."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "Assinatura de webhook inválida",
+            "INVALID_WEBHOOK_SIGNATURE"
+        )
+
+
+class WebhookProcessingException(DomainException):
+    """Exceção lançada quando há erro ao processar notificação webhook."""
+
+    def __init__(self, reason: str | None = None) -> None:
+        message = (
+            f"Erro ao processar webhook: {reason}"
+            if reason
+            else "Erro ao processar webhook"
+        )
+        super().__init__(message, "WEBHOOK_PROCESSING_ERROR")
+
+
 # === Chat Exceptions ===
 
 

@@ -32,8 +32,9 @@ class PaymentRepositoryImpl(IPaymentRepository):
         if model:
             # Atualiza campos
             model.status = payment.status
-            model.stripe_payment_intent_id = payment.stripe_payment_intent_id
-            model.stripe_transfer_id = payment.stripe_transfer_id
+            model.gateway_payment_id = payment.gateway_payment_id
+            model.gateway_preference_id = payment.gateway_preference_id
+            model.payer_email = payment.payer_email
             model.refund_amount = payment.refund_amount
             model.refunded_at = payment.refunded_at
             model.updated_at = payment.updated_at
@@ -47,6 +48,14 @@ class PaymentRepositoryImpl(IPaymentRepository):
 
     async def get_by_scheduling_id(self, scheduling_id: UUID) -> Payment | None:
         query = select(PaymentModel).where(PaymentModel.scheduling_id == scheduling_id)
+        result = await self.session.execute(query)
+        model = result.scalar_one_or_none()
+        return model.to_entity() if model else None
+
+    async def get_by_gateway_payment_id(self, gateway_payment_id: str) -> Payment | None:
+        query = select(PaymentModel).where(
+            PaymentModel.gateway_payment_id == gateway_payment_id
+        )
         result = await self.session.execute(query)
         model = result.scalar_one_or_none()
         return model.to_entity() if model else None

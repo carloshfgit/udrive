@@ -14,11 +14,12 @@ from uuid import UUID
 
 
 @dataclass(frozen=True)
-class ProcessPaymentDTO:
-    """DTO para processar pagamento de agendamento."""
+class CreateCheckoutDTO:
+    """DTO para criar checkout do Mercado Pago."""
 
     scheduling_id: UUID
     student_id: UUID
+    student_email: str | None = None
 
 
 @dataclass(frozen=True)
@@ -73,6 +74,20 @@ class OAuthCallbackResponseDTO:
     is_connected: bool
 
 
+# === Webhook DTOs ===
+
+
+@dataclass(frozen=True)
+class WebhookNotificationDTO:
+    """DTO para notificação recebida do webhook Mercado Pago."""
+
+    notification_id: int
+    notification_type: str  # "payment"
+    action: str  # "payment.updated"
+    data_id: str  # ID do pagamento no MP
+    live_mode: bool = True
+
+
 # === Output DTOs ===
 
 
@@ -107,6 +122,17 @@ class PaymentResponseDTO:
     student_name: str | None = None
     instructor_name: str | None = None
     scheduling_datetime: datetime | None = None
+
+
+@dataclass
+class CheckoutResponseDTO:
+    """DTO de resposta do checkout com URL de pagamento."""
+
+    payment_id: UUID
+    preference_id: str
+    checkout_url: str
+    sandbox_url: str | None = None
+    status: str = "processing"
 
 
 @dataclass

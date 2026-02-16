@@ -9,9 +9,10 @@ from .common.logout_user import LogoutUserUseCase
 from .payment import (
     CalculateSplitUseCase,
     ConnectGatewayAccountUseCase,
+    CreateCheckoutUseCase,
     GetInstructorEarningsUseCase,
     GetPaymentHistoryUseCase,
-    ProcessPaymentUseCase,
+    HandlePaymentWebhookUseCase,
     ProcessRefundUseCase,
 )
 from .common.refresh_token import RefreshTokenUseCase
@@ -43,7 +44,8 @@ __all__ = [
     "ManageAvailabilityUseCase",
     # Payment Use Cases
     "CalculateSplitUseCase",
-    "ProcessPaymentUseCase",
+    "CreateCheckoutUseCase",
+    "HandlePaymentWebhookUseCase",
     "ProcessRefundUseCase",
     "GetPaymentHistoryUseCase",
     "ConnectGatewayAccountUseCase",
