@@ -64,6 +64,13 @@ class InstructorProfileModel(Base):
         default=Decimal("80.00"),
         nullable=False,
     )
+    stripe_account_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    
+    # Mercado Pago OAuth
+    mp_access_token: Mapped[str | None] = mapped_column(Text, nullable=True)
+    mp_refresh_token: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    mp_token_expiry: Mapped[datetime | None] = mapped_column(nullable=True)
+    mp_user_id: Mapped[str | None] = mapped_column(String(50), nullable=True)
 
     # Avaliações
     rating: Mapped[float] = mapped_column(
@@ -142,6 +149,11 @@ class InstructorProfileModel(Base):
             total_reviews=self.total_reviews,
             is_available=self.is_available,
             full_name=self.user.full_name if "user" in self.__dict__ and self.user else None,
+            stripe_account_id=self.stripe_account_id,
+            mp_access_token=self.mp_access_token,
+            mp_refresh_token=self.mp_refresh_token,
+            mp_token_expiry=self.mp_token_expiry,
+            mp_user_id=self.mp_user_id,
             created_at=self.created_at,
             updated_at=self.updated_at,
         )
@@ -165,6 +177,11 @@ class InstructorProfileModel(Base):
             rating=profile.rating,
             total_reviews=profile.total_reviews,
             is_available=profile.is_available,
+            stripe_account_id=profile.stripe_account_id,
+            mp_access_token=profile.mp_access_token,
+            mp_refresh_token=profile.mp_refresh_token,
+            mp_token_expiry=profile.mp_token_expiry,
+            mp_user_id=profile.mp_user_id,
             created_at=profile.created_at,
             updated_at=profile.updated_at,
         )

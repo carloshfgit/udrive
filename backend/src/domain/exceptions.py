@@ -307,16 +307,16 @@ class InvalidRefundAmountException(DomainException):
         super().__init__(message, "INVALID_REFUND_AMOUNT")
 
 
-class StripeAccountNotConnectedException(DomainException):
-    """Exceção lançada quando instrutor não tem conta Stripe conectada."""
+class GatewayAccountNotConnectedException(DomainException):
+    """Exceção lançada quando instrutor não tem conta de pagamento conectada."""
 
     def __init__(self, instructor_id: str | None = None) -> None:
         message = (
-            f"Instrutor {instructor_id} não possui conta Stripe conectada"
+            f"Instrutor {instructor_id} não possui conta de pagamento conectada"
             if instructor_id
-            else "Instrutor não possui conta Stripe conectada"
+            else "Instrutor não possui conta de pagamento conectada"
         )
-        super().__init__(message, "STRIPE_ACCOUNT_NOT_CONNECTED")
+        super().__init__(message, "PAYMENT_ACCOUNT_NOT_CONNECTED")
 
 
 class PaymentAlreadyProcessedException(DomainException):

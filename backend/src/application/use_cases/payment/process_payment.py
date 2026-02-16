@@ -11,10 +11,10 @@ from src.application.use_cases.payment.calculate_split import CalculateSplitUseC
 from src.domain.entities.payment import Payment
 from src.domain.entities.transaction import Transaction
 from src.domain.exceptions import (
+    GatewayAccountNotConnectedException,
     PaymentAlreadyProcessedException,
     PaymentFailedException,
     SchedulingNotFoundException,
-    StripeAccountNotConnectedException,
 )
 from src.domain.interfaces.instructor_repository import IInstructorRepository
 from src.domain.interfaces.payment_gateway import IPaymentGateway
@@ -32,11 +32,11 @@ class ProcessPaymentUseCase:
     Fluxo:
         1. Buscar agendamento e validar status (CONFIRMED)
         2. Verificar se já existe pagamento para este agendamento
-        3. Verificar se instrutor tem conta Stripe conectada
+        3. Verificar se instrutor tem conta de pagamento conectada
         4. Calcular split (usar CalculateSplitUseCase)
         5. Criar Payment com status PENDING
-        6. Chamar IPaymentGateway.create_payment_intent com transfer_data
-        7. Atualizar Payment com stripe_payment_intent_id
+        6. Chamar IPaymentGateway.create_checkout
+        7. Atualizar Payment com gateway_payment_id
         8. Criar Transaction do tipo PAYMENT
         9. Retornar PaymentResponseDTO
 
@@ -66,7 +66,7 @@ class ProcessPaymentUseCase:
         Raises:
             SchedulingNotFoundException: Se agendamento não existir.
             PaymentAlreadyProcessedException: Se já existe pagamento.
-            StripeAccountNotConnectedException: Se instrutor sem conta Stripe.
+            GatewayAccountNotConnectedException: Se instrutor sem conta conectada.
             PaymentFailedException: Se falhar no gateway.
         """
         # 1. Buscar e validar agendamento
@@ -85,8 +85,8 @@ class ProcessPaymentUseCase:
         instructor_profile = await self.instructor_repository.get_by_user_id(
             scheduling.instructor_id
         )
-        if instructor_profile is None or not instructor_profile.stripe_account_id:
-            raise StripeAccountNotConnectedException(str(scheduling.instructor_id))
+        if instructor_profile is None or not instructor_profile.has_mp_account:
+            raise GatewayAccountNotConnectedException(str(scheduling.instructor_id))
 
         # 4. Calcular split
         split_result = self.calculate_split_use_case.execute(scheduling.price)
@@ -104,13 +104,21 @@ class ProcessPaymentUseCase:
 
         saved_payment = await self.payment_repository.create(payment)
 
-        # 6. Chamar gateway com split atômico
+        # 6. Chamar gateway para criar checkout
+        # TODO: Na Fase 3, este fluxo será expandido para retornar o init_point do MP
+        # Para a Fase 1, apenas garantimos compatibilidade com a interface
         try:
-            payment_intent_result = await self.payment_gateway.create_payment_intent(
-                amount=scheduling.price,
-                currency="brl",
-                instructor_stripe_account_id=instructor_profile.stripe_account_id,
-                instructor_amount=split_result.instructor_amount,
+            checkout_result = await self.payment_gateway.create_checkout(
+                items=[{
+                    "id": str(dto.scheduling_id),
+                    "title": "Aula de Direção",
+                    "unit_price": scheduling.price,
+                    "quantity": 1
+                }],
+                marketplace_fee=split_result.platform_fee_amount,
+                seller_access_token=instructor_profile.mp_access_token,
+                back_urls={}, # Será definido na Fase 3
+                external_reference=str(dto.scheduling_id),
                 metadata={
                     "scheduling_id": str(dto.scheduling_id),
                     "payment_id": str(saved_payment.id),
@@ -124,8 +132,9 @@ class ProcessPaymentUseCase:
             await self.payment_repository.update(saved_payment)
             raise PaymentFailedException(str(e)) from e
 
-        # 7. Atualizar Payment com stripe_payment_intent_id
-        saved_payment.mark_processing(payment_intent_result.payment_intent_id)
+        # 7. Atualizar Payment com gateway_payment_id (ou preference_id dependendo da estratégia)
+        # No Checkout Pro, usamos o preference_id inicialmente.
+        saved_payment.mark_processing(checkout_result.preference_id)
         saved_payment = await self.payment_repository.update(saved_payment)
 
         # 8. Criar Transaction do tipo PAYMENT
@@ -133,7 +142,7 @@ class ProcessPaymentUseCase:
             payment_id=saved_payment.id,
             student_id=dto.student_id,
             amount=scheduling.price,
-            stripe_reference_id=payment_intent_result.payment_intent_id,
+            gateway_reference_id=checkout_result.preference_id,
         )
         await self.transaction_repository.create(transaction)
 
@@ -150,7 +159,7 @@ class ProcessPaymentUseCase:
             platform_fee_amount=saved_payment.platform_fee_amount,
             instructor_amount=saved_payment.instructor_amount,
             status=saved_payment.status.value,
-            stripe_payment_intent_id=saved_payment.stripe_payment_intent_id,
+            gateway_payment_id=saved_payment.gateway_payment_id,
             created_at=saved_payment.created_at,
             student_name=student.full_name if student else None,
             instructor_name=instructor.full_name if instructor else None,

@@ -42,8 +42,10 @@ class PaymentModel(Base):
     status: Mapped[PaymentStatus] = mapped_column(
         Enum(PaymentStatus), nullable=False, default=PaymentStatus.PENDING, index=True
     )
-    stripe_payment_intent_id: Mapped[str | None] = mapped_column(nullable=True)
-    stripe_transfer_id: Mapped[str | None] = mapped_column(nullable=True)
+    gateway_payment_id: Mapped[str | None] = mapped_column(nullable=True)
+    gateway_preference_id: Mapped[str | None] = mapped_column(nullable=True)
+    gateway_provider: Mapped[str] = mapped_column(nullable=False, default="mercadopago")
+    payer_email: Mapped[str | None] = mapped_column(nullable=True)
     refund_amount: Mapped[float | None] = mapped_column(DECIMAL(10, 2), nullable=True)
     refunded_at: Mapped[datetime | None] = mapped_column(nullable=True)
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
@@ -75,8 +77,10 @@ class PaymentModel(Base):
             platform_fee_amount=self.platform_fee_amount,
             instructor_amount=self.instructor_amount,
             status=self.status,
-            stripe_payment_intent_id=self.stripe_payment_intent_id,
-            stripe_transfer_id=self.stripe_transfer_id,
+            gateway_payment_id=self.gateway_payment_id,
+            gateway_preference_id=self.gateway_preference_id,
+            gateway_provider=self.gateway_provider,
+            payer_email=self.payer_email,
             refund_amount=self.refund_amount,
             refunded_at=self.refunded_at,
             created_at=self.created_at,
@@ -96,8 +100,10 @@ class PaymentModel(Base):
             platform_fee_amount=entity.platform_fee_amount,
             instructor_amount=entity.instructor_amount,
             status=entity.status,
-            stripe_payment_intent_id=entity.stripe_payment_intent_id,
-            stripe_transfer_id=entity.stripe_transfer_id,
+            gateway_payment_id=entity.gateway_payment_id,
+            gateway_preference_id=entity.gateway_preference_id,
+            gateway_provider=entity.gateway_provider,
+            payer_email=entity.payer_email,
             refund_amount=entity.refund_amount,
             refunded_at=entity.refunded_at,
             created_at=entity.created_at,

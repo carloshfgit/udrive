@@ -44,9 +44,12 @@ pre-commit>=3.6.0
 faker>=22.0.0
 passlib[bcrypt]>=1.7.4
 
-# Financial
-stripe>=8.1.0
+# stripe>=8.1.0 # (DEPRECATED — será removido na Fase 5)
+cryptography>=42.0.1
 
 # Admin
 sqladmin[full]>=0.16.0
 itsdangerous>=2.1.2
+
+# Payments
+mercadopago>=2.2.0

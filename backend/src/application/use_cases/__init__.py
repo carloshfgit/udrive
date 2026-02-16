@@ -8,7 +8,7 @@ from .common.login_user import LoginUserUseCase
 from .common.logout_user import LogoutUserUseCase
 from .payment import (
     CalculateSplitUseCase,
-    ConnectStripeAccountUseCase,
+    ConnectGatewayAccountUseCase,
     GetInstructorEarningsUseCase,
     GetPaymentHistoryUseCase,
     ProcessPaymentUseCase,
@@ -46,7 +46,7 @@ __all__ = [
     "ProcessPaymentUseCase",
     "ProcessRefundUseCase",
     "GetPaymentHistoryUseCase",
-    "ConnectStripeAccountUseCase",
+    "ConnectGatewayAccountUseCase",
     "GetInstructorEarningsUseCase",
 ]
 

@@ -510,18 +510,18 @@ preço_total ≈ R$ 100,78
 ## 7. Plano de Execução (Fases)
 
 ### Fase 1: Fundação (Domínio + Infraestrutura)
-- [ ] Refatorar `IPaymentGateway` para interface agnóstica
-- [ ] Refatorar entidades `Payment` e `Transaction` (campos genéricos)
-- [ ] Adicionar campos MP ao `InstructorProfile`
-- [ ] Criar migration Alembic
-- [ ] Adicionar variáveis de configuração MP ao `config.py`
-- [ ] Implementar `MercadoPagoGateway`
+- [x] Refatorar `IPaymentGateway` para interface agnóstica
+- [x] Refatorar entidades `Payment` e `Transaction` (campos genéricos)
+- [x] Adicionar campos MP ao `InstructorProfile`
+- [x] Criar migration Alembic
+- [x] Adicionar variáveis de configuração MP ao `config.py`
+- [x] Implementar `MercadoPagoGateway`
 
 ### Fase 2: OAuth + Onboarding do Instrutor
-- [ ] Implementar endpoint `GET /oauth/mercadopago/authorize`
-- [ ] Implementar endpoint `GET /oauth/mercadopago/callback`
-- [ ] Implementar use cases `oauth_authorize_instructor` e `oauth_callback`
-- [ ] Implementar renovação automática de tokens
+- [x] Implementar endpoint `GET /oauth/mercadopago/authorize`
+- [x] Implementar endpoint `GET /oauth/mercadopago/callback`
+- [x] Implementar use cases `oauth_authorize_instructor` e `oauth_callback`
+- [x] Implementar renovação automática de tokens
 - [ ] Tela no mobile para instrutor vincular conta MP
 
 ### Fase 3: Checkout + Webhooks

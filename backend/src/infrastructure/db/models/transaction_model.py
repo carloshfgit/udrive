@@ -35,7 +35,7 @@ class TransactionModel(Base):
     )
     amount: Mapped[float] = mapped_column(DECIMAL(10, 2), nullable=False)
     description: Mapped[str] = mapped_column(nullable=False)
-    stripe_reference_id: Mapped[str | None] = mapped_column(nullable=True)
+    gateway_reference_id: Mapped[str | None] = mapped_column(nullable=True)
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
 
     # Relacionamentos
@@ -51,7 +51,7 @@ class TransactionModel(Base):
             type=self.type,
             amount=self.amount,
             description=self.description,
-            stripe_reference_id=self.stripe_reference_id,
+            gateway_reference_id=self.gateway_reference_id,
             created_at=self.created_at,
         )
 
@@ -65,6 +65,6 @@ class TransactionModel(Base):
             type=entity.type,
             amount=entity.amount,
             description=entity.description,
-            stripe_reference_id=entity.stripe_reference_id,
+            gateway_reference_id=entity.gateway_reference_id,
             created_at=entity.created_at,
         )

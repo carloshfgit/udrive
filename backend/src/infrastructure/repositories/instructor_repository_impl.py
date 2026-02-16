@@ -155,6 +155,12 @@ class InstructorRepositoryImpl(IInstructorRepository):
         model.total_reviews = profile.total_reviews
         model.is_available = profile.is_available
 
+        # Atualizar campos Mercado Pago OAuth
+        model.mp_access_token = profile.mp_access_token
+        model.mp_refresh_token = profile.mp_refresh_token
+        model.mp_token_expiry = profile.mp_token_expiry
+        model.mp_user_id = profile.mp_user_id
+
         # Atualizar localização
         if profile.location:
             model.location = f"SRID=4326;{profile.location.to_wkt()}"

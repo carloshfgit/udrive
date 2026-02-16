@@ -1,7 +1,7 @@
 """
 IPaymentGateway Interface
 
-Interface abstrata para gateway de pagamento (Stripe).
+Interface abstrata para gateway de pagamento agnóstico.
 """
 
 from abc import ABC, abstractmethod
@@ -11,21 +11,37 @@ from uuid import UUID
 
 
 @dataclass
-class PaymentIntentResult:
+class CheckoutResult:
     """
-    Resultado da criação de um PaymentIntent.
+    Resultado da criação de um checkout.
 
     Attributes:
-        payment_intent_id: ID do PaymentIntent no Stripe.
-        client_secret: Client secret para confirmar pagamento no frontend.
-        status: Status do PaymentIntent.
-        transfer_id: ID do Transfer (se aplicável).
+        preference_id: ID da preferência/sessão no gateway.
+        checkout_url: URL para redirecionar o usuário para o pagamento.
+        sandbox_url: URL de teste (opcional).
     """
 
-    payment_intent_id: str
-    client_secret: str
+    preference_id: str
+    checkout_url: str
+    sandbox_url: str | None = None
+
+
+@dataclass
+class PaymentStatusResult:
+    """
+    Resultado da consulta de status de pagamento.
+
+    Attributes:
+        payment_id: ID do pagamento no gateway.
+        status: Status resumido (approved, pending, rejected, etc).
+        status_detail: Detalhes do status.
+        payer_email: Email do pagador.
+    """
+
+    payment_id: str
     status: str
-    transfer_id: str | None = None
+    status_detail: str
+    payer_email: str | None = None
 
 
 @dataclass
@@ -34,9 +50,9 @@ class RefundResult:
     Resultado do processamento de reembolso.
 
     Attributes:
-        refund_id: ID do Refund no Stripe.
+        refund_id: ID do reembolso no gateway.
         amount: Valor reembolsado.
-        status: Status do reembolso.
+        status: Status do reembolso (succeeded, pending, etc).
     """
 
     refund_id: str
@@ -45,84 +61,100 @@ class RefundResult:
 
 
 @dataclass
-class ConnectedAccountResult:
+class OAuthResult:
     """
-    Resultado da criação de conta conectada.
+    Resultado da autorização OAuth de um vendedor.
 
     Attributes:
-        account_id: ID da conta no Stripe.
-        onboarding_url: URL para completar onboarding.
+        access_token: Token de acesso do vendedor.
+        refresh_token: Token de renovação.
+        expires_in: Segundos para expiração.
+        user_id: ID do usuário no gateway.
+        scope: Escopo de permissões.
     """
 
-    account_id: str
-    onboarding_url: str | None = None
+    access_token: str
+    refresh_token: str
+    expires_in: int
+    user_id: str
+    scope: str
 
 
 class IPaymentGateway(ABC):
     """
     Interface abstrata para gateway de pagamento.
 
-    Define operações de integração com Stripe para pagamentos,
-    reembolsos e onboarding de instrutores.
+    Define operações agnósticas para pagamentos, reembolsos
+    e autorização de vendedores (OAuth).
     """
 
     @abstractmethod
-    async def create_payment_intent(
+    async def create_checkout(
         self,
-        amount: Decimal,
-        currency: str,
-        instructor_stripe_account_id: str,
-        instructor_amount: Decimal,
+        items: list[dict],
+        marketplace_fee: Decimal,
+        seller_access_token: str,
+        back_urls: dict[str, str],
+        payer: dict[str, str | dict] | None = None,
+        statement_descriptor: str | None = None,
+        external_reference: str | None = None,
         metadata: dict | None = None,
-    ) -> PaymentIntentResult:
+        notification_url: str | None = None,
+    ) -> CheckoutResult:
         """
-        Cria um PaymentIntent com split atômico.
-
-        O pagamento é dividido atomicamente entre a plataforma e o instrutor
-        usando transfer_data do Stripe.
+        Cria uma preferência de checkout no gateway.
 
         Args:
-            amount: Valor total em centavos.
-            currency: Código da moeda (ex: 'brl').
-            instructor_stripe_account_id: ID da conta Stripe do instrutor.
-            instructor_amount: Valor a ser transferido ao instrutor.
+            items: Lista de itens com campos obrigatórios do Quality Checklist:
+                - id, title, description, category_id, quantity, unit_price.
+            marketplace_fee: Valor da comissão da plataforma.
+            seller_access_token: Token do vendedor (Split).
+            back_urls: URLs de retorno (success, failure, pending).
+            payer: Dados do pagador (email, first_name, last_name,
+                identification, phone, address). Melhora taxa de aprovação.
+            statement_descriptor: Descrição na fatura do cartão. Reduz
+                contestações/chargebacks.
+            external_reference: Referência externa para rastreamento.
             metadata: Metadados adicionais.
+            notification_url: URL para receber webhooks.
 
         Returns:
-            PaymentIntentResult com IDs e client_secret.
+            CheckoutResult com URL de redirecionamento.
         """
         ...
 
     @abstractmethod
-    async def confirm_payment_intent(
+    async def get_payment_status(
         self,
-        payment_intent_id: str,
-    ) -> PaymentIntentResult:
+        payment_id: str,
+        access_token: str,
+    ) -> PaymentStatusResult:
         """
-        Confirma um PaymentIntent.
+        Consulta o status de um pagamento.
 
         Args:
-            payment_intent_id: ID do PaymentIntent.
+            payment_id: ID do pagamento no gateway.
+            access_token: Token para autorizar a consulta.
 
         Returns:
-            PaymentIntentResult atualizado.
+            PaymentStatusResult com detalhes do status.
         """
         ...
 
     @abstractmethod
     async def process_refund(
         self,
-        payment_intent_id: str,
-        amount: Decimal,
-        reason: str | None = None,
+        payment_id: str,
+        access_token: str,
+        amount: Decimal | None = None,
     ) -> RefundResult:
         """
         Processa reembolso de um pagamento.
 
         Args:
-            payment_intent_id: ID do PaymentIntent original.
-            amount: Valor a reembolsar em centavos.
-            reason: Motivo do reembolso.
+            payment_id: ID do pagamento original.
+            access_token: Token para autorizar o reembolso.
+            amount: Valor a reembolsar (None para total).
 
         Returns:
             RefundResult com status do reembolso.
@@ -130,55 +162,35 @@ class IPaymentGateway(ABC):
         ...
 
     @abstractmethod
-    async def create_connected_account(
+    async def authorize_seller(
         self,
-        email: str,
-        instructor_id: UUID,
-    ) -> ConnectedAccountResult:
+        authorization_code: str,
+        redirect_uri: str,
+    ) -> OAuthResult:
         """
-        Cria conta conectada para instrutor (Stripe Connect).
+        Troca código de autorização por tokens (OAuth).
 
         Args:
-            email: Email do instrutor.
-            instructor_id: ID do instrutor no sistema.
+            authorization_code: Código recebido no callback.
+            redirect_uri: URI de redirecionamento usada no início.
 
         Returns:
-            ConnectedAccountResult com ID da conta.
+            OAuthResult com tokens do vendedor.
         """
         ...
 
     @abstractmethod
-    async def create_account_link(
+    async def refresh_seller_token(
         self,
-        account_id: str,
-        refresh_url: str,
-        return_url: str,
-    ) -> str:
+        refresh_token: str,
+    ) -> OAuthResult:
         """
-        Cria link de onboarding para conta conectada.
+        Renova tokens expirados usando refresh_token.
 
         Args:
-            account_id: ID da conta Stripe.
-            refresh_url: URL para refresh do link.
-            return_url: URL de retorno após onboarding.
+            refresh_token: Token de renovação.
 
         Returns:
-            URL de onboarding.
-        """
-        ...
-
-    @abstractmethod
-    async def get_account_status(
-        self,
-        account_id: str,
-    ) -> dict:
-        """
-        Obtém status da conta conectada.
-
-        Args:
-            account_id: ID da conta Stripe.
-
-        Returns:
-            Dicionário com informações de status.
+            OAuthResult com novos tokens.
         """
         ...

@@ -29,6 +29,7 @@ dependencies = [
     "stripe>=8.1.0",
     "sqladmin[full]>=0.16.0",
     "itsdangerous>=2.1.2",
+    "mercadopago>=2.2.0",
 ]
 
 [project.optional-dependencies]

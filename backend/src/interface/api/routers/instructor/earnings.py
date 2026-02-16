@@ -8,17 +8,18 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.dtos.payment_dtos import (
-    ConnectStripeAccountDTO,
+    ConnectGatewayAccountDTO,
     InstructorEarningsDTO,
-    StripeConnectResponseDTO,
+    GatewayConnectResponseDTO,
 )
 from src.application.use_cases.payment import (
-    ConnectStripeAccountUseCase,
+    ConnectGatewayAccountUseCase,
     GetInstructorEarningsUseCase,
 )
 from src.domain.exceptions import InstructorNotFoundException, UserNotFoundException
 from src.infrastructure.db.database import get_db
-from src.infrastructure.external.stripe_gateway import StripePaymentGateway
+from src.infrastructure.config import Settings
+from src.infrastructure.external.mercadopago_gateway import MercadoPagoGateway
 from src.infrastructure.repositories.payment_repository_impl import (
     PaymentRepositoryImpl,
 )
@@ -28,22 +29,22 @@ router = APIRouter(tags=["Instructor - Earnings"])
 
 
 @router.post(
-    "/stripe/connect",
-    response_model=StripeConnectResponseDTO,
-    summary="Conectar conta Stripe",
-    description="Gera link de onboarding para conta Stripe Connect do instrutor.",
+    "/gateway/connect",
+    response_model=GatewayConnectResponseDTO,
+    summary="Conectar conta de pagamento",
+    description="Gera link de redirecionamento para autorização da conta de pagamento do instrutor.",
 )
-async def connect_stripe_account(
-    dto: ConnectStripeAccountDTO,
+async def connect_gateway_account(
+    dto: ConnectGatewayAccountDTO,
     current_user: CurrentInstructor,
     user_repo: UserRepo,
     instructor_repo: InstructorRepo,
-) -> StripeConnectResponseDTO:
-    """Conecta conta Stripe."""
-    payment_gateway = StripePaymentGateway()
+) -> GatewayConnectResponseDTO:
+    """Conecta conta de pagamento."""
+    settings = Settings()
+    payment_gateway = MercadoPagoGateway(settings)
 
-    use_case = ConnectStripeAccountUseCase(
-        user_repository=user_repo,
+    use_case = ConnectGatewayAccountUseCase(
         instructor_repository=instructor_repo,
         payment_gateway=payment_gateway,
     )

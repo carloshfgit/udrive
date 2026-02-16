@@ -40,13 +40,37 @@ class GetPaymentHistoryDTO:
 
 
 @dataclass(frozen=True)
-class ConnectStripeAccountDTO:
-    """DTO para conectar conta Stripe do instrutor."""
+class ConnectGatewayAccountDTO:
+    """DTO para conectar conta de pagamento do instrutor."""
 
     instructor_id: UUID
     email: str
     refresh_url: str
     return_url: str
+
+
+@dataclass(frozen=True)
+class OAuthCallbackDTO:
+    """DTO para processar callback OAuth do Mercado Pago."""
+
+    code: str
+    state: str  # instructor user_id (encrypted)
+
+
+@dataclass
+class OAuthAuthorizeResponseDTO:
+    """DTO de resposta com URL de autorização OAuth."""
+
+    authorization_url: str
+    state: str
+
+
+@dataclass
+class OAuthCallbackResponseDTO:
+    """DTO de resposta após callback OAuth."""
+
+    mp_user_id: str
+    is_connected: bool
 
 
 # === Output DTOs ===
@@ -74,7 +98,7 @@ class PaymentResponseDTO:
     platform_fee_amount: Decimal
     instructor_amount: Decimal
     status: str
-    stripe_payment_intent_id: str | None = None
+    gateway_payment_id: str | None = None
     refund_amount: Decimal | None = None
     refunded_at: datetime | None = None
     created_at: datetime | None = None
@@ -108,8 +132,8 @@ class PaymentHistoryResponseDTO:
 
 
 @dataclass
-class StripeConnectResponseDTO:
-    """DTO de resposta para conexão Stripe Connect."""
+class GatewayConnectResponseDTO:
+    """DTO de resposta para conexão de conta de pagamento."""
 
     account_id: str
     onboarding_url: str

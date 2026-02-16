@@ -16,10 +16,11 @@ from src.domain.exceptions import (
     DomainException,
     PaymentAlreadyProcessedException,
     SchedulingNotFoundException,
-    StripeAccountNotConnectedException,
+    GatewayAccountNotConnectedException,
 )
 from src.infrastructure.db.database import get_db
-from src.infrastructure.external.stripe_gateway import StripePaymentGateway
+from src.infrastructure.config import Settings
+from src.infrastructure.external.mercadopago_gateway import MercadoPagoGateway
 from src.infrastructure.repositories.instructor_repository_impl import (
     InstructorRepositoryImpl,
 )
@@ -43,7 +44,7 @@ router = APIRouter(prefix="/payments", tags=["Student - Payments"])
     response_model=PaymentResponseDTO,
     status_code=status.HTTP_201_CREATED,
     summary="Processar pagamento de aula",
-    description="Inicia o processo de pagamento utilizando Stripe com split atômico.",
+    description="Inicia o processo de pagamento utilizando o gateway configurado (ex: Mercado Pago).",
 )
 async def checkout(
     dto: ProcessPaymentDTO,
@@ -60,7 +61,8 @@ async def checkout(
     transaction_repo = TransactionRepositoryImpl(db)
     instructor_repo = InstructorRepositoryImpl(db)
     user_repo = UserRepositoryImpl(db)
-    payment_gateway = StripePaymentGateway()
+    settings = Settings()
+    payment_gateway = MercadoPagoGateway(settings)
     calculate_split = CalculateSplitUseCase()
 
     use_case = ProcessPaymentUseCase(
@@ -86,7 +88,7 @@ async def checkout(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
     except (
         PaymentAlreadyProcessedException,
-        StripeAccountNotConnectedException,
+        GatewayAccountNotConnectedException,
     ) as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
     except DomainException as e:

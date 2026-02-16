@@ -43,7 +43,14 @@ class InstructorProfile:
     is_available: bool = True
     full_name: str | None = None
     biological_sex: str | None = None
-    stripe_account_id: str | None = None  # ID da conta Stripe Connect
+    stripe_account_id: str | None = None  # DEPRECATED: Usar credenciais MP
+    
+    # Mercado Pago OAuth
+    mp_access_token: str | None = None
+    mp_refresh_token: str | None = None
+    mp_token_expiry: datetime | None = None
+    mp_user_id: str | None = None
+
     id: UUID = field(default_factory=uuid4)
     created_at: datetime = field(default_factory=datetime.utcnow)
     updated_at: datetime | None = None
@@ -129,3 +136,8 @@ class InstructorProfile:
     def has_location(self) -> bool:
         """Verifica se o instrutor tem localização definida."""
         return self.location is not None
+
+    @property
+    def has_mp_account(self) -> bool:
+        """Verifica se o instrutor tem conta Mercado Pago vinculada."""
+        return self.mp_access_token is not None

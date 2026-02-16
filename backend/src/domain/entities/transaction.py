@@ -25,7 +25,7 @@ class Transaction:
         type: Tipo da transação.
         amount: Valor da transação em BRL.
         description: Descrição da transação.
-        stripe_reference_id: ID de referência no Stripe.
+        gateway_reference_id: ID de referência no gateway de pagamento.
     """
 
     payment_id: UUID
@@ -33,7 +33,7 @@ class Transaction:
     type: TransactionType
     amount: Decimal
     description: str
-    stripe_reference_id: str | None = None
+    gateway_reference_id: str | None = None
     id: UUID = field(default_factory=uuid4)
     created_at: datetime = field(default_factory=datetime.utcnow)
 
@@ -63,7 +63,7 @@ class Transaction:
         payment_id: UUID,
         student_id: UUID,
         amount: Decimal,
-        stripe_reference_id: str | None = None,
+        gateway_reference_id: str | None = None,
     ) -> "Transaction":
         """
         Factory method para criar transação de pagamento.
@@ -72,7 +72,7 @@ class Transaction:
             payment_id: ID do pagamento.
             student_id: ID do aluno.
             amount: Valor do pagamento.
-            stripe_reference_id: ID de referência no Stripe.
+            gateway_reference_id: ID de referência no gateway.
 
         Returns:
             Transaction de tipo PAYMENT.
@@ -83,7 +83,7 @@ class Transaction:
             type=TransactionType.PAYMENT,
             amount=amount,
             description="Pagamento de aula",
-            stripe_reference_id=stripe_reference_id,
+            gateway_reference_id=gateway_reference_id,
         )
 
     @classmethod
@@ -92,7 +92,7 @@ class Transaction:
         payment_id: UUID,
         student_id: UUID,
         amount: Decimal,
-        stripe_reference_id: str | None = None,
+        gateway_reference_id: str | None = None,
     ) -> "Transaction":
         """
         Factory method para criar transação de reembolso.
@@ -101,7 +101,7 @@ class Transaction:
             payment_id: ID do pagamento.
             student_id: ID do aluno.
             amount: Valor do reembolso.
-            stripe_reference_id: ID de referência no Stripe.
+            gateway_reference_id: ID de referência no gateway.
 
         Returns:
             Transaction de tipo REFUND.
@@ -112,7 +112,7 @@ class Transaction:
             type=TransactionType.REFUND,
             amount=amount,
             description="Reembolso de aula",
-            stripe_reference_id=stripe_reference_id,
+            gateway_reference_id=gateway_reference_id,
         )
 
     @classmethod
@@ -121,7 +121,7 @@ class Transaction:
         payment_id: UUID,
         instructor_id: UUID,
         amount: Decimal,
-        stripe_reference_id: str | None = None,
+        gateway_reference_id: str | None = None,
     ) -> "Transaction":
         """
         Factory method para criar transação de repasse ao instrutor.
@@ -130,7 +130,7 @@ class Transaction:
             payment_id: ID do pagamento.
             instructor_id: ID do instrutor.
             amount: Valor do repasse.
-            stripe_reference_id: ID de referência no Stripe.
+            gateway_reference_id: ID de referência no gateway.
 
         Returns:
             Transaction de tipo INSTRUCTOR_PAYOUT.
@@ -141,5 +141,5 @@ class Transaction:
             type=TransactionType.INSTRUCTOR_PAYOUT,
             amount=amount,
             description="Repasse de aula",
-            stripe_reference_id=stripe_reference_id,
+            gateway_reference_id=gateway_reference_id,
         )

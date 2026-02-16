@@ -13,7 +13,7 @@ class PaymentStatus(str, Enum):
 
     Attributes:
         PENDING: Aguardando confirmação do gateway.
-        PROCESSING: Em processamento no Stripe.
+        PROCESSING: Em processamento no gateway.
         COMPLETED: Pagamento concluído com sucesso.
         FAILED: Falha no pagamento.
         REFUNDED: Reembolsado totalmente.

@@ -29,8 +29,10 @@ class Payment:
         platform_fee_amount: Valor da taxa da plataforma.
         instructor_amount: Valor líquido do instrutor.
         status: Status do pagamento.
-        stripe_payment_intent_id: ID do PaymentIntent no Stripe.
-        stripe_transfer_id: ID do Transfer no Stripe.
+        gateway_payment_id: ID do pagamento no gateway (ex: PaymentIntent ID ou MP Payment ID).
+        gateway_preference_id: ID da preferência/sessão no gateway.
+        gateway_provider: Provedor de pagamento (ex: 'mercadopago', 'stripe').
+        payer_email: Email do pagador retornado pelo gateway.
         refund_amount: Valor reembolsado (se aplicável).
         refunded_at: Data/hora do reembolso (se aplicável).
     """
@@ -39,12 +41,14 @@ class Payment:
     student_id: UUID
     instructor_id: UUID
     amount: Decimal
-    platform_fee_percentage: Decimal = Decimal("15.00")  # 15% padrão
+    platform_fee_percentage: Decimal = Decimal("20.00")  # 20% padrão conforme PAYMENT_FLOW.md
     platform_fee_amount: Decimal = Decimal("0.00")
     instructor_amount: Decimal = Decimal("0.00")
     status: PaymentStatus = PaymentStatus.PENDING
-    stripe_payment_intent_id: str | None = None
-    stripe_transfer_id: str | None = None
+    gateway_payment_id: str | None = None
+    gateway_preference_id: str | None = None
+    gateway_provider: str = "mercadopago"
+    payer_email: str | None = None
     refund_amount: Decimal | None = None
     refunded_at: datetime | None = None
     id: UUID = field(default_factory=uuid4)
@@ -118,35 +122,35 @@ class Payment:
 
         return self.refund_amount
 
-    def mark_processing(self, stripe_payment_intent_id: str) -> None:
+    def mark_processing(self, gateway_payment_id: str) -> None:
         """
         Marca o pagamento como em processamento.
 
         Args:
-            stripe_payment_intent_id: ID do PaymentIntent no Stripe.
+            gateway_payment_id: ID do pagamento no gateway.
         """
         if self.status != PaymentStatus.PENDING:
             raise ValueError(
                 f"Pagamento não pode ser processado. Status atual: {self.status}"
             )
 
-        self.stripe_payment_intent_id = stripe_payment_intent_id
+        self.gateway_payment_id = gateway_payment_id
         self.status = PaymentStatus.PROCESSING
         self.updated_at = datetime.utcnow()
 
-    def mark_completed(self, stripe_transfer_id: str | None = None) -> None:
+    def mark_completed(self, gateway_preference_id: str | None = None) -> None:
         """
         Marca o pagamento como concluído.
 
         Args:
-            stripe_transfer_id: ID do Transfer no Stripe.
+            gateway_preference_id: ID da preferência/sessão no gateway.
         """
         if self.status != PaymentStatus.PROCESSING:
             raise ValueError(
                 f"Pagamento não pode ser concluído. Status atual: {self.status}"
             )
 
-        self.stripe_transfer_id = stripe_transfer_id
+        self.gateway_preference_id = gateway_preference_id
         self.status = PaymentStatus.COMPLETED
         self.updated_at = datetime.utcnow()
 
