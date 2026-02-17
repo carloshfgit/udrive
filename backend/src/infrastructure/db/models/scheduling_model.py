@@ -145,6 +145,12 @@ class SchedulingModel(Base):
         uselist=False,
         cascade="all, delete-orphan",
     )
+    review = relationship(
+        "ReviewModel",
+        back_populates="scheduling",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
 
     # Índices
     __table_args__ = (

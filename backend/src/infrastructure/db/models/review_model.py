@@ -71,7 +71,7 @@ class ReviewModel(Base):
     )
 
     # Relacionamentos
-    scheduling = relationship("SchedulingModel", backref="review")
+    scheduling = relationship("SchedulingModel", back_populates="review")
     student = relationship("UserModel", foreign_keys=[student_id])
     instructor = relationship("UserModel", foreign_keys=[instructor_id])
 

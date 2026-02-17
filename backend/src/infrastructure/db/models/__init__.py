@@ -10,6 +10,7 @@ from .refresh_token_model import RefreshTokenModel
 from .review_model import ReviewModel
 from .scheduling_model import SchedulingModel
 from .student_profile_model import StudentProfileModel
+from .transaction_model import TransactionModel
 from .user_model import UserModel
 
 __all__ = [
@@ -20,5 +21,6 @@ __all__ = [
     "SchedulingModel",
     "AvailabilityModel",
     "ReviewModel",
+    "TransactionModel",
 ]
 
