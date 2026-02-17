@@ -23,6 +23,19 @@ from src.domain.exceptions import (
 from src.domain.interfaces.payment_gateway import CheckoutResult, PaymentStatusResult
 
 
+@pytest.fixture(autouse=True)
+def _bypass_decrypt(monkeypatch):
+    """Bypass de criptografia: decrypt_token retorna o valor inalterado."""
+    monkeypatch.setattr(
+        "src.application.use_cases.payment.create_checkout.decrypt_token",
+        lambda t: t,
+    )
+    monkeypatch.setattr(
+        "src.application.use_cases.payment.handle_payment_webhook.decrypt_token",
+        lambda t: t,
+    )
+
+
 @pytest.fixture
 def mock_repositories():
     return {
@@ -198,6 +211,7 @@ class TestHandlePaymentWebhookUseCase:
         
         instructor = MagicMock()
         instructor.has_mp_account = True
+        instructor.mp_access_token = "fake-token"
         mock_repositories["instructor"].get_by_user_id.return_value = instructor
         
         mock_gateway.get_payment_status.return_value = PaymentStatusResult(

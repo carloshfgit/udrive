@@ -18,6 +18,7 @@ from src.domain.interfaces.payment_gateway import IPaymentGateway
 from src.domain.interfaces.payment_repository import IPaymentRepository
 from src.domain.interfaces.scheduling_repository import ISchedulingRepository
 from src.domain.interfaces.transaction_repository import ITransactionRepository
+from src.infrastructure.services.token_encryption import decrypt_token
 
 logger = logging.getLogger(__name__)
 
@@ -112,7 +113,7 @@ class HandlePaymentWebhookUseCase:
         try:
             status_result = await self.payment_gateway.get_payment_status(
                 payment_id=mp_payment_id,
-                access_token=instructor_profile.mp_access_token,
+                access_token=decrypt_token(instructor_profile.mp_access_token),
             )
         except Exception as e:
             logger.error(

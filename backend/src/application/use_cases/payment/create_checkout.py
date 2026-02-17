@@ -22,6 +22,7 @@ from src.domain.interfaces.instructor_repository import IInstructorRepository
 from src.domain.interfaces.payment_gateway import IPaymentGateway
 from src.domain.interfaces.payment_repository import IPaymentRepository
 from src.domain.interfaces.scheduling_repository import ISchedulingRepository
+from src.infrastructure.services.token_encryption import decrypt_token
 from src.domain.interfaces.transaction_repository import ITransactionRepository
 from src.infrastructure.config import Settings
 
@@ -132,7 +133,7 @@ class CreateCheckoutUseCase:
                     }
                 ],
                 marketplace_fee=split_result.platform_fee_amount,
-                seller_access_token=instructor_profile.mp_access_token,
+                seller_access_token=decrypt_token(instructor_profile.mp_access_token),
                 back_urls=BACK_URLS,
                 payer=payer,
                 statement_descriptor="GODRIVE AULA",

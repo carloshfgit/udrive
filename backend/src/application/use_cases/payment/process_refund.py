@@ -18,6 +18,7 @@ from src.domain.interfaces.instructor_repository import IInstructorRepository
 from src.domain.interfaces.payment_gateway import IPaymentGateway
 from src.domain.interfaces.payment_repository import IPaymentRepository
 from src.domain.interfaces.transaction_repository import ITransactionRepository
+from src.infrastructure.services.token_encryption import decrypt_token
 
 
 @dataclass
@@ -93,7 +94,7 @@ class ProcessRefundUseCase:
         try:
             refund_result = await self.payment_gateway.process_refund(
                 payment_id=payment.gateway_payment_id,
-                access_token=instructor_profile.mp_access_token,
+                access_token=decrypt_token(instructor_profile.mp_access_token),
                 amount=refund_amount,
             )
         except Exception as e:
