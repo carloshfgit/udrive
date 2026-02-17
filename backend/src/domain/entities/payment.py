@@ -41,7 +41,7 @@ class Payment:
     student_id: UUID
     instructor_id: UUID
     amount: Decimal
-    platform_fee_percentage: Decimal = Decimal("20.00")  # 20% padrão conforme PAYMENT_FLOW.md
+    platform_fee_percentage: Decimal # Removido valor padrão para forçar derivação do checkout/settings
     platform_fee_amount: Decimal = Decimal("0.00")
     instructor_amount: Decimal = Decimal("0.00")
     status: PaymentStatus = PaymentStatus.PENDING

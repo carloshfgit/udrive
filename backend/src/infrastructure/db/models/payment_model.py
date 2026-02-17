@@ -40,7 +40,14 @@ class PaymentModel(Base):
     platform_fee_amount: Mapped[float] = mapped_column(DECIMAL(10, 2), nullable=False)
     instructor_amount: Mapped[float] = mapped_column(DECIMAL(10, 2), nullable=False)
     status: Mapped[PaymentStatus] = mapped_column(
-        Enum(PaymentStatus), nullable=False, default=PaymentStatus.PENDING, index=True
+        Enum(
+            PaymentStatus,
+            name="paymentstatus",
+            values_callable=lambda obj: [e.value for e in obj],
+        ),
+        nullable=False,
+        default=PaymentStatus.PENDING,
+        index=True,
     )
     gateway_payment_id: Mapped[str | None] = mapped_column(nullable=True)
     gateway_preference_id: Mapped[str | None] = mapped_column(nullable=True)

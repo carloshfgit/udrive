@@ -426,6 +426,10 @@ class InstructorRepositoryImpl(IInstructorRepository):
             rating=float(model.rating),
             total_reviews=model.total_reviews,
             is_available=model.is_available,
+            mp_access_token=model.mp_access_token,
+            mp_refresh_token=model.mp_refresh_token,
+            mp_token_expiry=model.mp_token_expiry,
+            mp_user_id=model.mp_user_id,
             created_at=model.created_at,
             updated_at=model.updated_at,
         )

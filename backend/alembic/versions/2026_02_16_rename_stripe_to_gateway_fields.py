@@ -23,8 +23,8 @@ def upgrade() -> None:
     op.add_column('payments', sa.Column('gateway_provider', sa.String(), nullable=False, server_default='mercadopago'))
     op.add_column('payments', sa.Column('payer_email', sa.String(), nullable=True))
 
-    # 2. Update Transactions table
-    op.alter_column('transactions', 'stripe_reference_id', new_column_name='gateway_reference_id')
+#    # 2. Update Transactions table
+#    op.alter_column('transactions', 'stripe_reference_id', new_column_name='gateway_reference_id')
 
     # 3. Update Instructor Profiles table
     # stripe_account_id was missing in DB, adding it as deprecated
@@ -42,8 +42,8 @@ def downgrade() -> None:
     op.alter_column('payments', 'gateway_preference_id', new_column_name='stripe_transfer_id')
     op.alter_column('payments', 'gateway_payment_id', new_column_name='stripe_payment_intent_id')
 
-    # 2. Revert Transactions table
-    op.alter_column('transactions', 'gateway_reference_id', new_column_name='stripe_reference_id')
+#    # 2. Revert Transactions table
+#    op.alter_column('transactions', 'gateway_reference_id', new_column_name='stripe_reference_id')
 
     # 3. Revert Instructor Profiles table
     op.drop_column('instructor_profiles', 'mp_user_id')
