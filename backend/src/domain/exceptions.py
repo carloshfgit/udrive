@@ -189,6 +189,19 @@ class InvalidSchedulingStateException(DomainException):
         super().__init__(message, "INVALID_SCHEDULING_STATE")
 
 
+class CancellationException(DomainException):
+    """Exceção lançada quando o cancelamento não é permitido."""
+
+    def __init__(self, reason: str | None = None) -> None:
+        message = (
+            f"Cancelamento não permitido: {reason}"
+            if reason
+            else "Cancelamento não permitido"
+        )
+        super().__init__(message, "CANCELLATION_NOT_ALLOWED")
+
+
+
 class LessonNotFinishedException(DomainException):
     """Exceção lançada quando tenta concluir uma aula que ainda não acabou."""
 

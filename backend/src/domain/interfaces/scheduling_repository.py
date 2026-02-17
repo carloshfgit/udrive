@@ -266,3 +266,21 @@ class ISchedulingRepository(ABC):
         """
         ...
 
+    @abstractmethod
+    async def get_overdue_confirmed(
+        self, hours_threshold: int = 24
+    ) -> list[Scheduling]:
+        """
+        Busca agendamentos confirmados cujo término excedeu o threshold.
+
+        Retorna aulas com status CONFIRMED que já terminaram há mais de
+        `hours_threshold` horas e que o aluno não confirmou conclusão.
+
+        Args:
+            hours_threshold: Horas após o término da aula.
+
+        Returns:
+            Lista de agendamentos pendentes de auto-confirmação.
+        """
+        ...
+

@@ -176,3 +176,24 @@ class InstructorEarningsDTO:
     completed_lessons: int
     period_start: datetime | None = None
     period_end: datetime | None = None
+
+
+@dataclass(frozen=True)
+class CancelSchedulingDTO:
+    """DTO para cancelar agendamento com reembolso automático."""
+
+    scheduling_id: UUID
+    cancelled_by: UUID  # ID do usuário que está cancelando
+    reason: str | None = None
+
+
+@dataclass
+class CancelSchedulingResultDTO:
+    """DTO de resultado do cancelamento com reembolso."""
+
+    scheduling_id: UUID
+    status: str  # "cancelled"
+    refund_percentage: int
+    refund_amount: Decimal | None = None
+    refund_status: str | None = None  # "approved" / None se 0%
+

@@ -434,3 +434,41 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
         result = await self._session.execute(stmt)
         return [row[0] for row in result.all()]
 
+    async def get_overdue_confirmed(
+        self, hours_threshold: int = 24
+    ) -> list[Scheduling]:
+        """
+        Busca agendamentos confirmados cujo término excedeu hours_threshold
+        e que o aluno não confirmou conclusão (student_confirmed_at IS NULL).
+        """
+        from datetime import datetime, timedelta, timezone
+
+        now = datetime.now(timezone.utc)
+        cutoff = now - timedelta(hours=hours_threshold)
+
+        # end_datetime = scheduled_datetime + duration_minutes
+        end_expr = SchedulingModel.scheduled_datetime + func.make_interval(
+            0, 0, 0, 0, 0, SchedulingModel.duration_minutes
+        )
+
+        stmt = (
+            select(SchedulingModel)
+            .where(
+                SchedulingModel.status == SchedulingStatus.CONFIRMED,
+                SchedulingModel.student_confirmed_at.is_(None),
+                end_expr <= cutoff,
+            )
+            .options(
+                joinedload(SchedulingModel.student).load_only(
+                    UserModel.id, UserModel.full_name
+                ),
+                joinedload(SchedulingModel.instructor).options(
+                    load_only(UserModel.id, UserModel.full_name),
+                    joinedload(UserModel.instructor_profile),
+                ),
+                joinedload(SchedulingModel.review),
+            )
+        )
+
+        result = await self._session.execute(stmt)
+        return [row.to_entity() for row in result.unique().scalars().all()]

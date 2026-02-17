@@ -67,9 +67,10 @@ class Scheduling:
         """
         Calcula o percentual de reembolso baseado na regra de cancelamento.
 
-        Regras:
-            - > 24h antes da aula: 100% reembolso
-            - < 24h antes da aula: 50% reembolso (multa de 50%)
+        Regras (PAYMENT_FLOW.md):
+            - >= 48h antes da aula: 100% reembolso integral
+            - entre 24h e 48h: 50% reembolso (retenção de 50% como taxa)
+            - < 24h: 0% sem direito a reembolso
 
         Returns:
             Percentual de reembolso (0-100).
@@ -84,9 +85,11 @@ class Scheduling:
         time_until_lesson = lesson_datetime - now
         hours_until_lesson = time_until_lesson.total_seconds() / 3600
 
-        if hours_until_lesson > 24:
+        if hours_until_lesson >= 48:
             return 100
-        return 50
+        elif hours_until_lesson >= 24:
+            return 50
+        return 0
 
     def can_cancel(self) -> bool:
         """
