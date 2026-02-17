@@ -46,6 +46,12 @@ export function StudentTabNavigator() {
             <Tab.Screen
                 name="Search"
                 component={SearchStackNavigator}
+                listeners={({ navigation }) => ({
+                    tabPress: (e) => {
+                        e.preventDefault();
+                        navigation.navigate('Search', { screen: 'InstructorSearch' });
+                    },
+                })}
                 options={{
                     tabBarLabel: 'Buscar',
                     tabBarIcon: ({ color, size }) => <Search color={color} size={size} />,
@@ -54,6 +60,12 @@ export function StudentTabNavigator() {
             <Tab.Screen
                 name="Scheduling"
                 component={SchedulingStackNavigator}
+                listeners={({ navigation }) => ({
+                    tabPress: (e) => {
+                        e.preventDefault();
+                        navigation.navigate('Scheduling', { screen: 'MyLessons' });
+                    },
+                })}
                 options={{
                     tabBarLabel: 'Aulas',
                     tabBarIcon: ({ color, size }) => <Calendar color={color} size={size} />,
@@ -62,6 +74,12 @@ export function StudentTabNavigator() {
             <Tab.Screen
                 name="Profile"
                 component={ProfileStackNavigator}
+                listeners={({ navigation }) => ({
+                    tabPress: (e) => {
+                        e.preventDefault();
+                        navigation.navigate('Profile', { screen: 'ProfileMain' });
+                    },
+                })}
                 options={{
                     tabBarLabel: 'Perfil',
                     tabBarIcon: ({ color, size }) => <User color={color} size={size} />,
