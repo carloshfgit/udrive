@@ -349,3 +349,5 @@ flowchart TD
 - [Checkout Pro — React Native Expo Go](https://www.mercadopago.com/developers/pt/docs/checkout-pro/mobile-integration/react-native-expo-go) — Integração mobile oficial
 - [Deep Links — URLs de Retorno](https://www.mercadopago.com/developers/pt/docs/checkout-pro/checkout-customization/user-interface/redirection) — Configuração de back_urls
 - [expo-web-browser](https://docs.expo.dev/versions/latest/sdk/webbrowser/) — Abertura do checkout no browser nativo
+ 
+ ...
