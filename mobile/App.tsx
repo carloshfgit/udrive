@@ -6,7 +6,8 @@
 
 import './global.css';
 import React, { useEffect } from 'react';
-import { StyleSheet, ActivityIndicator, View, Text } from 'react-native';
+import { StyleSheet, ActivityIndicator, View, Text, Linking, Platform } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -74,6 +75,28 @@ export default function App() {
     checkAuth();
   }, [setLoading, setUser]);
 
+  // Deep link: fechar Safari View Controller no iOS após retorno do checkout
+  useEffect(() => {
+    const subscription = Linking.addEventListener('url', (event) => {
+      if (event.url && event.url.includes('godrive://')) {
+        if (Platform.OS === 'ios') {
+          WebBrowser.dismissBrowser();
+        }
+      }
+    });
+    return () => subscription.remove();
+  }, []);
+
+  // Configuração de deep links para NavigationContainer
+  const linking = {
+    prefixes: ['godrive://'],
+    config: {
+      screens: {
+        PaymentResult: 'payment/:status',
+      },
+    },
+  };
+
   if (!fontsLoaded) {
     return <LoadingScreen />;
   }
@@ -87,7 +110,7 @@ export default function App() {
           {isLoading ? (
             <LoadingScreen />
           ) : (
-            <NavigationContainer>
+            <NavigationContainer linking={linking}>
               {isAuthenticated ? <RootNavigator /> : <AuthNavigator />}
             </NavigationContainer>
           )}

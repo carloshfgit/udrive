@@ -134,6 +134,7 @@ class SchedulingResponse(BaseModel):
     instructor_rating: float | None = None
     instructor_review_count: int | None = None
     has_review: bool = False
+    payment_status: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

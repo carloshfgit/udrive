@@ -1,5 +1,6 @@
 {
   "expo": {
+    "scheme": "godrive",
     "name": "mobile",
     "slug": "mobile",
     "version": "1.0.0",
@@ -19,7 +20,33 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "softwareKeyboardLayoutMode": "pan"
+      "softwareKeyboardLayoutMode": "pan",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "data": [
+            {
+              "scheme": "godrive",
+              "host": "payment",
+              "pathPrefix": "/success"
+            },
+            {
+              "scheme": "godrive",
+              "host": "payment",
+              "pathPrefix": "/error"
+            },
+            {
+              "scheme": "godrive",
+              "host": "payment",
+              "pathPrefix": "/pending"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"

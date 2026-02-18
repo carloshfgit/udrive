@@ -92,6 +92,7 @@ class InstructorProfileResponse(BaseModel):
     biological_sex: str | None = None
     location: LocationResponse | None = None
     distance_km: float | None = None
+    has_mp_account: bool = False
 
     model_config = ConfigDict(from_attributes=True)
 
