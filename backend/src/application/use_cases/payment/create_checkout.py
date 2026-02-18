@@ -6,6 +6,7 @@ Orquestra a criação de preferência de pagamento e retorna a URL
 para o aluno ser redirecionado ao Mercado Pago.
 """
 
+from decimal import Decimal
 from dataclasses import dataclass
 
 from src.application.dtos.payment_dtos import CheckoutResponseDTO, CreateCheckoutDTO
@@ -96,7 +97,14 @@ class CreateCheckoutUseCase:
             raise GatewayAccountNotConnectedException(str(scheduling.instructor_id))
 
         # 4. Calcular split
-        split_result = self.calculate_split_use_case.execute(scheduling.price)
+        # Recalculamos o valor base da aula conforme o perfil atual do instrutor
+        # para garantir que ele receba o valor correto proporcional à sua taxa horária.
+        hours = Decimal(scheduling.duration_minutes) / Decimal(60)
+        instructor_base_amount = instructor_profile.hourly_rate * hours
+        
+        split_result = self.calculate_split_use_case.execute(
+            scheduling.price, instructor_base_amount=instructor_base_amount
+        )
 
         # 5. Criar Payment com status PENDING
         payment = Payment(

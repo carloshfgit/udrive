@@ -7,6 +7,7 @@ Caso de uso otimizado para busca de instrutores próximos com cache.
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Protocol
+import json
 
 from src.application.dtos.profile_dtos import (
     InstructorProfileResponseDTO,
@@ -17,6 +18,7 @@ from src.application.dtos.profile_dtos import (
 from src.domain.entities.location import Location
 from src.domain.exceptions import InvalidLocationException
 from src.domain.interfaces.instructor_repository import IInstructorRepository
+from src.infrastructure.services.pricing_service import PricingService
 
 
 class ICacheService(Protocol):
@@ -77,15 +79,12 @@ class GetNearbyInstructorsUseCase:
         Raises:
             InvalidLocationException: Se coordenadas forem inválidas.
         """
-        import json
-
         # Validar coordenadas
         try:
             center = Location(latitude=dto.latitude, longitude=dto.longitude)
         except ValueError as e:
             raise InvalidLocationException(str(e)) from e
 
-        # Tentar obter do cache
         # Tentar buscar do cache
         if self.cache_service:
             cache_key = (
@@ -111,7 +110,6 @@ class GetNearbyInstructorsUseCase:
                 )
 
         # Cache miss - buscar no banco
-        # A query agora retorna tanto próximos quanto sem localização em uma única chamada
         profiles = await self.instructor_repository.search_by_location(
             center=center,
             radius_km=dto.radius_km,
@@ -151,7 +149,7 @@ class GetNearbyInstructorsUseCase:
                     city=profile.city,
                     vehicle_type=profile.vehicle_type,
                     license_category=profile.license_category,
-                    hourly_rate=profile.hourly_rate,
+                    hourly_rate=PricingService.calculate_final_price(profile.hourly_rate),
                     rating=profile.rating,
                     total_reviews=profile.total_reviews,
                     is_available=profile.is_available,
@@ -198,6 +196,10 @@ class GetNearbyInstructorsUseCase:
                 "center_latitude": result.center_latitude,
                 "center_longitude": result.center_longitude,
             }
+            cache_key = (
+                f"nearby:{dto.latitude}:{dto.longitude}:{dto.radius_km}:"
+                f"{dto.biological_sex}:{dto.license_category}:{dto.search_query}"
+            )
             await self.cache_service.set(
                 cache_key,
                 json.dumps(cache_data),

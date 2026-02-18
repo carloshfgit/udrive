@@ -21,6 +21,7 @@ from src.domain.interfaces.availability_repository import IAvailabilityRepositor
 from src.domain.interfaces.instructor_repository import IInstructorRepository
 from src.domain.interfaces.scheduling_repository import ISchedulingRepository
 from src.domain.interfaces.user_repository import IUserRepository
+from src.infrastructure.services.pricing_service import PricingService
 
 
 @dataclass
@@ -114,7 +115,8 @@ class CreateSchedulingUseCase:
 
         # 5. Calcular preço
         hours = Decimal(dto.duration_minutes) / Decimal(60)
-        price = instructor_profile.hourly_rate * hours
+        base_price = instructor_profile.hourly_rate * hours
+        price = PricingService.calculate_final_price(base_price)
 
         # 6. Criar agendamento
         scheduling = Scheduling(

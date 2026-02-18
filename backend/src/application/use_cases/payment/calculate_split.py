@@ -12,39 +12,30 @@ from src.application.dtos.payment_dtos import SplitCalculationDTO
 
 from src.infrastructure.config import settings
 
-# Taxa padrão da plataforma (deriva do .env)
-DEFAULT_PLATFORM_FEE_PERCENTAGE = Decimal(str(settings.platform_fee_percentage))
-
+from src.infrastructure.services.pricing_service import PricingService
 
 @dataclass
 class CalculateSplitUseCase:
     """
     Caso de uso para calcular o split de pagamento.
 
-    Divide o valor total entre a plataforma e o instrutor com base
-    na taxa configurada.
-
-    Fluxo:
-        1. Receber valor total da aula
-        2. Aplicar taxa da plataforma
-        3. Calcular valor líquido para o instrutor
-        4. Retornar SplitCalculationDTO
+    Divide o valor total entre a plataforma e o instrutor.
+    Agora suporta o modelo fee-on-top, onde o instrutor recebe um valor base
+    e a plataforma fica com a diferença (incluindo arredondamentos).
     """
 
-    platform_fee_percentage: Decimal = DEFAULT_PLATFORM_FEE_PERCENTAGE
-
-    def execute(self, total_amount: Decimal) -> SplitCalculationDTO:
+    def execute(
+        self, total_amount: Decimal, instructor_base_amount: Decimal | None = None
+    ) -> SplitCalculationDTO:
         """
         Executa o cálculo do split.
 
         Args:
-            total_amount: Valor total do pagamento em BRL.
+            total_amount: Valor total pago pelo aluno (final_price).
+            instructor_base_amount: Valor base que o instrutor deve receber (opcional).
 
         Returns:
-            SplitCalculationDTO: Resultado do cálculo com valores divididos.
-
-        Raises:
-            ValueError: Se o valor total for negativo.
+            SplitCalculationDTO: Resultado do cálculo.
         """
         if total_amount < 0:
             raise ValueError("Valor total não pode ser negativo")
@@ -52,22 +43,35 @@ class CalculateSplitUseCase:
         if total_amount == Decimal("0.00"):
             return SplitCalculationDTO(
                 total_amount=Decimal("0.00"),
-                platform_fee_percentage=self.platform_fee_percentage,
+                platform_fee_percentage=Decimal("0.00"),
                 platform_fee_amount=Decimal("0.00"),
                 instructor_amount=Decimal("0.00"),
             )
 
-        # Calcula taxa da plataforma
-        platform_fee_amount = (
-            total_amount * self.platform_fee_percentage / Decimal("100")
-        ).quantize(Decimal("0.01"))
-
-        # Valor líquido do instrutor
-        instructor_amount = total_amount - platform_fee_amount
+        # Se tivermos o valor base, usamos a nova lógica fee-on-top
+        if instructor_base_amount is not None:
+            # A platform_fee_amount (marketplace_fee no gateway) é calculada para
+            # garantir que o instrutor receba o instructor_base_amount líquido.
+            platform_fee_amount = PricingService.calculate_marketplace_fee(
+                total_amount, instructor_base_amount
+            )
+            
+            # O instructor_amount aqui representa o que o instrutor "vê" como seu ganho
+            # Mas lembre-se: no MP, ele recebe total_amount e o MP tira marketplace_fee dele.
+            # Então ele fica com (total_amount - marketplace_fee). Após pagar a taxa do MP,
+            # ele deve ficar com exatamente o instructor_base_amount.
+            instructor_amount = total_amount - platform_fee_amount
+        else:
+            # Lógica legada/proporcional (usada em contextos onde não há valor base fixo)
+            fee_percentage = Decimal(str(settings.platform_fee_percentage))
+            platform_fee_amount = (
+                total_amount * fee_percentage / Decimal("100")
+            ).quantize(Decimal("0.01"))
+            instructor_amount = total_amount - platform_fee_amount
 
         return SplitCalculationDTO(
             total_amount=total_amount,
-            platform_fee_percentage=self.platform_fee_percentage,
+            platform_fee_percentage=Decimal("0.00"),  # Não é mais baseado em % fixo
             platform_fee_amount=platform_fee_amount,
             instructor_amount=instructor_amount,
         )

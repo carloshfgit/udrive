@@ -17,7 +17,8 @@ Este documento detalha o plano por etapas para construir as telas relacionadas a
 | Use Case `handle_payment_webhook` | ✅ Completo | Marca pagamento como COMPLETED e confirma o Scheduling |
 | Reembolso + Cancelamento | ✅ Completo | `POST /payments/cancel` com regras de antecedência |
 | Entidade `Payment` | ✅ Completo | Campos genéricos (`gateway_payment_id`, `gateway_preference_id`) |
-| Cálculo de Split | ✅ Completo | `CalculateSplitUseCase` com taxa configurável |
+| Cálculo de Split (fee-on-top) | ✅ Completo | `CalculateSplitUseCase` refatorado com modelo fee-on-top — usa `PricingService.calculate_marketplace_fee()` para garantir que o instrutor receba o valor base líquido |
+| PricingService | ✅ Completo | Calcula preço final para o aluno: `base × 1.2498` → arredondamento (múltiplo de 5) → charm pricing (−R$ 0,10 se terminar em 0). Já integrado em `get_nearby_instructors` e `create_scheduling` |
 | Criptografia de tokens OAuth | ✅ Completo | `encrypt_token` / `decrypt_token` |
 
 ### ⚠️ O que precisa de ajuste no Backend
@@ -184,16 +185,17 @@ export interface CheckoutResponse {
   - **Lista de cards**: Cada card mostra:
     - Nome do instrutor + avatar
     - Data e horário da aula
-    - Valor da aula (preço final para o aluno)
+    - Valor da aula — **este é o preço final** já calculado pelo `PricingService` (inclui comissão GoDrive 20% + margem MP 4,98% + arredondamento + charm pricing). O campo `price` do `Scheduling` já contém esse valor.
     - Badge de status: "Aguardando pagamento"
     - Botão de remover/cancelar item (opcional primeira versão)
   - **Mensagem amigável** (componente de incentivo):
     - 💳 "Finalize a compra para que o instrutor entre em contato via chat e combine os detalhes da aula!"
   - **Resumo financeiro** (footer):
     - Total de aulas: X
-    - Valor total: R$ XXX,XX
+    - Valor total: R$ XXX,XX (soma dos `price` de cada scheduling)
   - **Botão principal**: "Finalizar Compra (R$ XXX,XX)"
     - Ao clicar: Chama `POST /student/payments/checkout` para **cada** agendamento (ou lote se suportado) e abre o `checkout_url` com `expo-web-browser`
+    - **Nota sobre precificação**: O `CreateCheckoutUseCase` recalcula o `instructor_base_amount` no momento do checkout (`hourly_rate × horas`) e usa o `PricingService.calculate_marketplace_fee()` para definir o `marketplace_fee` enviado ao MP. Isso garante que o instrutor receba exatamente seu valor base, mesmo que as taxas tenham mudado desde o agendamento.
   - **Estado vazio**: 
     - Ícone de carrinho vazio
     - "Nenhuma aula no carrinho"
@@ -343,6 +345,7 @@ flowchart TD
 
 - [PAYMENT_FLOW.md](./PAYMENT_FLOW.md) — Regras de negócio de pagamento
 - [MP_INTEGRATION.md](./MP_INTEGRATION.md) — Plano técnico de integração Mercado Pago
+- [PricingService](../../backend/src/infrastructure/services/pricing_service.py) — Lógica de precificação fee-on-top (arredondamento, charm pricing, marketplace_fee)
 - [Checkout Pro — React Native Expo Go](https://www.mercadopago.com/developers/pt/docs/checkout-pro/mobile-integration/react-native-expo-go) — Integração mobile oficial
 - [Deep Links — URLs de Retorno](https://www.mercadopago.com/developers/pt/docs/checkout-pro/checkout-customization/user-interface/redirection) — Configuração de back_urls
 - [expo-web-browser](https://docs.expo.dev/versions/latest/sdk/webbrowser/) — Abertura do checkout no browser nativo

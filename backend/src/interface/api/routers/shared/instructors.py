@@ -13,6 +13,7 @@ from pydantic import BaseModel
 
 from src.interface.api.dependencies import AvailabilityRepo, InstructorRepo, ReviewRepo
 from src.interface.api.schemas.scheduling_schemas import AvailabilityListResponse, AvailabilityResponse
+from src.infrastructure.services.pricing_service import PricingService
 
 router = APIRouter(prefix="/instructors", tags=["Shared - Instructors"])
 
@@ -172,7 +173,7 @@ async def get_instructor_by_id(
         bio=instructor.bio or "",
         vehicle_type=instructor.vehicle_type or "",
         license_category=instructor.license_category or "",
-        hourly_rate=float(instructor.hourly_rate),
+        hourly_rate=float(PricingService.calculate_final_price(instructor.hourly_rate)),
         rating=float(instructor.rating),
         total_reviews=instructor.total_reviews,
         is_available=instructor.is_available,

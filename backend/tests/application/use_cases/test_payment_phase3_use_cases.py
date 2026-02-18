@@ -83,6 +83,7 @@ class TestCreateCheckoutUseCase:
         scheduling.id = scheduling_id
         scheduling.instructor_id = instructor_id
         scheduling.price = Decimal("100.00")
+        scheduling.duration_minutes = 60
         scheduling.scheduled_datetime = datetime.now()
         mock_repositories["scheduling"].get_by_id.return_value = scheduling
         
@@ -91,6 +92,7 @@ class TestCreateCheckoutUseCase:
         instructor = MagicMock()
         instructor.has_mp_account = True
         instructor.mp_access_token = "fake-token"
+        instructor.hourly_rate = Decimal("80.00")
         mock_repositories["instructor"].get_by_user_id.return_value = instructor
         
         mock_repositories["payment"].create.side_effect = lambda p: p
@@ -163,6 +165,7 @@ class TestHandlePaymentWebhookUseCase:
         instructor = MagicMock()
         instructor.has_mp_account = True
         instructor.mp_access_token = "fake-token"
+        instructor.hourly_rate = Decimal("80.00")
         mock_repositories["instructor"].get_by_user_id.return_value = instructor
         
         mock_gateway.get_payment_status.return_value = PaymentStatusResult(
@@ -212,6 +215,7 @@ class TestHandlePaymentWebhookUseCase:
         instructor = MagicMock()
         instructor.has_mp_account = True
         instructor.mp_access_token = "fake-token"
+        instructor.hourly_rate = Decimal("80.00")
         mock_repositories["instructor"].get_by_user_id.return_value = instructor
         
         mock_gateway.get_payment_status.return_value = PaymentStatusResult(
