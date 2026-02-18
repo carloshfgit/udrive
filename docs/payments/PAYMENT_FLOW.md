@@ -64,30 +64,26 @@ Taxas vigentes para recebimento no momento (Checkout Pro):
 
 ## 7. Modelo de Precificação e Taxas
 
-O GoDrive adota um modelo "fee-on-top", onde o **aluno assume as taxas e comissões**, permitindo que o instrutor receba o valor integral ("limpo") definido em seu perfil. Além disso, aplicamos regras de arredondamento e precificação psicológica para otimizar a monetização e a percepção de valor.
+O GoDrive adota um modelo "fee-on-top" modificado (Markup), onde o **cálculo garante que o instrutor receba o valor integral** ("limpo") definido em seu perfil, considerando que a taxa do Mercado Pago incide sobre o valor total da transação. Além disso, aplicamos regras de arredondamento e precificação psicológica.
 
 *   **Composição do Valor Final:** O cálculo segue a ordem abaixo:
-    1.  **Valor da Aula:** Definido pelo instrutor.
-    2.  **Comissão GoDrive:** 20% sobre o valor da aula.
-    3.  **Taxas de Transação:** Taxas cobradas pelo Mercado Pago para processamento do pagamento.
+    1.  **Valor Base:** Definido pelo instrutor.
+    2.  **Target Líquido:** Base + 20% (Comissão GoDrive).
+    3.  **Markup Mercado Pago:** O valor é dividido por `(1 - Taxa MP)` para embutir a taxa do meio de pagamento.
     4.  **Arredondamento:** O subtotal é arredondado para o **próximo múltiplo de 5 acima**.
-        *   Ex: R$ 81,67 torna-se **R$ 85,00**.
-        *   Ex: R$ 86,32 torna-se **R$ 90,00**.
-    5.  **Charm Pricing (Preço de Charme):** Se o valor arredondado terminar em zero (ex: 90, 100), subtraímos **R$ 0,10**.
-        *   Ex: R$ 90,00 torna-se **R$ 89,90**.
-        *   Ex: R$ 100,00 torna-se **R$ 99,90**.
+    5.  **Charm Pricing:** Se terminar em 0, subtrai R$ 0,10.
 
 *   **Monetização e Repasse:** 
-    *   **Plataforma:** Toda a diferença gerada pelo arredondamento (o excedente entre o subtotal calculado e o valor arredondado final) é destinada à plataforma como receita adicional.
-    *   **Instrutor:** Recebe exatamente o valor que definiu, sem surpresas ou descontos ocultos.
+    *   **Plataforma:** Recebe sua comissão de 20% + excedentes do arredondamento.
+    *   **Instrutor:** Recebe exatamente o valor base contratado.
 
 *   **Exemplos Práticos:**
 
-| Valor Instrutor | Cálculo Base (Base + 20% + Taxas) | Arredondamento (Mult. 5) | Valor Final (Charm Pricing) |
+| Valor Instrutor | Cálculo Markup (Base + 20%) / (1 - 4.98%) | Arredondamento | Valor Final |
 | :--- | :--- | :--- | :--- |
-| **R$ 65,00** | R$ 81,25 (estimado) | R$ 85,00 | **R$ 85,00** (Mantido, termina em 5) |
-| **R$ 70,00** | R$ 87,50 (estimado) | R$ 90,00 | **R$ 89,90** |
-| **R$ 80,00** | R$ 100,00 (estimado) | R$ 100,00 | **R$ 99,90** |
+| **R$ 65,00** | R$ 82,09 (Target 78 / 0.9502) | R$ 85,00 | **R$ 85,00** |
+| **R$ 70,00** | R$ 88,40 (Target 84 / 0.9502) | R$ 90,00 | **R$ 89,90** |
+| **R$ 100,00** | R$ 126,29 (Target 120 / 0.9502) | R$ 130,00 | **R$ 129,90** |
 
 *   **Exibição de Preços (Transparência):**
     *   **Visão Aluno:** O valor exibido nas telas de busca e agendamento já é o **Valor Final** (com todas as taxas, arredondamentos e charm pricing aplicados).

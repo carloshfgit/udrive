@@ -27,14 +27,22 @@ class PricingService:
         if base_price <= 0:
             return Decimal("0.00")
 
-        # 1 e 2. Aplicar taxas (GoDrive + TAXA MP)
-        # Usamos uma fórmula simplificada de acréscimo para cobrir as taxas
-        # subtotal = base_price * (1 + platform_fee + mp_fee)
+        # 1. Calcular Alvo Líquido (Base + GoDrive Fee)
+        # target_net = base_price * (1 + platform_fee)
         platform_fee = Decimal(str(settings.platform_fee_percentage)) / Decimal("100")
         mp_fee = Decimal(str(settings.mercadopago_fee_percentage)) / Decimal("100")
         
-        # O subtotal é o preço base acrescido das taxas configuradas
-        subtotal = base_price * (Decimal("1.0") + platform_fee + mp_fee)
+        target_net = base_price * (Decimal("1.0") + platform_fee)
+
+        # 2. Calcular Preço de Venda Necessário para cobrir taxa MP (Markup)
+        # price_needed = target_net / (1 - mp_fee)
+        # Se mp_fee for muito alto (ex: > 90%), isso quebraria. Assumimos taxas razoáveis.
+        divisor = Decimal("1.0") - mp_fee
+        if divisor <= 0:
+            # Fallback de segurança para não dividir por zero ou negativo
+            subtotal = target_net 
+        else:
+            subtotal = target_net / divisor
         
         # 3. Arredondar para o próximo múltiplo de 5 acima
         # rounded = ceil(subtotal / 5) * 5
