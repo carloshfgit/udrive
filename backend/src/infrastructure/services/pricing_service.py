@@ -2,8 +2,8 @@
 Pricing Service
 
 Implementa a lógica de precificação fee-on-top para o GoDrive.
-- GoDrive Fee: 20%
-- Mercado Pago Fee: configurável (padrão 4.98%)
+- GoDrive Fee: configurável via PLATFORM_FEE_PERCENTAGE
+- Mercado Pago Fee: configurável via MERCADOPAGO_FEE_PERCENTAGE
 - Arredondamento: próximo múltiplo de 5
 - Charm Pricing: -R$ 0,10 se terminar em 0
 """
@@ -19,7 +19,7 @@ class PricingService:
         Calcula o preço final para o aluno com base no preço bruto do instrutor.
         
         Regras:
-        1. Adicionar comissão GoDrive (20%)
+        1. Adicionar comissão GoDrive (configurável)
         2. Adicionar margem para taxa Mercado Pago (configurável)
         3. Arredondar para o próximo múltiplo de 5 acima
         4. Aplicar Charm Pricing (-0.10 se terminar em zero)
@@ -27,13 +27,13 @@ class PricingService:
         if base_price <= 0:
             return Decimal("0.00")
 
-        # 1 e 2. Aplicar taxas (20% GoDrive + TAXA MP)
+        # 1 e 2. Aplicar taxas (GoDrive + TAXA MP)
         # Usamos uma fórmula simplificada de acréscimo para cobrir as taxas
         # subtotal = base_price * (1 + platform_fee + mp_fee)
         platform_fee = Decimal(str(settings.platform_fee_percentage)) / Decimal("100")
         mp_fee = Decimal(str(settings.mercadopago_fee_percentage)) / Decimal("100")
         
-        # subtotal = base_price * (1 + 0.20 + 0.0498) = base_price * 1.2498
+        # O subtotal é o preço base acrescido das taxas configuradas
         subtotal = base_price * (Decimal("1.0") + platform_fee + mp_fee)
         
         # 3. Arredondar para o próximo múltiplo de 5 acima
