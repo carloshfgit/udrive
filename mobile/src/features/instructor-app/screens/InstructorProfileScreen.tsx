@@ -11,6 +11,7 @@ import {
     ScrollView,
     TouchableOpacity,
     SafeAreaView,
+    Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -28,6 +29,8 @@ import { useAuthStore } from '../../../lib/store';
 import { Avatar } from '../../../shared/components';
 import { useInstructorProfile } from '../hooks/useInstructorProfile';
 import type { InstructorProfileStackParamList } from '../navigation/InstructorProfileStack';
+
+const MP_ICON = require('../../../../assets/images/logo-mercado-pago-icone-512.png');
 
 type ProfileNavigationProp = NativeStackNavigationProp<InstructorProfileStackParamList, 'InstructorProfileMain'>;
 
@@ -163,7 +166,15 @@ export function InstructorProfileScreen() {
                             >
                                 {/* Icon Container */}
                                 <View className="w-10 h-10 rounded-lg bg-blue-50 items-center justify-center">
-                                    <IconComponent size={20} color="#2563EB" />
+                                    {item.id === 'mercadoPago' ? (
+                                        <Image
+                                            source={MP_ICON}
+                                            className="w-10 h-10"
+                                            resizeMode="contain"
+                                        />
+                                    ) : (
+                                        <IconComponent size={20} color="#2563EB" />
+                                    )}
                                 </View>
 
                                 {/* Title */}
