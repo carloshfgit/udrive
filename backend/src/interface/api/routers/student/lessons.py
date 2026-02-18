@@ -252,11 +252,13 @@ async def respond_reschedule(
     current_user: CurrentStudent,
     scheduling_repo: SchedulingRepo,
     user_repo: UserRepo,
+    availability_repo: AvailabilityRepo,
 ) -> SchedulingResponse:
     """Aceita ou recusa uma solicitação de reagendamento."""
     use_case = RespondRescheduleUseCase(
         scheduling_repository=scheduling_repo,
         user_repository=user_repo,
+        availability_repository=availability_repo,
     )
 
     dto = RespondRescheduleDTO(

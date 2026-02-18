@@ -30,4 +30,4 @@ class SchedulingStatus(str, Enum):
     """Aula concluída."""
 
     RESCHEDULE_REQUESTED = "reschedule_requested"
-    """Reagendamento solicitado pelo aluno, aguardando aprovação do instrutor."""
+    """Reagendamento solicitado pelo aluno/instrutor, aguardando aprovação do instrutor/aluno."""

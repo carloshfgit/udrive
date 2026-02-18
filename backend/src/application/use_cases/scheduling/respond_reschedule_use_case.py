@@ -15,6 +15,7 @@ from src.domain.exceptions import (
 )
 from src.domain.interfaces.scheduling_repository import ISchedulingRepository
 from src.domain.interfaces.user_repository import IUserRepository
+from src.domain.interfaces.availability_repository import IAvailabilityRepository
 
 
 @dataclass
@@ -27,6 +28,8 @@ class RespondRescheduleUseCase:
         2. Validar se usuário é o instrutor do agendamento
         3. Validar se estado é RESCHEDULE_REQUESTED
         4. Se aceito:
+            - Verificar disponibilidade do instrutor no novo horário
+            - Verificar se não há conflito de horário no novo horário
             - Chamar accept_reschedule() na entidade
         5. Se recusado:
             - Chamar refuse_reschedule() na entidade
@@ -36,6 +39,7 @@ class RespondRescheduleUseCase:
 
     scheduling_repository: ISchedulingRepository
     user_repository: IUserRepository
+    availability_repository: IAvailabilityRepository
 
     async def execute(self, dto: RespondRescheduleDTO) -> SchedulingResponseDTO:
         """
@@ -73,6 +77,35 @@ class RespondRescheduleUseCase:
 
         # 4 & 5. Processar decisão
         if dto.accepted:
+            # Check for generic exceptions if new datetime is missing
+            if not scheduling.rescheduled_datetime:
+                raise ValueError("Data de reagendamento não encontrada")
+
+            # Validate availability at the new time
+            is_available = await self.availability_repository.is_time_available(
+                instructor_id=scheduling.instructor_id,
+                target_datetime=scheduling.rescheduled_datetime,
+                duration_minutes=scheduling.duration_minutes,
+            )
+            if not is_available:
+                from src.domain.exceptions import UnavailableSlotException
+                raise UnavailableSlotException(
+                    "O instrutor não tem mais disponibilidade configurada para este horário"
+                )
+
+            # Validate conflicts at the new time
+            has_conflict = await self.scheduling_repository.check_conflict(
+                instructor_id=scheduling.instructor_id,
+                scheduled_datetime=scheduling.rescheduled_datetime,
+                duration_minutes=scheduling.duration_minutes,
+                exclude_scheduling_id=scheduling.id,
+            )
+            if has_conflict:
+                from src.domain.exceptions import SchedulingConflictException
+                raise SchedulingConflictException(
+                    "Ops! Outro aluno já agendou nesse horário, tentem combinar um horário diferente."
+                )
+
             scheduling.accept_reschedule()
         else:
             scheduling.refuse_reschedule()
