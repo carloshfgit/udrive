@@ -107,6 +107,7 @@ async def list_student_schedulings(
     current_user: CurrentStudent,
     scheduling_repo: SchedulingRepo,
     status_filter: str | None = Query(None, description="Filter by status (comma-separated, e.g. 'completed,cancelled')"),
+    payment_status_filter: str | None = Query(None, description="Filter by payment status: 'pending' (cart items), 'completed' (paid), 'none' (no payment)"),
     page: int = Query(1, ge=1),
     limit: int = Query(10, ge=1, le=50),
 ) -> SchedulingListResponse:
@@ -128,10 +129,12 @@ async def list_student_schedulings(
         status=statuses,
         limit=limit,
         offset=offset,
+        payment_status_filter=payment_status_filter,
     )
     total = await scheduling_repo.count_by_student(
         student_id=current_user.id,
         status=statuses,
+        payment_status_filter=payment_status_filter,
     )
 
     return SchedulingListResponse(

@@ -49,10 +49,10 @@ const MENU_ITEMS = [
         route: 'EditInstructorProfile' as const,
     },
     {
-        id: 'banking',
-        title: 'Dados Bancários',
+        id: 'mercadoPago',
+        title: 'Mercado Pago',
         icon: Wallet,
-        route: null, // TODO: Implementar
+        route: 'LinkMercadoPago' as const,
     },
     {
         id: 'settings',
@@ -72,8 +72,9 @@ export function InstructorProfileScreen() {
             navigation.navigate('EditInstructorProfile');
         } else if (route === 'EditPublicProfile') {
             navigation.navigate('EditPublicProfile');
+        } else if (route === 'LinkMercadoPago') {
+            navigation.navigate('LinkMercadoPago');
         }
-        // TODO: Implementar outras rotas
     };
 
     const handleEditPhoto = () => {

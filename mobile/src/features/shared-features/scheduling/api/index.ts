@@ -3,3 +3,4 @@
  */
 
 export * from './schedulingApi';
+export * from './paymentApi';

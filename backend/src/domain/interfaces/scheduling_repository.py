@@ -79,6 +79,7 @@ class ISchedulingRepository(ABC):
         status: SchedulingStatus | None = None,
         limit: int = 50,
         offset: int = 0,
+        payment_status_filter: str | None = None,
     ) -> list[Scheduling]:
         """
         Lista agendamentos de um aluno.
@@ -88,9 +89,10 @@ class ISchedulingRepository(ABC):
             status: Filtro por status (opcional).
             limit: Número máximo de resultados.
             offset: Deslocamento para paginação.
+            payment_status_filter: Filtro por status de pagamento (pending, completed, none).
 
         Returns:
-            Lista de agendamentos ordenados por data (mais recentes primeiro).
+            Lista de agendamentos ordenados por data.
         """
         ...
 
@@ -175,6 +177,7 @@ class ISchedulingRepository(ABC):
         self,
         student_id: UUID,
         status: SchedulingStatus | None = None,
+        payment_status_filter: str | None = None,
     ) -> int:
         """
         Conta agendamentos de um aluno.
@@ -182,6 +185,7 @@ class ISchedulingRepository(ABC):
         Args:
             student_id: ID do aluno.
             status: Filtro por status (opcional).
+            payment_status_filter: Filtro por status de pagamento (pending, completed, none).
 
         Returns:
             Contagem de agendamentos.

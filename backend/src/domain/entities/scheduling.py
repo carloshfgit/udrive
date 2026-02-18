@@ -53,6 +53,7 @@ class Scheduling:
     instructor_rating: float | None = None
     instructor_review_count: int | None = None
     has_review: bool = False
+    payment_status: str | None = None
 
     def __post_init__(self) -> None:
         """Valida campos após inicialização."""

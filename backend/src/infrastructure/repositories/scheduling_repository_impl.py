@@ -8,6 +8,7 @@ from typing import Sequence
 from uuid import UUID
 
 from sqlalchemy import and_, func, or_, select
+from sqlalchemy.orm import contains_eager
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, load_only
 
@@ -123,18 +124,24 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
         status: SchedulingStatus | Sequence[SchedulingStatus] | None = None,
         limit: int = 10,
         offset: int = 0,
+        payment_status_filter: str | None = None,
     ) -> Sequence[Scheduling]:
+        from src.infrastructure.db.models.payment_model import PaymentModel
+        from src.domain.entities.payment_status import PaymentStatus
+
         # Para a tela "Minhas Aulas" (sem filtro de status), ordenamos ASC para mostrar as próximas aulas.
         # Para o "Histórico" (com filtro de status), costuma-se usar DESC para mostrar as mais recentes primeiro.
         order = SchedulingModel.scheduled_datetime.asc() if status is None else SchedulingModel.scheduled_datetime.desc()
-        
+
         stmt = (
             select(SchedulingModel)
+            .outerjoin(SchedulingModel.payment)
             .where(SchedulingModel.student_id == student_id)
             .order_by(order)
             .limit(limit)
             .offset(offset)
             .options(
+                contains_eager(SchedulingModel.payment),
                 joinedload(SchedulingModel.student).load_only(UserModel.id, UserModel.full_name),
                 joinedload(SchedulingModel.instructor).options(
                     load_only(UserModel.id, UserModel.full_name),
@@ -150,6 +157,22 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
             else:
                 stmt = stmt.where(SchedulingModel.status == status)
 
+        # Filtro por payment_status
+        if payment_status_filter == "pending":
+            # Carrinho: agendamentos com pagamento PENDING ou PROCESSING, ou sem pagamento
+            stmt = stmt.where(
+                or_(
+                    PaymentModel.id.is_(None),
+                    PaymentModel.status.in_([PaymentStatus.PENDING, PaymentStatus.PROCESSING]),
+                )
+            )
+        elif payment_status_filter == "completed":
+            # Aulas com pagamento confirmado
+            stmt = stmt.where(PaymentModel.status == PaymentStatus.COMPLETED)
+        elif payment_status_filter == "none":
+            # Agendamentos sem nenhum pagamento associado
+            stmt = stmt.where(PaymentModel.id.is_(None))
+
         result = await self._session.execute(stmt)
         return [row.to_entity() for row in result.unique().scalars().all()]
 
@@ -157,14 +180,33 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
         self,
         student_id: UUID,
         status: SchedulingStatus | Sequence[SchedulingStatus] | None = None,
+        payment_status_filter: str | None = None,
     ) -> int:
+        from src.infrastructure.db.models.payment_model import PaymentModel
+        from src.domain.entities.payment_status import PaymentStatus
+
         stmt = select(func.count()).select_from(SchedulingModel).where(SchedulingModel.student_id == student_id)
+
+        if payment_status_filter:
+            stmt = stmt.outerjoin(PaymentModel, PaymentModel.scheduling_id == SchedulingModel.id)
 
         if status:
             if isinstance(status, (list, tuple)):
                 stmt = stmt.where(SchedulingModel.status.in_(status))
             else:
                 stmt = stmt.where(SchedulingModel.status == status)
+
+        if payment_status_filter == "pending":
+            stmt = stmt.where(
+                or_(
+                    PaymentModel.id.is_(None),
+                    PaymentModel.status.in_([PaymentStatus.PENDING, PaymentStatus.PROCESSING]),
+                )
+            )
+        elif payment_status_filter == "completed":
+            stmt = stmt.where(PaymentModel.status == PaymentStatus.COMPLETED)
+        elif payment_status_filter == "none":
+            stmt = stmt.where(PaymentModel.id.is_(None))
 
         result = await self._session.execute(stmt)
         return result.scalar_one() or 0

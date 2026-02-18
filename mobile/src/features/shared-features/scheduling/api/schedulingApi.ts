@@ -52,6 +52,7 @@ export interface BookingResponse {
     duration_minutes: number;
     price: number;
     status: string;
+    payment_status?: string;
     created_at: string;
     student_name?: string;
     instructor_name?: string;

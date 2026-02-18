@@ -184,6 +184,7 @@ class SchedulingModel(Base):
             instructor_rating=float(self.instructor.instructor_profile.rating) if "instructor" in self.__dict__ and self.instructor and self.instructor.instructor_profile else None,
             instructor_review_count=self.instructor.instructor_profile.total_reviews if "instructor" in self.__dict__ and self.instructor and self.instructor.instructor_profile else None,
             has_review=True if self.__dict__.get("review") else False,
+            payment_status=self.payment.status.value if self.__dict__.get("payment") and self.payment else None,
         )
 
     @classmethod
