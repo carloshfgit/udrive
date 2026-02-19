@@ -19,7 +19,7 @@ import {
     Animated,
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { ChevronLeft, ShoppingCart, Calendar, Clock, CreditCard, Trash2, AlertTriangle } from 'lucide-react-native';
+import { ChevronLeft, ShoppingCart, Calendar, Clock, CreditCard, Trash2, AlertTriangle, Info, CheckCircle2, XCircle } from 'lucide-react-native';
 import * as WebBrowser from 'expo-web-browser';
 
 import { useAuthStore } from '../../../../lib/store';
@@ -249,6 +249,53 @@ function TimerBanner({
     );
 }
 
+// ============= Refund Policies Component =============
+function RefundPolicies() {
+    return (
+        <View className="mt-8 mb-4 px-1">
+            <Text className="text-neutral-900 font-bold text-base mb-3">Política de Reembolso</Text>
+
+            <View className="bg-white rounded-2xl p-4 border border-neutral-100 shadow-sm">
+                <View className="flex-row items-center mb-4">
+                    <View className="w-9 h-9 rounded-full bg-green-50 items-center justify-center mr-3">
+                        <CheckCircle2 size={18} color="#10B981" />
+                    </View>
+                    <View className="flex-1">
+                        <Text className="text-neutral-800 font-semibold text-sm">Mais de 48h de antecedência</Text>
+                        <Text className="text-neutral-500 text-xs">Reembolso integral (100%)</Text>
+                    </View>
+                </View>
+
+                <View className="flex-row items-center mb-4">
+                    <View className="w-9 h-9 rounded-full bg-amber-50 items-center justify-center mr-3">
+                        <Info size={18} color="#F59E0B" />
+                    </View>
+                    <View className="flex-1">
+                        <Text className="text-neutral-800 font-semibold text-sm">Entre 24h e 48h</Text>
+                        <Text className="text-neutral-500 text-xs">Reembolso de 50% (taxa de reserva)</Text>
+                    </View>
+                </View>
+
+                <View className="flex-row items-center mb-2">
+                    <View className="w-9 h-9 rounded-full bg-red-50 items-center justify-center mr-3">
+                        <XCircle size={18} color="#EF4444" />
+                    </View>
+                    <View className="flex-1">
+                        <Text className="text-neutral-800 font-semibold text-sm">Menos de 24h</Text>
+                        <Text className="text-neutral-500 text-xs">Sem direito a reembolso</Text>
+                    </View>
+                </View>
+
+                <View className="mt-4 pt-3 border-t border-neutral-50">
+                    <Text className="text-neutral-400 text-[10px] leading-relaxed italic">
+                        * Casos de emergência podem ser avaliados pelo suporte mediante justificativa e aprovação.
+                    </Text>
+                </View>
+            </View>
+        </View>
+    );
+}
+
 // ============= Main Screen =============
 
 export function CartScreen() {
@@ -386,12 +433,24 @@ export function CartScreen() {
                                     isExpiring={isExpiring}
                                 />
                             )}
+
+                            {/* Friendly Message */}
+                            <View className="bg-primary-50 rounded-2xl p-4 mb-5 border border-primary-100 flex-row items-center">
+                                <View className="bg-primary-100 p-2 rounded-full mr-3">
+                                    <Info size={20} color="#2563EB" />
+                                </View>
+                                <Text className="flex-1 text-primary-900 text-[13px] font-medium leading-relaxed">
+                                    Falta pouco! Finalize a compra para que o instrutor entre em contato via chat e combine os detalhes da aula.
+                                </Text>
+                            </View>
+
                             <Text className="text-neutral-500 text-sm font-medium mb-2">
                                 {cartItems.length} {cartItems.length === 1 ? 'aula' : 'aulas'} com {instructorName}
                             </Text>
                         </View>
                     ) : null
                 }
+                ListFooterComponent={cartItems.length > 0 ? <RefundPolicies /> : null}
                 ListEmptyComponent={
                     isLoading ? (
                         <View>
