@@ -126,7 +126,8 @@ export async function createBooking(
 export async function getStudentSchedulings(
     status?: string,
     page: number = 1,
-    limit: number = 10
+    limit: number = 10,
+    paymentStatusFilter?: string
 ): Promise<SchedulingListResponse> {
     const response = await api.get<SchedulingListResponse>(
         `${STUDENT_API}/lessons`,
@@ -135,6 +136,7 @@ export async function getStudentSchedulings(
                 status_filter: status,
                 page,
                 limit,
+                payment_status_filter: paymentStatusFilter,
             },
         }
     );

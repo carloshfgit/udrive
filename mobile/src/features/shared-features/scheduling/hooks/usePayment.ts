@@ -10,7 +10,7 @@ import {
     CreateCheckoutRequest,
     CheckoutResponse,
 } from '../api/paymentApi';
-import { getStudentSchedulings } from '../api/schedulingApi';
+import { getStudentSchedulings, cancelBooking } from '../api/schedulingApi';
 
 // ============= Query Keys =============
 
@@ -37,6 +37,25 @@ export function useCreateCheckout() {
 }
 
 /**
+ * Hook para remover um item do carrinho.
+ *
+ * Cancela o agendamento associado (o slot do instrutor é liberado
+ * automaticamente) e invalida os caches de carrinho e agendamentos.
+ */
+export function useRemoveCartItem() {
+    const queryClient = useQueryClient();
+
+    return useMutation<void, Error, string>({
+        mutationFn: (schedulingId: string) =>
+            cancelBooking(schedulingId, 'Removido do carrinho pelo aluno'),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: CART_ITEMS_QUERY_KEY });
+            queryClient.invalidateQueries({ queryKey: ['student-schedulings'] });
+        },
+    });
+}
+
+/**
  * Hook para listar itens do carrinho (agendamentos com pagamento pendente).
  *
  * Busca agendamentos com status "confirmed" que ainda não tiveram
@@ -48,7 +67,7 @@ export function useCreateCheckout() {
 export function useCartItems(enabled: boolean = true) {
     return useQuery({
         queryKey: CART_ITEMS_QUERY_KEY,
-        queryFn: () => getStudentSchedulings('confirmed', 1, 50),
+        queryFn: () => getStudentSchedulings('confirmed', 1, 50, 'pending'),
         enabled,
     });
 }

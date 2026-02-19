@@ -4,6 +4,8 @@ GoDrive API - Main Application
 Ponto de entrada principal da API FastAPI.
 """
 
+import asyncio
+
 import structlog
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -20,6 +22,8 @@ from src.interface.api.routers import auth, health, instructor, shared, student
 from src.interface.websockets.chat_handler import ws_router, set_pubsub_service
 from src.interface.websockets.event_dispatcher import init_event_dispatcher
 from src.infrastructure.external.redis_pubsub import pubsub_service
+from src.application.tasks.cart_cleanup_task import cart_cleanup_loop
+from src.infrastructure.db.database import AsyncSessionLocal
 
 # Configurar logging estruturado
 structlog.configure(
@@ -122,6 +126,11 @@ async def startup_event() -> None:
     # Inicializar Event Dispatcher para eventos de agendamento em tempo real
     init_event_dispatcher(pubsub_service)
 
+    # Iniciar background task de limpeza do carrinho
+    app.state.cart_cleanup_task = asyncio.create_task(
+        cart_cleanup_loop(AsyncSessionLocal)
+    )
+
     logger.info(
         "application_startup",
         environment=settings.environment,
@@ -129,12 +138,21 @@ async def startup_event() -> None:
         rate_limiting="enabled",
         security_headers="enabled",
         websockets="enabled",
+        cart_cleanup="enabled",
     )
 
 
 @app.on_event("shutdown")
 async def shutdown_event() -> None:
     """Evento executado ao encerrar a aplicação."""
+    # Cancelar background task de limpeza do carrinho
+    if hasattr(app.state, 'cart_cleanup_task'):
+        app.state.cart_cleanup_task.cancel()
+        try:
+            await app.state.cart_cleanup_task
+        except asyncio.CancelledError:
+            pass
+
     # Encerrar Redis PubSub
     await pubsub_service.disconnect()
 

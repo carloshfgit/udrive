@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { View, FlatList, RefreshControl, Text, SafeAreaView } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { History, Calendar, MessageSquare } from 'lucide-react-native';
+import { History, Calendar, MessageSquare, ShoppingCart } from 'lucide-react-native';
 import { Header } from '../../../../shared/components/Header';
 import { IconButton } from '../../../../shared/components/IconButton';
 import { Button } from '../../../../shared/components/Button';
@@ -9,6 +9,7 @@ import { LoadingState } from '../../../../shared/components/LoadingState';
 import { EmptyState } from '../../../../shared/components/EmptyState';
 import { StudentLessonCard } from '../components/StudentLessonCard';
 import { useStudentSchedulings } from '../hooks/useStudentSchedulings';
+import { useCartItems } from '../hooks/usePayment';
 import { BookingResponse } from '../api/schedulingApi';
 import { useUnreadCount } from '../../chat/hooks/useUnreadCount';
 import { MessageNotificationsModal } from '../../chat/components/MessageNotificationsModal';
@@ -20,7 +21,10 @@ export function MyLessonsScreen() {
 
     // Fetch only pending/confirmed lessons for the main screen
     const { data, isLoading, refetch, isError } = useStudentSchedulings();
+    const { data: cartData } = useCartItems();
     const { unreadCount } = useUnreadCount();
+
+    const cartCount = cartData?.schedulings?.length ?? 0;
 
     // Atualizar dados ao focar na tela
     useFocusEffect(
@@ -68,12 +72,27 @@ export function MyLessonsScreen() {
     );
 
     const renderHeaderRight = () => (
-        <IconButton
-            icon={<History size={24} color="#111318" />}
-            onPress={() => navigation.navigate('History')}
-            variant="ghost"
-            size={44}
-        />
+        <View className="flex-row items-center">
+            <View className="relative mr-1">
+                <IconButton
+                    icon={<ShoppingCart size={24} color="#111318" />}
+                    onPress={() => navigation.navigate('Cart')}
+                    variant="ghost"
+                    size={44}
+                />
+                {cartCount > 0 && (
+                    <View className="absolute -top-0.5 -right-0.5 bg-primary-600 rounded-full h-5 w-5 items-center justify-center border-2 border-white">
+                        <Text className="text-white text-[10px] font-bold">{cartCount}</Text>
+                    </View>
+                )}
+            </View>
+            <IconButton
+                icon={<History size={24} color="#111318" />}
+                onPress={() => navigation.navigate('History')}
+                variant="ghost"
+                size={44}
+            />
+        </View>
     );
 
     if (isError) {

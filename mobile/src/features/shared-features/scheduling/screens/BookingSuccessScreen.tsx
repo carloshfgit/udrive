@@ -14,9 +14,10 @@ import {
 import { useNavigation, useRoute, RouteProp, CommonActions } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useQueryClient } from '@tanstack/react-query';
-import { CheckCircle, Calendar, ArrowRight } from 'lucide-react-native';
+import { CheckCircle, Calendar, ArrowRight, ShoppingCart } from 'lucide-react-native';
 
 import { SchedulingStackParamList } from './SelectDateTimeScreen';
+import { CART_ITEMS_QUERY_KEY } from '../hooks/usePayment';
 
 type BookingSuccessRouteProp = RouteProp<SchedulingStackParamList, 'BookingSuccess'>;
 type BookingSuccessNavigationProp = NativeStackNavigationProp<SchedulingStackParamList, 'BookingSuccess'>;
@@ -51,21 +52,24 @@ export function BookingSuccessScreen() {
 
     const formattedDateTime = formatDateTimeBR(scheduledDatetime);
 
-    // Navegar para Meus Agendamentos
-    const handleViewSchedulings = () => {
-        // Invalida o cache para garantir que a lista seja atualizada ao chegar na tela
+    // Navegar para o Carrinho
+    const handleViewCart = () => {
+        // Invalida o cache para garantir que a lista seja atualizada
         queryClient.invalidateQueries({ queryKey: ['student-schedulings'] });
+        queryClient.invalidateQueries({ queryKey: CART_ITEMS_QUERY_KEY });
 
-        // Reseta o estado da navegação para ir diretamente para a aba de agendamentos
-        // no nível da tela de listagem, garantindo que o useFocusEffect de lá seja disparado.
+        // Navega para o carrinho dentro da stack de scheduling
         navigation.dispatch(
             CommonActions.reset({
-                index: 0,
+                index: 1,
                 routes: [
                     {
                         name: 'Scheduling',
                         state: {
-                            routes: [{ name: 'MyLessons' }]
+                            routes: [
+                                { name: 'MyLessons' },
+                                { name: 'Cart' },
+                            ]
                         }
                     }
                 ],
@@ -129,14 +133,14 @@ export function BookingSuccessScreen() {
             {/* Botões */}
             <View className="px-6 pb-8">
                 <TouchableOpacity
-                    onPress={handleViewSchedulings}
+                    onPress={handleViewCart}
                     className="py-4 rounded-xl items-center bg-primary-600 active:bg-primary-700 flex-row justify-center"
-                    accessibilityLabel="Ver Meus Agendamentos"
+                    accessibilityLabel="Ver Carrinho"
                 >
-                    <Text className="text-base font-semibold text-white">
-                        Ver Meus Agendamentos
+                    <ShoppingCart size={18} color="#FFFFFF" />
+                    <Text className="text-base font-semibold text-white ml-2">
+                        Ver Carrinho
                     </Text>
-                    <ArrowRight size={18} color="#FFFFFF" className="ml-2" />
                 </TouchableOpacity>
 
                 <TouchableOpacity

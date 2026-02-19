@@ -514,3 +514,57 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
 
         result = await self._session.execute(stmt)
         return [row.to_entity() for row in result.unique().scalars().all()]
+
+    async def get_expired_cart_items(
+        self, timeout_minutes: int = 12, processing_timeout_minutes: int = 30
+    ) -> list[Scheduling]:
+        """
+        Busca agendamentos no carrinho que expiraram o timeout.
+
+        1. PENDING/sem pagamento: expiram em timeout_minutes (12).
+        2. PROCESSING: expiram em processing_timeout_minutes (30).
+        """
+        from datetime import datetime, timedelta, timezone
+        from src.infrastructure.db.models.payment_model import PaymentModel
+        from src.domain.entities.payment_status import PaymentStatus
+
+        now = datetime.now(timezone.utc)
+        cutoff_pending = now - timedelta(minutes=timeout_minutes)
+        cutoff_processing = now - timedelta(minutes=processing_timeout_minutes)
+
+        stmt = (
+            select(SchedulingModel)
+            .outerjoin(PaymentModel, PaymentModel.scheduling_id == SchedulingModel.id)
+            .where(
+                SchedulingModel.status == SchedulingStatus.CONFIRMED,
+                or_(
+                    # Caso 1: Sem pagamento ou PENDING -> expira em 12min
+                    and_(
+                        SchedulingModel.created_at <= cutoff_pending,
+                        or_(
+                            PaymentModel.id.is_(None),
+                            PaymentModel.status == PaymentStatus.PENDING,
+                        ),
+                    ),
+                    # Caso 2: PROCESSING -> expira em 30min (proteção de checkout)
+                    and_(
+                        SchedulingModel.created_at <= cutoff_processing,
+                        PaymentModel.status == PaymentStatus.PROCESSING,
+                    ),
+                ),
+            )
+            .options(
+                joinedload(SchedulingModel.student).load_only(
+                    UserModel.id, UserModel.full_name
+                ),
+                joinedload(SchedulingModel.instructor).options(
+                    load_only(UserModel.id, UserModel.full_name),
+                    joinedload(UserModel.instructor_profile),
+                ),
+                joinedload(SchedulingModel.review),
+            )
+        )
+
+        result = await self._session.execute(stmt)
+        return [row.to_entity() for row in result.unique().scalars().all()]
+

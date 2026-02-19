@@ -9,7 +9,7 @@ import api, { STUDENT_API } from '../../../../lib/axios';
 // ============= Types =============
 
 export interface CreateCheckoutRequest {
-    scheduling_id: string;
+    scheduling_ids: string[];
     student_id: string;
     student_email?: string;
 }

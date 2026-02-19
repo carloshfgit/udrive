@@ -10,11 +10,13 @@ import {
     SelectDateTimeScreen,
     ConfirmBookingScreen,
     BookingSuccessScreen,
+    CartScreen,
 } from '../../../shared-features/scheduling/screens';
 import { TimeSlot } from '../../../shared-features/scheduling/api/schedulingApi';
 
 export type SchedulingStackParamList = {
     MyLessons: undefined;
+    Cart: undefined;
     History: undefined;
     LessonDetails: { schedulingId: string };
     InstructorProfile: { instructorId: string };
@@ -61,6 +63,7 @@ export function SchedulingStackNavigator() {
             }}
         >
             <Stack.Screen name="MyLessons" component={MyLessonsScreen} />
+            <Stack.Screen name="Cart" component={CartScreen} />
             <Stack.Screen name="History" component={HistoryScreen} />
             <Stack.Screen name="LessonDetails" component={LessonDetailsScreen} />
             <Stack.Screen name="InstructorProfile" component={InstructorProfileScreen} />

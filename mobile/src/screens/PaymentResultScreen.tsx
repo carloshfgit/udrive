@@ -5,11 +5,13 @@
  * Recebe o parâmetro `status` da rota (success, error, pending).
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
+import { useQueryClient } from '@tanstack/react-query';
 import { CheckCircle, XCircle, Clock } from 'lucide-react-native';
+import { CART_ITEMS_QUERY_KEY } from '../features/shared-features/scheduling/hooks/usePayment';
 
 type PaymentResultParams = {
     PaymentResult: { status: 'success' | 'error' | 'pending' };
@@ -20,7 +22,7 @@ const configs = {
         icon: CheckCircle,
         iconColor: '#16A34A',
         title: 'Pagamento Confirmado!',
-        message: 'Sua aula foi confirmada com sucesso. O instrutor será notificado.',
+        message: 'Suas aulas foram confirmadas com sucesso. O instrutor será notificado.',
         buttonText: 'Ver Minhas Aulas',
         bgColor: '#F0FDF4',
     },
@@ -45,10 +47,17 @@ const configs = {
 export function PaymentResultScreen() {
     const navigation = useNavigation();
     const route = useRoute<RouteProp<PaymentResultParams, 'PaymentResult'>>();
+    const queryClient = useQueryClient();
 
     const status = route.params?.status ?? 'pending';
     const config = configs[status] ?? configs.pending;
     const IconComponent = config.icon;
+
+    // Invalidar caches ao montar
+    useEffect(() => {
+        queryClient.invalidateQueries({ queryKey: CART_ITEMS_QUERY_KEY });
+        queryClient.invalidateQueries({ queryKey: ['student-schedulings'] });
+    }, [queryClient]);
 
     const handlePress = () => {
         // Navega para a raiz (Tab Navigator), que mostra as aulas
