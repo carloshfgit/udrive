@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, useWindowDimensions, NativeSyntheticEvent, NativeScrollEvent, Image } from 'react-native';
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
-import { User, Calendar, CheckSquare, CreditCard, MessageSquare } from 'lucide-react-native';
+import { User, Calendar, CheckSquare, MessageSquare } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 
 const MP_ICON = require('../../../../../assets/images/logo-mercado-pago-icone-512.png');
@@ -21,14 +21,14 @@ const STEPS: TutorialStep[] = [
         id: '1',
         title: 'Complete seu Perfil',
         description: 'Toque aqui para adicionar sua foto e informações para atrair alunos.',
-        icon: <User size={24} color="#3B82F6" />,
+        icon: <User size={24} color="#863fe3ff" />,
         color: 'bg-purple-50',
     },
     {
         id: '2',
         title: 'Receba sem Taxas!',
         description: 'Conecte sua conta Mercado Pago para receber seus pagamentos de forma integral.',
-        icon: <Image source={MP_ICON} style={{ width: 32, height: 32 }} />,
+        icon: <Image source={MP_ICON} style={{ width: 40, height: 40 }} />,
         color: 'bg-blue-50',
     },
     {

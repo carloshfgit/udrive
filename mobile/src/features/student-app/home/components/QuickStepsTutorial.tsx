@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, useWindowDimensions, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, useWindowDimensions, NativeSyntheticEvent, NativeScrollEvent, Image } from 'react-native';
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
-import { User, Calendar, MapPin, CreditCard, MessageSquare } from 'lucide-react-native';
+import { User, Calendar, MapPin, MessageSquare } from 'lucide-react-native';
 
+const MP_ICON = require('../../../../../assets/images/logo-mercado-pago-icone-512.png');
 const GAP = 12;
 
 interface TutorialStep {
@@ -39,16 +40,16 @@ const STEPS: TutorialStep[] = [
     {
         id: '4',
         title: 'Pagamento Seguro',
-        description: 'Pague suas aulas com cartão ou Pix via app.',
-        icon: <CreditCard size={24} color="#8B5CF6" />,
-        color: 'bg-purple-50',
+        description: 'Pague suas aulas com a segurança do Mercado Pago.',
+        icon: <Image source={MP_ICON} style={{ width: 40, height: 40 }} />,
+        color: 'bg-blue-50',
     },
     {
         id: '5',
         title: 'Converse com seu Instrutor',
         description: 'Defina o ponto de encontro e tire suas dúvidas.',
-        icon: <MessageSquare size={24} color="#5cb3f6ff" />,
-        color: 'bg-blue-50',
+        icon: <MessageSquare size={24} color="#8b35f6ff" />,
+        color: 'bg-purple-50',
     },
 ];
 
