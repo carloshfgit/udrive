@@ -104,7 +104,7 @@ export function BookingSuccessScreen() {
 
                 {/* Subtítulo */}
                 <Text className="text-base text-gray-500 text-center mt-2">
-                    Seu agendamento foi enviado para o instrutor e aguarda confirmação.
+                    Seu agendamento foi adicionado ao carrinho e aguarda o pagamento para ser confirmado na sua agenda.
                 </Text>
 
                 {/* Card de Info */}

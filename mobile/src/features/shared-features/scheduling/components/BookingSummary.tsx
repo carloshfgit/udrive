@@ -9,6 +9,7 @@ import { View, Text } from 'react-native';
 import { Calendar, Clock, DollarSign, User } from 'lucide-react-native';
 
 import { Avatar } from '../../../../shared/components';
+import { formatPrice } from '../../../../shared';
 
 interface BookingSummaryProps {
     instructorName: string;
@@ -31,12 +32,7 @@ const formatDate = (date: Date): string => {
     return date.toLocaleDateString('pt-BR', options);
 };
 
-const formatPrice = (price: number): string => {
-    return new Intl.NumberFormat('pt-BR', {
-        style: 'currency',
-        currency: 'BRL',
-    }).format(price);
-};
+
 
 export function BookingSummary({
     instructorName,

@@ -27,7 +27,8 @@ import { Badge } from '../../../../shared/components/Badge';
 import { EmptyState } from '../../../../shared/components/EmptyState';
 import { LoadingState } from '../../../../shared/components/LoadingState';
 import { Avatar } from '../../../../shared/components/Avatar';
-import { useCartItems, useCreateCheckout, useRemoveCartItem, CART_ITEMS_QUERY_KEY } from '../hooks/usePayment';
+import { formatPrice } from '../../../../shared';
+import { useCartItems, useCreateCheckout, useRemoveCartItem, useClearStudentCart, CART_ITEMS_QUERY_KEY } from '../hooks/usePayment';
 import { BookingResponse } from '../api/schedulingApi';
 
 // ============= Constants =============
@@ -44,9 +45,7 @@ const MONTHS = [
     'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez',
 ];
 
-function formatPrice(value: number): string {
-    return `R$ ${value.toFixed(2).replace('.', ',')}`;
-}
+
 
 function formatDate(isoString: string): string {
     const d = new Date(isoString);
@@ -67,7 +66,7 @@ function formatCountdown(seconds: number): string {
 
 // ============= Cart Timer Hook =============
 
-function useCartTimer(cartItems: BookingResponse[]) {
+function useCartTimer(cartItems: BookingResponse[], serverExpiresAt?: string | null) {
     const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
 
     useEffect(() => {
@@ -76,13 +75,19 @@ function useCartTimer(cartItems: BookingResponse[]) {
             return;
         }
 
-        // Encontra o item mais antigo (menor created_at) — referência do timer do carrinho inteiro
-        const oldestCreatedAt = cartItems.reduce((oldest, item) => {
-            const createdAt = new Date(item.created_at).getTime();
-            return createdAt < oldest ? createdAt : oldest;
-        }, Infinity);
+        let expiresAt: number;
 
-        const expiresAt = oldestCreatedAt + CART_TIMEOUT_MS;
+        if (serverExpiresAt) {
+            // P3: Usar timestamp do servidor como source-of-truth
+            expiresAt = new Date(serverExpiresAt).getTime();
+        } else {
+            // Fallback: cálculo local (compatibilidade)
+            const oldestCreatedAt = cartItems.reduce((oldest, item) => {
+                const createdAt = new Date(item.created_at).getTime();
+                return createdAt < oldest ? createdAt : oldest;
+            }, Infinity);
+            expiresAt = oldestCreatedAt + CART_TIMEOUT_MS;
+        }
 
         const updateTimer = () => {
             const remaining = Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
@@ -93,7 +98,7 @@ function useCartTimer(cartItems: BookingResponse[]) {
         const interval = setInterval(updateTimer, 1000);
 
         return () => clearInterval(interval);
-    }, [cartItems]);
+    }, [cartItems, serverExpiresAt]);
 
     const isExpiring = timeRemaining !== null && timeRemaining <= WARNING_THRESHOLD_SECONDS && timeRemaining > 0;
     const isExpired = timeRemaining !== null && timeRemaining <= 0;
@@ -252,6 +257,8 @@ export function CartScreen() {
     const { data, isLoading, refetch, isRefetching } = useCartItems();
     const createCheckoutMutation = useCreateCheckout();
     const removeCartItemMutation = useRemoveCartItem();
+    const clearCartMutation = useClearStudentCart();
+    const wasExpired = useRef(false);
 
     // Refresh on focus
     useFocusEffect(
@@ -262,18 +269,40 @@ export function CartScreen() {
 
     const cartItems = useMemo(() => data?.schedulings ?? [], [data?.schedulings]);
 
-    // Cart timer
-    const { formattedTime, isExpiring, isExpired } = useCartTimer(cartItems);
+    // Cart timer — usa cart_expires_at do servidor (P3)
+    const serverExpiresAt = data?.cart_expires_at ?? null;
+    const { formattedTime, isExpiring, isExpired } = useCartTimer(cartItems, serverExpiresAt);
 
     // Auto-refresh when expired
     useEffect(() => {
-        if (isExpired) {
-            refetch();
+        if (isExpired && cartItems.length > 0 && !wasExpired.current && !clearCartMutation.isPending) {
+            wasExpired.current = true;
+            clearCartMutation.mutate(undefined, {
+                onSuccess: () => {
+                    Alert.alert(
+                        'Tempo Expirado',
+                        'Seu tempo para finalizar o pagamento acabou. Os horários foram liberados.',
+                        [{ text: 'OK', onPress: () => refetch() }]
+                    );
+                },
+                onError: () => {
+                    // Se falhar, permite tentar de novo no próximo tick se ainda estiver expirado
+                    wasExpired.current = false;
+                }
+            });
         }
-    }, [isExpired, refetch]);
+
+        // Reset a trava se o carrinho ficar vazio (por exemplo, após a limpeza)
+        if (cartItems.length === 0) {
+            wasExpired.current = false;
+        }
+    }, [isExpired, cartItems.length, clearCartMutation, refetch]);
 
     const totalPrice = useMemo(
-        () => cartItems.reduce((sum, item) => sum + item.price, 0),
+        () => cartItems.reduce((sum, item) => {
+            const price = typeof item.price === 'string' ? parseFloat(item.price) : item.price;
+            return sum + (isNaN(price) ? 0 : price);
+        }, 0),
         [cartItems]
     );
 
@@ -399,8 +428,8 @@ export function CartScreen() {
                     {/* Checkout Button */}
                     <TouchableOpacity
                         onPress={handleCheckout}
-                        disabled={isCheckingOut}
-                        className={`py-4 rounded-xl items-center flex-row justify-center ${isCheckingOut
+                        disabled={isCheckingOut || isExpired}
+                        className={`py-4 rounded-xl items-center flex-row justify-center ${isCheckingOut || isExpired
                             ? 'bg-neutral-200'
                             : 'bg-primary-600 active:bg-primary-700'
                             }`}
@@ -411,6 +440,13 @@ export function CartScreen() {
                                 <ActivityIndicator size="small" color="#6B7280" />
                                 <Text className="text-base font-semibold text-neutral-400 ml-2">
                                     Processando...
+                                </Text>
+                            </>
+                        ) : isExpired ? (
+                            <>
+                                <AlertTriangle size={20} color="#6B7280" />
+                                <Text className="text-base font-semibold text-neutral-400 ml-2">
+                                    Carrinho Expirado
                                 </Text>
                             </>
                         ) : (

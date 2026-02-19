@@ -79,6 +79,7 @@ def _make_scheduling(instructor_id, price=Decimal("100.00"), duration=60):
     scheduling.price = price
     scheduling.duration_minutes = duration
     scheduling.scheduled_datetime = datetime.now()
+    scheduling.is_cancelled = False
     return scheduling
 
 
@@ -294,7 +295,7 @@ class TestHandlePaymentWebhookUseCase:
 
         scheduling = MagicMock()
         scheduling.id = scheduling_id
-        scheduling.can_confirm = True
+        scheduling.can_confirm = MagicMock(return_value=True)
         mock_repositories["scheduling"].get_by_id.return_value = scheduling
 
         use_case = HandlePaymentWebhookUseCase(
@@ -365,11 +366,11 @@ class TestHandlePaymentWebhookUseCase:
 
         scheduling_1 = MagicMock()
         scheduling_1.id = payment_1.scheduling_id
-        scheduling_1.can_confirm = True
+        scheduling_1.can_confirm = MagicMock(return_value=True)
 
         scheduling_2 = MagicMock()
         scheduling_2.id = payment_2.scheduling_id
-        scheduling_2.can_confirm = True
+        scheduling_2.can_confirm = MagicMock(return_value=True)
 
         mock_repositories["scheduling"].get_by_id.side_effect = lambda sid: {
             scheduling_1.id: scheduling_1,

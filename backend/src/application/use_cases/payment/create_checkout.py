@@ -95,6 +95,10 @@ class CreateCheckoutUseCase:
             scheduling = await self.scheduling_repository.get_by_id(sid)
             if scheduling is None:
                 raise SchedulingNotFoundException(str(sid))
+            if scheduling.is_cancelled:
+                raise SchedulingNotFoundException(
+                    f"Agendamento {sid} expirado ou cancelado"
+                )
             schedulings.append(scheduling)
 
         # 2. Verificar que todos pertencem ao mesmo instrutor

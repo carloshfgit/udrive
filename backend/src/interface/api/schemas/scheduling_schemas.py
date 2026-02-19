@@ -4,6 +4,8 @@ Scheduling Schemas
 Schemas Pydantic para validação de requests e responses de agendamento e disponibilidade.
 """
 
+CART_TIMEOUT_MINUTES = 12
+
 from datetime import datetime, time
 from decimal import Decimal
 from typing import Annotated
@@ -147,6 +149,12 @@ class SchedulingListResponse(BaseModel):
     limit: int
     offset: int
     has_more: bool
+    cart_expires_at: datetime | None = Field(
+        None,
+        description="Timestamp ISO 8601 (UTC) de expiração do carrinho. "
+        "Calculado como created_at do item mais antigo + CART_TIMEOUT_MINUTES. "
+        "Presente apenas quando payment_status_filter='pending'."
+    )
 
 
 class CancellationResultResponse(BaseModel):

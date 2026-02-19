@@ -71,6 +71,7 @@ export interface SchedulingListResponse {
     limit: number;
     offset: number;
     has_more: boolean;
+    cart_expires_at?: string | null;
 }
 
 // === Funções de API ===
@@ -233,5 +234,13 @@ export async function respondReschedule(
         `${STUDENT_API}/lessons/${schedulingId}/respond-reschedule`,
         { accepted }
     );
+    return response.data;
+}
+
+/**
+ * Limpa o carrinho do aluno (cancela todos os agendamentos pendentes).
+ */
+export async function clearStudentCart(): Promise<any> {
+    const response = await api.post(`${STUDENT_API}/lessons/clear-cart`);
     return response.data;
 }

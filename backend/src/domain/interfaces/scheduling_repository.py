@@ -290,16 +290,20 @@ class ISchedulingRepository(ABC):
 
     @abstractmethod
     async def get_expired_cart_items(
-        self, timeout_minutes: int = 12, processing_timeout_minutes: int = 30
+        self, 
+        student_id: UUID | None = None,
+        timeout_minutes: int = 12, 
+        processing_timeout_minutes: int = 30
     ) -> list[Scheduling]:
         """
         Busca agendamentos no carrinho que expiraram o timeout.
 
-        Retorna agendamentos confirmados que:
+        Retorna agendamentos que:
         1. Estão sem pagamento ou com pagamento PENDING e expiraram timeout_minutes (12min)
         2. Estão com pagamento PROCESSING e expiraram processing_timeout_minutes (30min)
 
         Args:
+            student_id: ID do aluno para filtrar (opcional).
             timeout_minutes: Tempo máximo no carrinho (PENDING) em minutos.
             processing_timeout_minutes: Tempo máximo em checkout (PROCESSING) em minutos.
 

@@ -6,7 +6,7 @@ Este documento detalha o fluxo completo de compra, agendamento, repasse e cancel
 
 1.  **Seleção e Agendamento:** O aluno seleciona o instrutor e escolhe os horários disponíveis nas telas de agendamento.
 2.  **Carrinho:** As aulas selecionadas são enviadas para o carrinho. 
-    *   *Reserva Temporária:* Ao iniciar o checkout, os horários ficam bloqueados temporariamente (ex: 15 min) para evitar conflitos de reserva simultânea.
+    *   *Reserva Temporária:* Ao iniciar o checkout, os horários ficam bloqueados temporariamente (12 min) para evitar conflitos de reserva simultânea.
 3.  **Checkout:** O aluno realiza o pagamento via **Mercado Pago Checkout Pro** (Cartão de Crédito, PIX ou saldo Mercado Pago).
 4.  **Confirmação:** Após a confirmação do pagamento:
     *   As aulas são migradas para as telas de agenda (Aluno e Instrutor).

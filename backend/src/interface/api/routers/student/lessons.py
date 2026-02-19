@@ -4,6 +4,7 @@ Student Lessons Router
 Endpoints para gerenciamento de agendamentos do aluno.
 """
 
+from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
 import structlog
@@ -20,6 +21,7 @@ from src.application.dtos.scheduling_dtos import (
 from src.application.use_cases.create_review_use_case import CreateReviewUseCase
 from src.application.use_cases.scheduling import (
     CancelSchedulingUseCase,
+    ClearStudentCartUseCase,
     CompleteSchedulingUseCase,
     CreateSchedulingUseCase,
     GetNextStudentSchedulingUseCase,
@@ -137,12 +139,23 @@ async def list_student_schedulings(
         payment_status_filter=payment_status_filter,
     )
 
+    # P3: Calcular cart_expires_at para itens do carrinho
+    cart_expires_at = None
+    if payment_status_filter == "pending" and schedulings:
+        from src.interface.api.schemas.scheduling_schemas import CART_TIMEOUT_MINUTES
+        oldest_created_at = min(s.created_at for s in schedulings if s.created_at)
+        if oldest_created_at:
+            if oldest_created_at.tzinfo is None:
+                oldest_created_at = oldest_created_at.replace(tzinfo=timezone.utc)
+            cart_expires_at = oldest_created_at + timedelta(minutes=CART_TIMEOUT_MINUTES)
+
     return SchedulingListResponse(
         schedulings=[SchedulingResponse.model_validate(s) for s in schedulings],
         total_count=total,
         limit=limit,
         offset=offset,
         has_more=(offset + limit) < total,
+        cart_expires_at=cart_expires_at,
     )
 
 
@@ -439,6 +452,28 @@ async def cancel_scheduling(
         refund_amount=result.refund_amount,
         cancelled_at=result.cancelled_at,
     )
+
+
+@router.post(
+    "/clear-cart",
+    status_code=status.HTTP_200_OK,
+    summary="Limpar carrinho",
+    description="Cancela todos os agendamentos pendentes no carrinho do aluno.",
+)
+async def clear_student_cart(
+    current_user: CurrentStudent,
+    scheduling_repo: SchedulingRepo,
+    user_repo: UserRepo,
+) -> dict:
+    """Cancela todos os agendamentos pendentes no carrinho do aluno."""
+    use_case = ClearStudentCartUseCase(scheduling_repo, user_repo)
+    cancelled_count = await use_case.execute(current_user.id)
+    
+    return {
+        "status": "success",
+        "message": f"{cancelled_count} agendamentos removidos do carrinho.",
+        "cancelled_count": cancelled_count
+    }
 
 
 @router.post(

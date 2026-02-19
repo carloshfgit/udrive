@@ -5,6 +5,7 @@ Casos de uso relacionados a agendamentos de aulas.
 """
 
 from .cancel_scheduling import CancelSchedulingUseCase
+from .clear_student_cart import ClearStudentCartUseCase
 from .complete_scheduling import CompleteSchedulingUseCase
 from .confirm_scheduling import ConfirmSchedulingUseCase
 from .create_scheduling import CreateSchedulingUseCase
@@ -18,6 +19,7 @@ from .get_next_student_scheduling_use_case import GetNextStudentSchedulingUseCas
 __all__ = [
     "CreateSchedulingUseCase",
     "CancelSchedulingUseCase",
+    "ClearStudentCartUseCase",
     "ConfirmSchedulingUseCase",
     "CompleteSchedulingUseCase",
     "ListUserSchedulingsUseCase",

@@ -209,7 +209,7 @@ class HandlePaymentWebhookUseCase:
 
             # Confirmar Scheduling
             scheduling = await self.scheduling_repository.get_by_id(payment.scheduling_id)
-            if scheduling and scheduling.can_confirm:
+            if scheduling and scheduling.can_confirm():
                 scheduling.confirm()
                 await self.scheduling_repository.update(scheduling)
                 logger.info(

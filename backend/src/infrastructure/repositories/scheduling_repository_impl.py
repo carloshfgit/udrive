@@ -516,7 +516,10 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
         return [row.to_entity() for row in result.unique().scalars().all()]
 
     async def get_expired_cart_items(
-        self, timeout_minutes: int = 12, processing_timeout_minutes: int = 30
+        self, 
+        student_id: UUID | None = None,
+        timeout_minutes: int = 12, 
+        processing_timeout_minutes: int = 30
     ) -> list[Scheduling]:
         """
         Busca agendamentos no carrinho que expiraram o timeout.
@@ -536,7 +539,7 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
             select(SchedulingModel)
             .outerjoin(PaymentModel, PaymentModel.scheduling_id == SchedulingModel.id)
             .where(
-                SchedulingModel.status == SchedulingStatus.CONFIRMED,
+                SchedulingModel.status.in_([SchedulingStatus.PENDING, SchedulingStatus.CONFIRMED]),
                 or_(
                     # Caso 1: Sem pagamento ou PENDING -> expira em 12min
                     and_(
@@ -553,16 +556,20 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
                     ),
                 ),
             )
-            .options(
-                joinedload(SchedulingModel.student).load_only(
-                    UserModel.id, UserModel.full_name
-                ),
-                joinedload(SchedulingModel.instructor).options(
-                    load_only(UserModel.id, UserModel.full_name),
-                    joinedload(UserModel.instructor_profile),
-                ),
-                joinedload(SchedulingModel.review),
-            )
+        )
+
+        if student_id:
+            stmt = stmt.where(SchedulingModel.student_id == student_id)
+
+        stmt = stmt.options(
+            joinedload(SchedulingModel.student).load_only(
+                UserModel.id, UserModel.full_name
+            ),
+            joinedload(SchedulingModel.instructor).options(
+                load_only(UserModel.id, UserModel.full_name),
+                joinedload(UserModel.instructor_profile),
+            ),
+            joinedload(SchedulingModel.review),
         )
 
         result = await self._session.execute(stmt)
