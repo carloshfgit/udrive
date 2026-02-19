@@ -18,6 +18,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ChevronLeft, Star } from 'lucide-react-native';
 
 import { Avatar } from '../../../../shared/components';
+import { formatPrice } from '../../../../shared';
 import { CalendarPicker, TimeSlotPicker } from '../components';
 import { useInstructorAvailability, useAvailableTimeSlots } from '../hooks';
 import { TimeSlot } from '../api/schedulingApi';
@@ -165,7 +166,7 @@ export function SelectDateTimeScreen() {
                     </View>
                     <View className="items-end">
                         <Text className="text-lg font-bold text-primary-600">
-                            R$ {hourlyRate.toFixed(0)}
+                            {formatPrice(hourlyRate)}
                         </Text>
                         <Text className="text-xs text-gray-500">/hora</Text>
                     </View>

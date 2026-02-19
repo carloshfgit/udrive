@@ -7,6 +7,7 @@
 import React, { memo } from 'react';
 import { View, Text, TouchableOpacity, Image } from 'react-native';
 import { Instructor } from '../api/searchApi';
+import { formatPrice } from '../../../../shared';
 
 interface InstructorCardProps {
     instructor: Instructor;
@@ -96,9 +97,8 @@ function InstructorCardComponent({ instructor, onViewProfile }: InstructorCardPr
 
                     {/* Preço apenas */}
                     <View className="mt-3 flex-row items-baseline gap-0.5">
-                        <Text className="text-primary-600 text-sm font-bold">R$</Text>
                         <Text className="text-primary-600 text-xl font-bold">
-                            {Number(hourly_rate).toFixed(0)}
+                            {formatPrice(hourly_rate)}
                         </Text>
                         <Text className="text-neutral-400 text-xs">/hora</Text>
                     </View>

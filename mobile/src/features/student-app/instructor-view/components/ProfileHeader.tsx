@@ -7,6 +7,7 @@
 import React from 'react';
 import { View, Text, Image } from 'react-native';
 import { StarRating, Badge } from '../../../../shared/components';
+import { formatPrice } from '../../../../shared';
 import { InstructorDetail } from '../api/instructorApi';
 
 interface ProfileHeaderProps {
@@ -91,9 +92,8 @@ export function ProfileHeader({ instructor }: ProfileHeaderProps) {
 
             {/* Preço */}
             <View className="flex-row items-baseline mt-4">
-                <Text className="text-primary-600 text-lg font-bold">R$</Text>
                 <Text className="text-primary-600 text-4xl font-bold">
-                    {Number(hourly_rate).toFixed(0)}
+                    {formatPrice(hourly_rate)}
                 </Text>
                 <Text className="text-gray-500 text-base ml-1">/hora</Text>
             </View>
