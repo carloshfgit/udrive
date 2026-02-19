@@ -164,7 +164,8 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
                 or_(
                     PaymentModel.id.is_(None),
                     PaymentModel.status.in_([PaymentStatus.PENDING, PaymentStatus.PROCESSING]),
-                )
+                ),
+                SchedulingModel.status.notin_([SchedulingStatus.CANCELLED, SchedulingStatus.COMPLETED])
             )
         elif payment_status_filter == "completed":
             # Aulas com pagamento confirmado
@@ -201,7 +202,8 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
                 or_(
                     PaymentModel.id.is_(None),
                     PaymentModel.status.in_([PaymentStatus.PENDING, PaymentStatus.PROCESSING]),
-                )
+                ),
+                SchedulingModel.status.notin_([SchedulingStatus.CANCELLED, SchedulingStatus.COMPLETED])
             )
         elif payment_status_filter == "completed":
             stmt = stmt.where(PaymentModel.status == PaymentStatus.COMPLETED)
