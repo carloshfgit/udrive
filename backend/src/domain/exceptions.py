@@ -342,6 +342,16 @@ class PaymentAlreadyProcessedException(DomainException):
         )
 
 
+class MixedInstructorsException(DomainException):
+    """Exceção lançada quando o carrinho contém aulas de instrutores diferentes."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "Todos os agendamentos devem pertencer ao mesmo instrutor",
+            "MIXED_INSTRUCTORS"
+        )
+
+
 class InvalidWebhookSignatureException(DomainException):
     """Exceção lançada quando a assinatura do webhook é inválida."""
 

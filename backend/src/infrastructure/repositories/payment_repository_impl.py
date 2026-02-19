@@ -32,6 +32,7 @@ class PaymentRepositoryImpl(IPaymentRepository):
         if model:
             # Atualiza campos
             model.status = payment.status
+            model.preference_group_id = payment.preference_group_id
             model.gateway_payment_id = payment.gateway_payment_id
             model.gateway_preference_id = payment.gateway_preference_id
             model.payer_email = payment.payer_email
@@ -59,6 +60,15 @@ class PaymentRepositoryImpl(IPaymentRepository):
         result = await self.session.execute(query)
         model = result.scalar_one_or_none()
         return model.to_entity() if model else None
+
+    async def get_by_preference_group_id(self, preference_group_id: UUID) -> list[Payment]:
+        query = (
+            select(PaymentModel)
+            .where(PaymentModel.preference_group_id == preference_group_id)
+            .order_by(PaymentModel.created_at.asc())
+        )
+        result = await self.session.execute(query)
+        return [model.to_entity() for model in result.scalars()]
 
     async def list_by_student(
         self, student_id: UUID, limit: int = 50, offset: int = 0

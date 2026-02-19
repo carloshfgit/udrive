@@ -71,6 +71,19 @@ class IPaymentRepository(ABC):
         ...
 
     @abstractmethod
+    async def get_by_preference_group_id(self, preference_group_id: UUID) -> list[Payment]:
+        """
+        Busca todos os pagamentos de um mesmo checkout multi-item.
+
+        Args:
+            preference_group_id: UUID que agrupa payments do mesmo checkout.
+
+        Returns:
+            Lista de pagamentos do grupo.
+        """
+        ...
+
+    @abstractmethod
     async def update(self, payment: Payment) -> Payment:
         """
         Atualiza um pagamento existente.

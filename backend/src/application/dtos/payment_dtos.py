@@ -15,9 +15,9 @@ from uuid import UUID
 
 @dataclass(frozen=True)
 class CreateCheckoutDTO:
-    """DTO para criar checkout do Mercado Pago."""
+    """DTO para criar checkout do Mercado Pago (multi-item)."""
 
-    scheduling_id: UUID
+    scheduling_ids: list[UUID]
     student_id: UUID
     student_email: str | None = None
 

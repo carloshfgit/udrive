@@ -16,6 +16,7 @@ from src.application.use_cases.payment import (
 )
 from src.domain.exceptions import (
     DomainException,
+    MixedInstructorsException,
     PaymentAlreadyProcessedException,
     PaymentFailedException,
     SchedulingNotFoundException,
@@ -86,6 +87,7 @@ async def checkout(
     except (
         PaymentAlreadyProcessedException,
         GatewayAccountNotConnectedException,
+        MixedInstructorsException,
     ) as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
     except PaymentFailedException as e:

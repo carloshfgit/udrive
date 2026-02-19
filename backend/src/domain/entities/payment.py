@@ -29,6 +29,7 @@ class Payment:
         platform_fee_amount: Valor da taxa da plataforma.
         instructor_amount: Valor líquido do instrutor.
         status: Status do pagamento.
+        preference_group_id: UUID que agrupa payments de um mesmo checkout multi-item.
         gateway_payment_id: ID do pagamento no gateway (ex: PaymentIntent ID ou MP Payment ID).
         gateway_preference_id: ID da preferência/sessão no gateway.
         gateway_provider: Provedor de pagamento (ex: 'mercadopago', 'stripe').
@@ -45,6 +46,7 @@ class Payment:
     platform_fee_amount: Decimal = Decimal("0.00")
     instructor_amount: Decimal = Decimal("0.00")
     status: PaymentStatus = PaymentStatus.PENDING
+    preference_group_id: UUID | None = None
     gateway_payment_id: str | None = None
     gateway_preference_id: str | None = None
     gateway_provider: str = "mercadopago"

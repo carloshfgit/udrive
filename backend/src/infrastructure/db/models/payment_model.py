@@ -49,6 +49,9 @@ class PaymentModel(Base):
         default=PaymentStatus.PENDING,
         index=True,
     )
+    preference_group_id: Mapped[UUID | None] = mapped_column(
+        PG_UUID(as_uuid=True), nullable=True, index=True
+    )
     gateway_payment_id: Mapped[str | None] = mapped_column(nullable=True)
     gateway_preference_id: Mapped[str | None] = mapped_column(nullable=True)
     gateway_provider: Mapped[str] = mapped_column(nullable=False, default="mercadopago")
@@ -84,6 +87,7 @@ class PaymentModel(Base):
             platform_fee_amount=self.platform_fee_amount,
             instructor_amount=self.instructor_amount,
             status=self.status,
+            preference_group_id=self.preference_group_id,
             gateway_payment_id=self.gateway_payment_id,
             gateway_preference_id=self.gateway_preference_id,
             gateway_provider=self.gateway_provider,
@@ -107,6 +111,7 @@ class PaymentModel(Base):
             platform_fee_amount=entity.platform_fee_amount,
             instructor_amount=entity.instructor_amount,
             status=entity.status,
+            preference_group_id=entity.preference_group_id,
             gateway_payment_id=entity.gateway_payment_id,
             gateway_preference_id=entity.gateway_preference_id,
             gateway_provider=entity.gateway_provider,
