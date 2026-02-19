@@ -24,6 +24,8 @@ import { TimeSlot } from '../api/schedulingApi';
 
 // Tipos de navegação
 export type SchedulingStackParamList = {
+    MyLessons: undefined;
+    Cart: undefined;
     SelectDateTime: {
         instructorId: string;
         instructorName: string;

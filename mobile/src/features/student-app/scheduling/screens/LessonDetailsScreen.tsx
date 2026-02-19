@@ -254,18 +254,20 @@ export function LessonDetailsScreen() {
                         <ChevronRight size={20} color="#9CA3AF" />
                     </TouchableOpacity>
 
-                    <View className="flex-row gap-3">
-                        <Button
-                            title="Chat com Instrutor"
-                            variant="ghost"
-                            leftIcon={<MessageSquare size={20} color="#2563EB" />}
-                            className="flex-1"
-                            onPress={() => navigation.navigate('ChatRoom', {
-                                otherUserId: lesson.instructor_id,
-                                otherUserName: lesson.instructor_name || 'Instrutor',
-                            })}
-                        />
-                    </View>
+                    {!['completed', 'canceled', 'cancelled'].includes(lesson.status.toLowerCase()) && (
+                        <View className="flex-row gap-3">
+                            <Button
+                                title="Chat com Instrutor"
+                                variant="ghost"
+                                leftIcon={<MessageSquare size={20} color="#2563EB" />}
+                                className="flex-1"
+                                onPress={() => navigation.navigate('ChatRoom', {
+                                    otherUserId: lesson.instructor_id,
+                                    otherUserName: lesson.instructor_name || 'Instrutor',
+                                })}
+                            />
+                        </View>
+                    )}
                 </View>
 
                 {/* Action Buttons Section */}

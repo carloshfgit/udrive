@@ -58,23 +58,12 @@ export function BookingSuccessScreen() {
         queryClient.invalidateQueries({ queryKey: ['student-schedulings'] });
         queryClient.invalidateQueries({ queryKey: CART_ITEMS_QUERY_KEY });
 
-        // Navega para o carrinho dentro da stack de scheduling
-        navigation.dispatch(
-            CommonActions.reset({
-                index: 1,
-                routes: [
-                    {
-                        name: 'Scheduling',
-                        state: {
-                            routes: [
-                                { name: 'MyLessons' },
-                                { name: 'Cart' },
-                            ]
-                        }
-                    }
-                ],
-            })
-        );
+        // Navega para a aba de "Aulas" (Scheduling) e para a tela de "Carrinho" (Cart)
+        // Isso garante que funcione tanto se o usuário iniciou o agendamento pela Busca 
+        // quanto pela tela de Aulas.
+        navigation.navigate('Scheduling' as any, {
+            screen: 'Cart',
+        });
     };
 
     // Agendar mais uma aula com o mesmo instrutor
