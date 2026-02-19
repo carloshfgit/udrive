@@ -14,8 +14,10 @@ class GetNextStudentSchedulingUseCase:
     def __init__(self, scheduling_repository: ISchedulingRepository) -> None:
         self._scheduling_repository = scheduling_repository
 
-    async def execute(self, student_id: UUID) -> Scheduling | None:
+    async def execute(self, student_id: UUID, only_paid: bool = True) -> Scheduling | None:
         """
         Executes the use case to find the next scheduling.
         """
-        return await self._scheduling_repository.get_next_student_scheduling(student_id)
+        return await self._scheduling_repository.get_next_student_scheduling(
+            student_id, only_paid=only_paid
+        )

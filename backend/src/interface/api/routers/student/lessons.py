@@ -163,15 +163,15 @@ async def list_student_schedulings(
     "/next",
     response_model=SchedulingResponse | None,
     summary="Obter próxima aula",
-    description="Busca a próxima aula confirmada ou pendente do aluno.",
+    description="Busca a próxima aula do aluno com pagamento confirmado.",
 )
 async def get_next_student_lesson(
     current_user: CurrentStudent,
     scheduling_repo: SchedulingRepo,
 ) -> SchedulingResponse | None:
-    """Busca a próxima aula do aluno."""
+    """Busca a próxima aula do aluno com pagamento confirmado."""
     use_case = GetNextStudentSchedulingUseCase(scheduling_repo)
-    result = await use_case.execute(current_user.id)
+    result = await use_case.execute(current_user.id, only_paid=True)
     
     if result is None:
         return None

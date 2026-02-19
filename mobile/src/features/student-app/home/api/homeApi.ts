@@ -36,6 +36,7 @@ export async function getUpcomingLessons(): Promise<SchedulingListResponse> {
     const response = await api.get<SchedulingListResponse>(`${STUDENT_API}/lessons`, {
         params: {
             status_filter: 'confirmed',
+            payment_status_filter: 'completed',
             limit: 5,
         }
     });

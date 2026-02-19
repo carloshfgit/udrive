@@ -278,8 +278,12 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
     async def get_next_student_scheduling(
         self,
         student_id: UUID,
+        only_paid: bool = False,
     ) -> Scheduling | None:
         from datetime import datetime, timezone
+        from src.infrastructure.db.models.payment_model import PaymentModel
+        from src.domain.entities.payment_status import PaymentStatus
+        
         now = datetime.now(timezone.utc)
 
         stmt = (
@@ -300,6 +304,11 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
                 joinedload(SchedulingModel.review)
             )
         )
+
+        if only_paid:
+            stmt = stmt.join(SchedulingModel.payment).where(
+                PaymentModel.status == PaymentStatus.COMPLETED
+            )
 
         result = await self._session.execute(stmt)
         model = result.unique().scalar_one_or_none()

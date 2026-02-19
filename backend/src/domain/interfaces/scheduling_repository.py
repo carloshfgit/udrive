@@ -138,12 +138,14 @@ class ISchedulingRepository(ABC):
     async def get_next_student_scheduling(
         self,
         student_id: UUID,
+        only_paid: bool = False,
     ) -> Scheduling | None:
         """
         Busca a próxima aula (pendente, confirmada ou reagendamento) do aluno.
 
         Args:
             student_id: ID do aluno.
+            only_paid: Se True, retorna apenas aulas com pagamento confirmado.
 
         Returns:
             A aula mais próxima no futuro ou None.
