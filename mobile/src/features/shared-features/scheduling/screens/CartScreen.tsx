@@ -17,6 +17,7 @@ import {
     Alert,
     ActivityIndicator,
     Animated,
+    Image,
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { ChevronLeft, ShoppingCart, Calendar, Clock, CreditCard, Trash2, AlertTriangle, Info, CheckCircle2, XCircle } from 'lucide-react-native';
@@ -30,6 +31,7 @@ import { Avatar } from '../../../../shared/components/Avatar';
 import { formatPrice } from '../../../../shared';
 import { useCartItems, useCreateCheckout, useRemoveCartItem, useClearStudentCart, CART_ITEMS_QUERY_KEY } from '../hooks/usePayment';
 import { BookingResponse } from '../api/schedulingApi';
+
 
 // ============= Constants =============
 
@@ -488,10 +490,11 @@ export function CartScreen() {
                     <TouchableOpacity
                         onPress={handleCheckout}
                         disabled={isCheckingOut || isExpired}
-                        className={`py-4 rounded-xl items-center flex-row justify-center ${isCheckingOut || isExpired
+                        className={`h-14 rounded-xl items-center flex-row justify-center ${isCheckingOut || isExpired
                             ? 'bg-neutral-200'
-                            : 'bg-primary-600 active:bg-primary-700'
+                            : ''
                             }`}
+                        style={!(isCheckingOut || isExpired) ? { backgroundColor: '#00a5d3b5' } : {}}
                         accessibilityLabel="Finalizar Pagamento"
                     >
                         {isCheckingOut ? (
@@ -510,8 +513,13 @@ export function CartScreen() {
                             </>
                         ) : (
                             <>
-                                <CreditCard size={20} color="#FFFFFF" />
-                                <Text className="text-base font-semibold text-white ml-2">
+                                <Image
+                                    source={require('../../../../../assets/images/logo-mercado-pago-icone-512.png')}
+                                    style={{ width: 40, height: 40 }}
+                                    resizeMode="contain"
+                                    className="mr-2"
+                                />
+                                <Text className="text-base font-bold text-white">
                                     Finalizar Pagamento
                                 </Text>
                             </>

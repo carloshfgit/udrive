@@ -115,7 +115,7 @@ export function BookingSuccessScreen() {
 
                 {/* Aviso */}
                 <Text className="text-sm text-gray-400 text-center mt-6 px-4">
-                    Você receberá uma notificação quando o instrutor confirmar a aula.
+                    O instrutor será notificado e entrará em contato após a conclusão do pagamento.
                 </Text>
             </View>
 
