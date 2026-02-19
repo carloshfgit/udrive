@@ -21,17 +21,36 @@ export function MyLessonsScreen() {
 
     // Fetch only pending/confirmed lessons for the main screen
     const { data, isLoading, refetch, isError } = useStudentSchedulings();
-    const { data: cartData } = useCartItems();
-    const { unreadCount } = useUnreadCount();
+    const { data: cartData, refetch: refetchCart } = useCartItems();
+    const { unreadCount, refetch: refetchUnread } = useUnreadCount();
 
     const cartCount = cartData?.schedulings?.length ?? 0;
+
+    const onRefresh = useCallback(async () => {
+        setRefreshing(true);
+        await Promise.all([
+            refetch(),
+            refetchCart(),
+            refetchUnread()
+        ]);
+        setRefreshing(false);
+    }, [refetch, refetchCart, refetchUnread]);
 
     // Atualizar dados ao focar na tela
     useFocusEffect(
         useCallback(() => {
-            refetch();
-        }, [refetch])
+            onRefresh();
+        }, [onRefresh])
     );
+
+    // Refresh ao clicar no item da tab bar (mesmo se já estiver na tela)
+    React.useEffect(() => {
+        const unsubscribe = navigation.addListener('tabPress', () => {
+            onRefresh();
+        });
+
+        return unsubscribe;
+    }, [navigation, onRefresh]);
 
     // Os dados já vêm ordenados (ASC) do backend para esta tela
     const sortedSchedulings = React.useMemo(() => {
@@ -39,12 +58,6 @@ export function MyLessonsScreen() {
             (s) => s.status.toLowerCase() !== 'completed' && s.payment_status === 'confirmed'
         );
     }, [data?.schedulings]);
-
-    const onRefresh = async () => {
-        setRefreshing(true);
-        await refetch();
-        setRefreshing(false);
-    };
 
     const handlePressDetails = (scheduling: BookingResponse) => {
         navigation.navigate('LessonDetails', { schedulingId: scheduling.id });
@@ -81,17 +94,11 @@ export function MyLessonsScreen() {
                     size={44}
                 />
                 {cartCount > 0 && (
-                    <View className="absolute -top-0.5 -right-0.5 bg-primary-600 rounded-full h-5 w-5 items-center justify-center border-2 border-white">
+                    <View className="absolute -top-0.5 -right-0.5 bg-red-500 rounded-full h-5 w-5 items-center justify-center border-2 border-white">
                         <Text className="text-white text-[10px] font-bold">{cartCount}</Text>
                     </View>
                 )}
             </View>
-            <IconButton
-                icon={<History size={24} color="#111318" />}
-                onPress={() => navigation.navigate('History')}
-                variant="ghost"
-                size={44}
-            />
         </View>
     );
 
@@ -149,18 +156,36 @@ export function MyLessonsScreen() {
                             <LoadingState.Card />
                         </View>
                     ) : (
-                        <EmptyState
-                            icon={<Calendar size={32} color="#2563EB" />}
-                            title="Nenhuma aula ativa"
-                            message="Você ainda não possui aulas agendadas para os próximos dias."
-                            action={
-                                <Button
-                                    title="Buscar Instrutor"
-                                    onPress={() => navigation.navigate('Search')}
-                                    size="sm"
-                                />
-                            }
-                        />
+                        cartCount > 0 ? (
+                            <EmptyState
+                                icon={<ShoppingCart size={32} color="#EF4444" />}
+                                title="Carrinho com itens"
+                                message="Você ainda não tem aulas confirmadas.
+                                Suas aulas serão confirmadas e aparecerão aqui após o pagamento."
+                                action={
+                                    <View className="w-full gap-3">
+                                        <Button
+                                            title={`Ver Carrinho (${cartCount} ${cartCount === 1 ? 'item' : 'itens'})`}
+                                            onPress={() => navigation.navigate('Cart')}
+                                            size="sm"
+                                        />
+                                    </View>
+                                }
+                            />
+                        ) : (
+                            <EmptyState
+                                icon={<Calendar size={32} color="#2563EB" />}
+                                title="Nenhuma aula ativa"
+                                message="Você ainda não possui aulas agendadas para os próximos dias."
+                                action={
+                                    <Button
+                                        title="Buscar Instrutor"
+                                        onPress={() => navigation.navigate('Search')}
+                                        size="sm"
+                                    />
+                                }
+                            />
+                        )
                     )
                 }
             />
