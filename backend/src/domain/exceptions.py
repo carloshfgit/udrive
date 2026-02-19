@@ -345,9 +345,10 @@ class PaymentAlreadyProcessedException(DomainException):
 class MixedInstructorsException(DomainException):
     """Exceção lançada quando o carrinho contém aulas de instrutores diferentes."""
 
-    def __init__(self) -> None:
+    def __init__(self, message: str | None = None) -> None:
+        message = message or "Todos os agendamentos devem pertencer ao mesmo instrutor"
         super().__init__(
-            "Todos os agendamentos devem pertencer ao mesmo instrutor",
+            message,
             "MIXED_INSTRUCTORS"
         )
 

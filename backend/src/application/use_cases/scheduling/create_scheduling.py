@@ -12,6 +12,7 @@ from src.domain.entities.scheduling import Scheduling
 from src.domain.entities.user_type import UserType
 from src.domain.exceptions import (
     InstructorNotFoundException,
+    MixedInstructorsException,
     SchedulingConflictException,
     StudentNotFoundException,
     UnavailableSlotException,
@@ -68,6 +69,23 @@ class CreateSchedulingUseCase:
             raise StudentNotFoundException(f"Usuário {dto.student_id} não é um aluno")
         if not student.is_active:
             raise StudentNotFoundException("Aluno está inativo")
+
+        # 1.1 Validar se já existe itens no carrinho de outro instrutor
+        # Buscamos itens no carrinho (payment_status_filter="pending")
+        cart_items = await self.scheduling_repository.list_by_student(
+            student_id=dto.student_id,
+            payment_status_filter="pending",
+            limit=1
+        )
+        
+        if cart_items:
+            # Pega o primeiro item (se houver) e verifica o instrutor
+            current_cart_instructor_id = cart_items[0].instructor_id
+            if current_cart_instructor_id != dto.instructor_id:
+                raise MixedInstructorsException(
+                    "Você só pode agendar aulas com um instrutor por vez no carrinho. "
+                    "Esvazie o carrinho ou conclua a compra atual para agendar com outro instrutor."
+                )
 
         # 2. Validar instrutor
         instructor = await self.user_repository.get_by_id(dto.instructor_id)
