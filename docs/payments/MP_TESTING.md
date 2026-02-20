@@ -87,22 +87,56 @@ O "segredo" para induzir resultados diferentes (sucesso, recusado, pendente) na 
 | `SECU`                      | **Recusado** (CVV Inválido)                   | Erro de pagamento negado. |
 | `EXPI`                      | **Recusado** (Cartão expirado)                 | Erro de pagamento negado. |
 
+## 4. Testando a Vinculação de Conta (OAuth) no App Instrutor
+
+Para testar o fluxo onde o Instrutor vincula sua conta do Mercado Pago usando o Expo Go no dispositivo físico, é necessário configurar o seu ambiente local para receber o *callback* de autorização.
+
+### 4.1. Expondo o Backend Local
+O celular (via `expo-web-browser`) e os servidores do Mercado Pago precisam de uma URL publicamente acessível que aponte para o seu backend rodando localmente na porta 8000. Utilizaremos o **localtunnel** para isso:
+
+Execute o comando no seu terminal:
+```bash
+npx localtunnel --port 8000 --subdomain godrive-app
+```
+*(Nota: você pode escolher o subdomínio que preferir, apenas certifique-se de que a URL gerada seja `https`)*
+
+### 4.2. Configurando as Variáveis de Ambiente
+Copie a URL `https` gerada pelo localtunnel e atualize a variável `MP_REDIRECT_URI` no arquivo `backend/.env` do seu projeto:
+
+```env
+MP_REDIRECT_URI=https://<seu-subdominio>.loca.lt/api/v1/oauth/mercadopago/callback
+```
+
+### 4.3. Configurando a Aplicação no Mercado Pago
+1. Acesse o [Painel de Integrações do Mercado Pago](https://www.mercadopago.com.br/developers/panel/app).
+2. Selecione sua Aplicação (GoDrive).
+3. No menu lateral, expanda "Autenticação e Segurança" e clique em **URLs de Redirecionamento**.
+4. Adicione **exatamente a mesma URL** que você configurou no seu `.env` e salve.
+
+### 4.4. Executando o Teste no Celular
+1. Abra o app do Instrutor no Expo Go.
+2. Na tela de perfil, clique em **Vincular conta Mercado Pago**.
+3. O app abrirá um navegador interno (in-app browser).
+4. Faça o login utilizando uma conta de teste do tipo **Vendedor (Seller)**.
+5. Após você autorizar, o Mercado Pago redirecionará para a sua URL do localtunnel. O backend processará a vinculação e retornará um JSON confirmando o sucesso.
+6. Feche o navegador interno manualmente (botão "X" ou "Concluído"). A tela do aplicativo se atualizará, mostrando que a conta foi vinculada ("Sua conta já está vinculada ✅").
+
 ---
 
-## 4. Testando Webhooks Localmente
+## 5. Testando Webhooks Localmente
 
 Como o backend está executando no Docker para testes locais, o Mercado Pago na nuvem não consegue chegar a `localhost:8000/webhooks/mercadopago`.
 
 Para que as notificações de split/venda confirmada funcionem nos seus testes locais:
 
-1. **Uso de Túnel (Ngrok / Localtunnel / Cloudflare Tunnel):**
-   Execute o `ngrok`:
+1. **Uso de Túnel (Localtunnel):**
+   Mantenha o localtunnel rodando:
    ```bash
-   ngrok http 8000
+   npx localtunnel --port 8000 --subdomain godrive-app
    ```
 2. **Atualização da Configuração MP:**
-   Pegue a URL pública gerada (ex: `https://abcd-xyz.ngrok.app`) e defina na `notification_url` ao criar preferências via backend ou na aba "Notificações Webhooks" do próprio painel do app Mercado Pago.
-3. Teste realizar o pagamento completo com o nome `APRO`. Verifique nos logs do backend se o webhook foi recebido via Ngrok, validou a assinatura `x-signature` (lembre-se de configurar e usar a `WEBHOOK_SECRET` de teste correta enviada pelo MP ao webhook app), e se o banco de dados atualizou o *Payment* para `COMPLETED`.
+   Pegue a URL pública gerada e defina na `notification_url` ao criar preferências via backend ou na aba "Notificações Webhooks" do próprio painel do app Mercado Pago.
+3. Teste realizar o pagamento completo com o nome `APRO`. Verifique nos logs do backend se o webhook foi recebido via Localtunnel, validou a assinatura `x-signature` (lembre-se de configurar e usar a `WEBHOOK_SECRET` de teste correta enviada pelo MP ao webhook app), e se o banco de dados atualizou o *Payment* para `COMPLETED`.
 
 ---
 *Referência do material pesquisado:*
