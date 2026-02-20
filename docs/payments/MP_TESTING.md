@@ -125,18 +125,39 @@ MP_REDIRECT_URI=https://<seu-subdominio>.loca.lt/api/v1/oauth/mercadopago/callba
 
 ## 5. Testando Webhooks Localmente
 
-Como o backend está executando no Docker para testes locais, o Mercado Pago na nuvem não consegue chegar a `localhost:8000/webhooks/mercadopago`.
+Como o backend está executando no Docker para testes locais, o Mercado Pago na nuvem não consegue chegar a `localhost`. Para que as notificações funcionem nos seus testes locais, o Mercado Pago precisa de uma URL pública na internet que direcione para o seu ambiente de desenvolvimento.
 
-Para que as notificações de split/venda confirmada funcionem nos seus testes locais:
+Para isso, siga os passos abaixo:
 
-1. **Uso de Túnel (Localtunnel):**
-   Mantenha o localtunnel rodando:
-   ```bash
-   npx localtunnel --port 8000 --subdomain godrive-app
+### 5.1. Expondo o Ambiente Local com Localtunnel
+Mantenha o localtunnel rodando no seu terminal. Ele criará um túnel reverso apontando para a porta 8000 do seu backend:
+```bash
+npx localtunnel --port 8000 --subdomain godrive-app
+```
+*Isso gerará uma URL como `https://godrive-app.loca.lt`.*
+
+### 5.2. Configurando o Webhook no Painel do Mercado Pago
+1. Acesse o [Painel do Desenvolvedor (Suas Integrações)](https://www.mercadopago.com.br/developers/panel/app).
+2. Selecione a sua aplicação (GoDrive).
+3. No menu lateral, expanda a seção **Notificações** e clique em **Webhooks**.
+4. No campo **URL de Produção** e **URL de Teste**, insira a URL completa apontando para a rota específica do seu backend:
+   ```text
+   https://<seu-subdominio>.loca.lt/api/v1/shared/webhooks/mercadopago
    ```
-2. **Atualização da Configuração MP:**
-   Pegue a URL pública gerada e defina na `notification_url` ao criar preferências via backend ou na aba "Notificações Webhooks" do próprio painel do app Mercado Pago.
-3. Teste realizar o pagamento completo com o nome `APRO`. Verifique nos logs do backend se o webhook foi recebido via Localtunnel, validou a assinatura `x-signature` (lembre-se de configurar e usar a `WEBHOOK_SECRET` de teste correta enviada pelo MP ao webhook app), e se o banco de dados atualizou o *Payment* para `COMPLETED`.
+   *(Exemplo: `https://godrive-app.loca.lt/api/v1/shared/webhooks/mercadopago`)*
+5. Na seção **Eventos**, selecione os tópicos que deseja receber. Para o fluxo de pagamentos, selecione pelo menos **Payments** (`payment`).
+6. Salve as configurações.
+
+### 5.3. Usando a Ferramenta de Simulação do Mercado Pago
+O painel do Mercado Pago oferece uma ferramenta para enviar eventos simulados, ideal para verificar se o seu backend está recebendo e processando (validando a assinatura HMAC `x-signature`) corretamente sem precisar criar compras reais de teste.
+
+1. Na mesma tela de configuração de **Webhooks**, após salvar a URL, procure pela seção **Simular evento** (ou botão similar).
+2. Selecione o evento (`payment`).
+3. Clique em **Enviar teste**.
+4. Observe os logs do seu backend no Docker (`docker compose logs -f backend`). Você deverá ver uma mensagem indicando o recebimento do webhook (ex: `Webhook MP recebido: type=payment...`) e o retorno HTTP `200 OK`.
+
+### 5.4. Validando o Fluxo Completo E2E
+Ao realizar uma compra pelo aplicativo mobile (usando o cartão de teste aprovado e a conta de comprador), o próprio Mercado Pago enviará a notificação real (em modo Live/Test) para a URL configurada. Verifique se o backend processa a notificação e atualiza o status do `Payment` no banco de dados para `COMPLETED`.
 
 ---
 *Referência do material pesquisado:*

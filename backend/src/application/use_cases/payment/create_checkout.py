@@ -172,7 +172,7 @@ class CreateCheckoutUseCase:
                 payer = {"email": dto.student_email}
 
             base_url = self.settings.mp_redirect_uri.rsplit("/oauth", 1)[0]
-            notification_url = f"{base_url}/webhooks/mercadopago"
+            notification_url = f"{base_url}/shared/webhooks/mercadopago"
 
             checkout_result = await self.payment_gateway.create_checkout(
                 items=items,
