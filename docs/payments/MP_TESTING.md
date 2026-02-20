@@ -1,85 +1,111 @@
-# Fluxo de Testagem Mercado Pago: Marketplace e Split de Pagamentos
+# Fluxo de Testagem Mercado Pago: Marketplace e Split de Pagamentos em React Native (Expo Go)
 
-Este documento descreve o fluxo de teste oficial para integrações de Marketplace com Split de Pagamentos, baseado na documentação oficial do Mercado Pago.
-
-## 1. Tipos de Contas de Teste Necessárias
-
-Para testar um fluxo de marketplace completo, o Mercado Pago recomenda a criação de pelo menos três tipos de contas no painel de desenvolvedor:
-
-*   **Integrador (Marketplace):** A conta principal que gerencia a aplicação e recebe a comissão (`application_fee` ou `marketplace_fee`).
-*   **Vendedor (Seller):** Conta que representa o vendedor final. Esta conta deve ser vinculada à aplicação do integrador via OAuth.
-*   **Comprador (Buyer):** Conta utilizada para simular a compra e realizar o pagamento.
-
-> [!IMPORTANT]
-> As contas de **Vendedor** e **Comprador** devem pertencer ao mesmo país.
-
-## 2. Configuração do Ambiente de Teste
-
-1.  **Criação da Aplicação:** O Integrador deve criar uma aplicação no painel "Suas Integrações".
-2.  **Fluxo OAuth (Vendedor):**
-    *   O vendedor deve autorizar a aplicação do marketplace para operar em seu nome.
-    *   Este processo resulta em um `access_token` do vendedor, que deve ser usado nas chamadas de API de criação de pagamento.
-3.  **Credenciais:** Utilize as credenciais de teste (Test Access Token e Test Public Key) para evitar transações reais.
-
-## 3. Fluxo de Pagamento com Split (API)
-
-Ao criar um pagamento usando o **Checkout API**, o split é realizado através do parâmetro `application_fee`.
-
-### Exemplo de Requisição (POST `/v1/payments`)
-
-```json
-{
-    "description": "Pagamento de teste Marketplace",
-    "transaction_amount": 100.00,
-    "application_fee": 20.00,
-    "payment_method_id": "master",
-    "payer": {
-        "email": "test_un@testuser.com"
-    },
-    "token": "CARD_TOKEN"
-}
-```
-
-*   **Authorization Header:** `Bearer {Vendedor_Access_Token}` (Token obtido via OAuth).
-*   **Split:** O Mercado Pago desconta primeiro sua própria taxa e depois distribui o valor:
-    *   O Integrador recebe R$ 20,00 (especificado em `application_fee`).
-    *   O Vendedor recebe o valor restante (R$ 80,00 - taxas do MP).
-
-## 4. Fluxo de Pagamento com Split (Checkout Pro)
-
-Para o **Checkout Pro**, utiliza-se o parâmetro `marketplace_fee` na criação da preferência.
-
-### Exemplo de Requisição (POST `/checkout/preferences`)
-
-```json
-{
-    "items": [
-        {
-            "title": "Produto Marketplace",
-            "quantity": 1,
-            "unit_price": 100.00
-        }
-    ],
-    "marketplace_fee": 20.00
-}
-```
-
-## 5. Simulação de Cenários com Cartões de Teste
-
-Utilize os cartões de teste e os nomes de titulares específicos para simular diferentes status:
-
-| Nome do Titular | Status Resultante |
-| :--- | :--- |
-| `APRO` | Aprovado |
-| `FUND` | Recusado por saldo insuficiente |
-| `CONT` | Pendente |
-| `SECU` | Recusado por código de segurança |
-
-## 6. Verificação de Reembolsos (Refunds)
-
-No modelo de split:
-- O reembolso é **proporcional** entre o vendedor e o marketplace.
-- O marketplace não pode realizar o reembolso total se o vendedor não tiver saldo suficiente em conta (em modelos 1:1).
+Este guia detalha o processo completo para testar a integração do **Checkout Pro** no GoDrive (modelo Marketplace) usando **React Native (Expo Go)**, de acordo com a documentação oficial do Mercado Pago.
 
 ---
-*Referência: [Documentação Marketplace Mercado Pago](https://www.mercadopago.com.br/developers/pt/docs/split-payments/landing)*
+
+## 1. Contas de Teste Necessárias
+
+Para testar o fluxo de ponta a ponta (E2E) em um ambiente de Marketplace (com split de pagamentos), você deve criar suas contas no **Painel de Integrações do Mercado Pago**. É mandatório o uso de usuários de teste, pois transações com usuários reais não funcionam com credenciais de teste, e credenciais de produção exigem pagamentos reais.
+
+O ecossistema exige **3 contas de teste** distintas:
+
+1.  **Integrador (Marketplace / GoDrive):** É a sua conta principal onde a Aplicação (App ID) está criada. Essa aplicação define as credenciais base e recebe o `marketplace_fee` (taxa de comissão).
+2.  **Vendedor (Seller / Instrutor):** Conta que representa o instrutor. 
+    - Deve autorizar a conta do Integrador através do fluxo OAuth.
+    - É o recebedor do valor principal.
+3.  **Comprador (Buyer / Aluno):** Conta utilizada para entrar no Checkout Pro e efetuar a compra com cartões de teste ou saldo fictício.
+
+> [!IMPORTANT]
+> - O **Comprador** e o **Vendedor** precisam obrigatoriamente ser criados com o **mesmo país de operação** (ex: Brasil - MLB).
+> - Ao criar a conta do Comprador, adicione **dinheiro fictício** se quiser testar pagamentos via Saldo Mercado Pago.
+
+**Como criar as contas:**
+1. Navegue até o [Painel do Desenvolvedor (Suas Integrações)](https://www.mercadopago.com.br/developers/panel/app).
+2. Vá na seção **Contas de teste** da sua aplicação.
+3. Clique em **+ Criar conta de teste**, escolha o País, forneça uma descrição e selecione o tipo (Vendedor ou Comprador).
+4. Guarde o Username e a Senha gerados automaticamente para fazer os logins.
+
+---
+
+## 2. Testando no App Expo Go (Mobile)
+
+Em aplicativos móveis, a recomendação oficial do Mercado Pago não é mais usar `WebViews` internas para exibir o Checkout, pois isso frequentemente esbarra em bloqueios de segurança do MP (autenticações, biometria, login).
+
+A forma correta no ecossistema do Expo é usando o **Navegador Nativo Seguro (Custom Tabs no Android / Safari View Controller no iOS)**. No GoDrive, isso é feito com a biblioteca `expo-web-browser`.
+
+### 2.1. Fluxo de Execução no App
+
+1. O backend do GoDrive processa o carrinho, cria a preferência via API (usando o `access_token` do Instrutor/Seller e definindo o `marketplace_fee`), e devolve a URL (`init_point`).
+2. O aplicativo mobile chama `WebBrowser.openAuthSessionAsync(init_point, ...)` ou `WebBrowser.openBrowserAsync()`.
+3. O aluno (usando a conta de Comprador) faz login na interface web do MP que foi aberta ou entra como Convidado.
+4. O aluno preenche os dados do cartão de teste (veja a seção de Cartões abaixo) e realiza o pagamento.
+5. O redirecionamento de volta ao app ocorre via **Deep Links**.
+
+### 2.2. Configuração de Deep Links (`back_urls`)
+
+Para voltar ao aplicativo React Native Expo Go de forma fluida após o teste:
+
+- No backend, ao criar a preferência, as `back_urls` devem apontar para o `scheme` configurado no `app.json` do Expo (ex: `godrive://`).
+```json
+{
+  "back_urls": {
+    "success": "godrive://payment/success",
+    "pending": "godrive://payment/pending",
+    "failure": "godrive://payment/error"
+  },
+  "auto_return": "approved"
+}
+```
+- No frontend (App.tsx), o `Linking.addEventListener` captura o link `godrive://...`, permite fechar o navegador webview (usando `WebBrowser.dismissBrowser()`) e redireciona a interface para a tela de `PaymentResultScreen`.
+
+---
+
+## 3. Cartões de Teste e Cenários de Validação
+
+O Mercado Pago disponibiliza cartões de crédito e débito cujos números passam na validação do formulário, mas não geram cobranças reais em um ambiente de Sandbox.
+
+### Números de Cartões (Exemplo Brasil - MLB)
+
+| Bandeira         | Tipo    | Número do Cartão      | CVV  | Venc. |
+| :--------------- | :------ | :-------------------- | :--- | :---- |
+| Mastercard       | Crédito | 5031 4332 1540 6351   | 123  | 11/30 |
+| Visa             | Crédito | 4235 6477 2802 5682   | 123  | 11/30 |
+| American Express | Crédito | 3753 651535 56885     | 1234 | 11/30 |
+| Elo              | Débito  | 5067 7667 8388 8311   | 123  | 11/30 |
+
+### Simulando Diferentes Status de Pagamento
+
+O "segredo" para induzir resultados diferentes (sucesso, recusado, pendente) na versão de testes é preencher o campo **Nome do titular (Cardholder Name)** de forma específica e fornecer um CPF de teste qualquer (e.g., `12345678909`).
+
+| Nome do Titular a preencher | Resultado Simulado pela API Mercado Pago        | Comportamento esperado no App GoDrive |
+| :-------------------------- | :---------------------------------------------- | :------------------------------------ |
+| `APRO`                      | **Aprovado** (`status: approved`)               | Redireciona via App Deep Link para *Success*. Webhook atualiza no backend e a aula é confirmada. |
+| `CONT`                      | **Pendente** (`status: pending` / `in_process`)| Redireciona para tela de acompanhamento/pendente. |
+| `OTHE`                      | **Recusado** (Erro geral)                       | Redireciona para *Error*. Aluno pode tentar novamente. |
+| `FUND`                      | **Recusado** (Saldo insuficiente)               | Erro de pagamento negado. |
+| `SECU`                      | **Recusado** (CVV Inválido)                   | Erro de pagamento negado. |
+| `EXPI`                      | **Recusado** (Cartão expirado)                 | Erro de pagamento negado. |
+
+---
+
+## 4. Testando Webhooks Localmente
+
+Como o backend está executando no Docker para testes locais, o Mercado Pago na nuvem não consegue chegar a `localhost:8000/webhooks/mercadopago`.
+
+Para que as notificações de split/venda confirmada funcionem nos seus testes locais:
+
+1. **Uso de Túnel (Ngrok / Localtunnel / Cloudflare Tunnel):**
+   Execute o `ngrok`:
+   ```bash
+   ngrok http 8000
+   ```
+2. **Atualização da Configuração MP:**
+   Pegue a URL pública gerada (ex: `https://abcd-xyz.ngrok.app`) e defina na `notification_url` ao criar preferências via backend ou na aba "Notificações Webhooks" do próprio painel do app Mercado Pago.
+3. Teste realizar o pagamento completo com o nome `APRO`. Verifique nos logs do backend se o webhook foi recebido via Ngrok, validou a assinatura `x-signature` (lembre-se de configurar e usar a `WEBHOOK_SECRET` de teste correta enviada pelo MP ao webhook app), e se o banco de dados atualizou o *Payment* para `COMPLETED`.
+
+---
+*Referência do material pesquisado:*
+* [Contas de teste - Mercado Pago Docs](https://www.mercadopago.com.br/developers/pt/docs/checkout-api-payments/additional-content/your-integrations/test/accounts)
+* [Cartões de teste - Mercado Pago Docs](https://www.mercadopago.com.br/developers/pt/docs/checkout-api-payments/additional-content/your-integrations/test/cards)
+* [Checkout Pro em React Native (Integração Expo)](https://www.mercadopago.com.br/developers/pt/docs/checkout-pro/mobile-integration/react-native-expo-go)
