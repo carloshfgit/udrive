@@ -65,7 +65,7 @@ Se o aluno solicitar reembolso **antes** do prazo de liberação do dinheiro (
 
 - **Usar o Prazo de Liberação (D+14):** A melhor forma de "segurar" o dinheiro no Checkout Pro é confiar no prazo de liberação (D+14 ou D+30). Durante esse período, o dinheiro está na conta do vendedor mas **bloqueado**. Se o aluno reclamar que não recebeu a aula, você (Plataforma) ou o Instrutor podem realizar o estorno antes que o dinheiro fique disponível para saque.
 - **Migrar para Checkout Transparente:** Se a lógica de "reserva de limite" for crítica para o negócio (ex: evitar cobrar se o instrutor não confirmar a aula em 2h), seria necessário migrar do Checkout Pro para o **Checkout Transparente**, o que aumenta significativamente a complexidade de desenvolvimento (PCI compliance, gestão de frontend de pagamentos, gestão de risco pelo próprio marketplace).
-- 
+
 ## Resumo Executivo para Gestão
 
 |Evento|O que acontece|

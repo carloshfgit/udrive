@@ -79,5 +79,3 @@ O GoDrive adota um modelo "fee-on-top" modificado (Markup), onde o **cálculo ga
 *   **Exibição de Preços (Transparência):**
     *   **Visão Aluno:** O valor exibido nas telas de busca e agendamento já é o **Valor Final** (com todas as taxas, arredondamentos e charm pricing aplicados).
     *   **Visão Instrutor:** O instrutor define e visualiza o valor líquido de sua hora-aula.
-
-
