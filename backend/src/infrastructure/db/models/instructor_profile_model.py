@@ -68,7 +68,7 @@ class InstructorProfileModel(Base):
     
     # Mercado Pago OAuth
     mp_access_token: Mapped[str | None] = mapped_column(Text, nullable=True)
-    mp_refresh_token: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    mp_refresh_token: Mapped[str | None] = mapped_column(Text, nullable=True)
     mp_token_expiry: Mapped[datetime | None] = mapped_column(nullable=True)
     mp_user_id: Mapped[str | None] = mapped_column(String(50), nullable=True)
 

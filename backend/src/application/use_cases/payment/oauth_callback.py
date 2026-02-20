@@ -80,7 +80,7 @@ class OAuthCallbackUseCase:
         encrypted_refresh_token = encrypt_token(oauth_result.refresh_token)
 
         # 6. Calcular data de expiração
-        token_expiry = datetime.now(timezone.utc) + timedelta(
+        token_expiry = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(
             seconds=oauth_result.expires_in
         )
 
@@ -89,7 +89,7 @@ class OAuthCallbackUseCase:
         instructor.mp_refresh_token = encrypted_refresh_token
         instructor.mp_token_expiry = token_expiry
         instructor.mp_user_id = oauth_result.user_id
-        instructor.updated_at = datetime.now(timezone.utc)
+        instructor.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
 
         await self.instructor_repository.update(instructor)
 

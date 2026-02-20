@@ -60,7 +60,7 @@ class RefreshInstructorTokenUseCase:
 
         # 3. Verificar se precisa renovar
         if instructor.mp_token_expiry is not None:
-            threshold = datetime.now(timezone.utc) + timedelta(
+            threshold = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(
                 days=self.RENEWAL_THRESHOLD_DAYS
             )
             if instructor.mp_token_expiry > threshold:
@@ -84,7 +84,7 @@ class RefreshInstructorTokenUseCase:
         encrypted_refresh_token = encrypt_token(oauth_result.refresh_token)
 
         # 7. Calcular nova data de expiração
-        token_expiry = datetime.now(timezone.utc) + timedelta(
+        token_expiry = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(
             seconds=oauth_result.expires_in
         )
 
@@ -92,7 +92,7 @@ class RefreshInstructorTokenUseCase:
         instructor.mp_access_token = encrypted_access_token
         instructor.mp_refresh_token = encrypted_refresh_token
         instructor.mp_token_expiry = token_expiry
-        instructor.updated_at = datetime.now(timezone.utc)
+        instructor.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
 
         await self.instructor_repository.update(instructor)
 

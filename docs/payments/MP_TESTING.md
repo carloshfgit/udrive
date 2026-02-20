@@ -101,17 +101,18 @@ ngrok http 8000 --url kinetic-unhazily-masako.ngrok-free.dev
 *(Nota: este é o seu domínio estático configurado)*
 
 ### 4.2. Configurando as Variáveis de Ambiente
-Copie a URL `https` gerada pelo localtunnel e atualize a variável `MP_REDIRECT_URI` no arquivo `backend/.env` do seu projeto:
+Atualize a variável `MP_REDIRECT_URI` no arquivo `backend/.env` do seu projeto com o caminho correto da rota de instrutor:
 
 ```env
-MP_REDIRECT_URI=https://kinetic-unhazily-masako.ngrok-free.dev/api/v1/oauth/mercadopago/callback
+MP_REDIRECT_URI=https://kinetic-unhazily-masako.ngrok-free.dev/api/v1/instructor/oauth/mercadopago/callback
 ```
 
 ### 4.3. Configurando a Aplicação no Mercado Pago
 1. Acesse o [Painel de Integrações do Mercado Pago](https://www.mercadopago.com.br/developers/panel/app).
 2. Selecione sua Aplicação (GoDrive).
-3. No menu lateral, expanda "Autenticação e Segurança" e clique em **URLs de Redirecionamento**.
-4. Adicione **exatamente a mesma URL** que você configurou no seu `.env` e salve.
+3. No menu lateral, clique no ícone de lápis em seguida salve a URL em **URLs de Redirecionamento**.
+4. Adicione **exatamente a mesma URL** que você configurou no seu `.env` e salve:
+   `https://kinetic-unhazily-masako.ngrok-free.dev/api/v1/instructor/oauth/mercadopago/callback`
 
 ### 4.4. Executando o Teste no Celular
 1. Abra o app do Instrutor no Expo Go.

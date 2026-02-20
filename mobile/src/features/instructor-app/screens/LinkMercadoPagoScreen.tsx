@@ -66,7 +66,7 @@ const INFO_CARDS = [
 
 export function LinkMercadoPagoScreen() {
     const navigation = useNavigation();
-    const { data: profile } = useInstructorProfile();
+    const { data: profile, refetch } = useInstructorProfile();
     const [isLoading, setIsLoading] = useState(false);
 
     // Verifica se a conta MP já está vinculada
@@ -78,6 +78,9 @@ export function LinkMercadoPagoScreen() {
         try {
             const { authorization_url } = await getOAuthAuthorizeUrl();
             await openBrowserAsync(authorization_url);
+            if (refetch) {
+                refetch();
+            }
         } catch (error: unknown) {
             const message =
                 error instanceof Error

@@ -7,6 +7,7 @@ Endpoints para vinculação de conta Mercado Pago do instrutor via OAuth.
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
+from fastapi.responses import HTMLResponse
 from src.application.dtos.payment_dtos import (
     OAuthCallbackDTO,
     OAuthAuthorizeResponseDTO,
@@ -24,6 +25,7 @@ from src.infrastructure.config import Settings, get_settings
 from src.interface.api.dependencies import (
     CurrentInstructor,
     InstructorRepo,
+    DBSession,
 )
 
 logger = structlog.get_logger()
@@ -108,7 +110,8 @@ async def callback(
     code: str = Query(..., description="Código de autorização do MP"),
     state: str = Query(..., description="ID do instrutor (state parameter)"),
     use_case: OAuthCallbackUseCase = Depends(_get_callback_use_case),
-) -> dict:
+    db_session: DBSession = None,
+) -> HTMLResponse:
     """
     Processa o callback OAuth do Mercado Pago.
 
@@ -120,17 +123,35 @@ async def callback(
         dto = OAuthCallbackDTO(code=code, state=state)
         result = await use_case.execute(dto)
 
+        # Commit explícito necessário pois GET não faz auto-commit
+        if db_session:
+            await db_session.commit()
+
         logger.info(
             "oauth_callback_success",
             mp_user_id=result.mp_user_id,
             state=state,
         )
 
-        return {
-            "mp_user_id": result.mp_user_id,
-            "is_connected": result.is_connected,
-            "message": "Conta Mercado Pago vinculada com sucesso!",
-        }
+        html_content = """
+        <html>
+            <head>
+                <title>Autorização Concluída</title>
+                <meta name="viewport" content="width=device-width, initial-scale=1">
+                <style>
+                    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; text-align: center; padding: 40px; }
+                    h1 { color: #059669; }
+                    p { color: #4B5563; font-size: 16px; margin-top: 20px; }
+                </style>
+            </head>
+            <body>
+                <h1>Autorização Concluída!</h1>
+                <p>Sua conta Mercado Pago foi vinculada com sucesso.</p>
+                <p>Você já pode fechar esta página e voltar para o aplicativo GoDrive.</p>
+            </body>
+        </html>
+        """
+        return HTMLResponse(content=html_content)
     except InstructorNotFoundException:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
