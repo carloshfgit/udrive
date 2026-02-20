@@ -74,7 +74,7 @@ def connected_instructor_profile():
         hourly_rate=Decimal("100.00"),
         mp_access_token="encrypted_access_token",
         mp_refresh_token="encrypted_refresh_token",
-        mp_token_expiry=datetime.now(timezone.utc) + timedelta(days=90),
+        mp_token_expiry=datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(days=90),
         mp_user_id="12345678",
     )
 
@@ -251,7 +251,7 @@ class TestRefreshInstructorTokenUseCase:
         # Token expirando em 10 dias (abaixo do threshold de 30)
         connected_instructor_profile.mp_token_expiry = datetime.now(
             timezone.utc
-        ) + timedelta(days=10)
+        ).replace(tzinfo=None) + timedelta(days=10)
 
         mock_decrypt.return_value = "decrypted_refresh_token"
         mock_encrypt.side_effect = lambda t: f"new_encrypted_{t}"
@@ -280,7 +280,7 @@ class TestRefreshInstructorTokenUseCase:
         # Token expirando em 90 dias (acima do threshold de 30)
         connected_instructor_profile.mp_token_expiry = datetime.now(
             timezone.utc
-        ) + timedelta(days=90)
+        ).replace(tzinfo=None) + timedelta(days=90)
 
         mock_instructor_repo.get_by_user_id.return_value = connected_instructor_profile
 

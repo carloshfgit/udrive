@@ -29,6 +29,7 @@ erDiagram
     USERS ||--|{ INSTRUCTOR_PROFILES : "tem um (se instrutor)"
     USERS ||--|{ STUDENT_PROFILES : "tem um (se aluno)"
     USERS ||--o{ TRANSACTIONS : "realiza"
+    USERS ||--o{ MESSAGES : "envia/recebe"
 
     INSTRUCTOR_PROFILES ||--o{ INSTRUCTOR_AVAILABILITY : "define"
 
@@ -36,6 +37,7 @@ erDiagram
     USERS ||--o{ SCHEDULING_INSTRUCTOR : "recebe como instrutor"
 
     SCHEDULINGS ||--|| PAYMENTS : "gera"
+    SCHEDULINGS ||--o| REVIEWS : "possui"
     PAYMENTS ||--o{ TRANSACTIONS : "registra"
 
     USERS {
@@ -43,6 +45,8 @@ erDiagram
         string email
         string user_type "STUDENT | INSTRUCTOR | ADMIN"
         string full_name
+        bool is_active
+        bool is_verified
     }
 
     INSTRUCTOR_PROFILES {
@@ -50,11 +54,14 @@ erDiagram
         geometry location "PostGIS Point"
         bool is_available
         decimal hourly_rate
+        float rating
+        int total_reviews
     }
 
     STUDENT_PROFILES {
         uuid user_id FK
         string learning_stage
+        string license_category_goal
     }
 
     SCHEDULINGS {
@@ -62,6 +69,7 @@ erDiagram
         uuid student_id FK
         uuid instructor_id FK
         datetime scheduled_datetime
+        int duration_minutes
         enum status "PENDING | CONFIRMED | ..."
     }
 
@@ -70,6 +78,23 @@ erDiagram
         uuid scheduling_id FK
         decimal amount
         enum status
+    }
+
+    MESSAGES {
+        uuid id PK
+        uuid sender_id FK
+        uuid receiver_id FK
+        string content
+        bool is_read
+    }
+
+    REVIEWS {
+        uuid id PK
+        uuid scheduling_id FK
+        uuid student_id FK
+        uuid instructor_id FK
+        int rating
+        string comment
     }
 ```
 
@@ -87,13 +112,20 @@ Tabela central que armazena as credenciais e dados básicos de todos os usuário
     *   `user_type`: Discriminador (`student`, `instructor`, `admin`).
     *   `hashed_password`: Hash seguro da senha.
     *   `full_name`, `cpf`, `phone`, `biological_sex`, `birth_date`: Dados pessoais.
-*   **Relacionamentos**: Pai de `instructor_profiles` e `student_profiles`.
+    *   `is_active`, `is_verified`: Flags de controle de acesso.
+*   **Relacionamentos**: Pai de `instructor_profiles`, `student_profiles`, envia/recebe `messages` e participa nas `transactions`.
 
 #### `refresh_tokens`
 Gerencia a persistência de sessões para renovação de JWTs.
 *   **PK**: `id` (UUIDv4)
 *   **FK**: `user_id` -> `users.id` (Cascade Delete)
 *   **Campos Chave**: `token_hash`, `expires_at`, `is_revoked`.
+
+#### `messages`
+Armazena as mensagens trocadas no chat interno entre alunos e instrutores.
+*   **PK**: `id` (UUIDv4)
+*   **FKs**: `sender_id` -> `users.id`, `receiver_id` -> `users.id` (Cascade Delete)
+*   **Campos Chave**: `content` (Conteúdo da mensagem), `is_read` (Status de leitura), `timestamp`.
 
 ### 3.2. Perfis de Usuário
 
@@ -104,13 +136,14 @@ Armazena dados específicos de instrutores, incluindo dados espaciais.
 *   **Geolocalização**:
     *   campo `location`: Tipo `Geometry(Point, 4326)`. Armazena a posição geográfica do instrutor (WGS84).
     *   Índice Espacial: `GIST` na coluna `location` para queries de proximidade (`ST_DWithin`).
-*   **Campos Chave**: `bio`, `vehicle_type`, `hourly_rate`, `is_available`, `rating`, `city`.
+*   **Campos Chave**: `bio`, `vehicle_type`, `license_category`, `hourly_rate`, `is_available`, `rating`, `total_reviews`, `city`, `stripe_account_id`.
+*   **Integração Mercado Pago**: `mp_access_token`, `mp_refresh_token`, `mp_token_expiry`, `mp_user_id`.
 
 #### `student_profiles`
 Armazena dados de aprendizado dos alunos.
 *   **PK**: `id` (UUIDv4)
 *   **FK**: `user_id` -> `users.id` (One-to-One, Unique)
-*   **Campos Chave**: `learning_stage` (Iniciante, Intermediário...), `license_category_goal`.
+*   **Campos Chave**: `learning_stage` (Iniciante, Intermediário...), `license_category_goal`, `preferred_schedule`, `notes`, `total_lessons`.
 
 ### 3.3. Agendamento e Disponibilidade
 
@@ -122,9 +155,20 @@ Registra as aulas agendadas.
     *   `instructor_id` -> `users.id`
 *   **Campos Chave**:
     *   `scheduled_datetime`: Data e hora da aula.
+    *   `duration_minutes`: Tempo em minutos (padrão 50).
     *   `status`: Enum (`PENDING`, `CONFIRMED`, `COMPLETED`, `CANCELLED`).
     *   `price`: Valor congelado no momento do agendamento.
+    *   `cancellation_reason`, `cancelled_by`, `rescheduled_datetime`: Controle do ciclo de vida da aula.
 *   **Índices**: Compostos para buscas rápidas por aluno/data e instrutor/data.
+
+#### `reviews`
+Armazena as avaliações de feedback.
+*   **PK**: `id` (UUIDv4)
+*   **FKs**:
+    *   `scheduling_id` -> `schedulings.id` (One-to-One, Unique)
+    *   `student_id` -> `users.id`
+    *   `instructor_id` -> `users.id`
+*   **Campos Chave**: `rating` (Nota recebida) e `comment` (Comentário do aluno).
 
 #### `instructor_availability`
 Define a "grade horária" recorrente do instrutor.
@@ -140,19 +184,20 @@ Define a "grade horária" recorrente do instrutor.
 #### `payments`
 Gerencia o ciclo de vida do pagamento de uma aula.
 *   **PK**: `id` (UUIDv4)
-*   **FK**: `scheduling_id` -> `schedulings.id` (One-to-One)
+*   **FK**: `scheduling_id` -> `schedulings.id` (One-to-One, Unique)
 *   **Campos Chave**:
     *   `amount`: Valor total.
-    *   `platform_fee_amount`: Parte da plataforma.
+    *   `platform_fee_percentage`, `platform_fee_amount`: Parte e percentual da plataforma.
     *   `instructor_amount`: Parte do instrutor (split).
-    *   `stripe_payment_intent_id`: ID da transação no gateway.
+    *   `gateway_payment_id`, `gateway_preference_id`, `gateway_provider`: Dados do gateway (ex: Mercado Pago).
+    *   `refund_amount`, `refunded_at`: Informações sobre estorno.
     *   `status`: (`PENDING`, `PAID`, `REFUNDED`, `FAILED`).
 
 #### `transactions`
 Log imutável de movimentações financeiras para auditoria.
 *   **PK**: `id` (UUIDv4)
-*   **FK**: `payment_id` -> `payments.id`
-*   **Campos Chave**: `type` (PAYMENT, REFUND, TRANSFER), `amount`.
+*   **FKs**: `payment_id` -> `payments.id`, `user_id` -> `users.id`
+*   **Campos Chave**: `type` (Enum do tipo de transação), `amount`, `description`, `gateway_reference_id`.
 
 ---
 

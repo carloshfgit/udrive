@@ -134,7 +134,6 @@ class TestCreateCheckoutUseCase:
         assert result.status == PaymentStatus.PROCESSING.value
         mock_gateway.create_checkout.assert_called_once()
         mock_repositories["payment"].create.assert_called_once()
-        mock_repositories["transaction"].create.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_create_checkout_multi_item_success(
@@ -191,8 +190,6 @@ class TestCreateCheckoutUseCase:
         assert mock_repositories["payment"].create.call_count == 2
         # Deve atualizar 2 payments com preference_id
         assert mock_repositories["payment"].update.call_count == 2
-        # Apenas 1 transaction por checkout
-        mock_repositories["transaction"].create.assert_called_once()
         # Items enviados ao MP devem conter 2 itens
         call_kwargs = mock_gateway.create_checkout.call_args.kwargs
         assert len(call_kwargs["items"]) == 2

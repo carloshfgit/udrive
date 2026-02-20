@@ -14,6 +14,7 @@ import structlog
 from src.application.dtos.payment_dtos import CheckoutResponseDTO, CreateCheckoutDTO
 from src.application.use_cases.payment.calculate_split import CalculateSplitUseCase
 from src.domain.entities.payment import Payment
+from src.domain.entities.payment_status import PaymentStatus
 from src.domain.entities.transaction import Transaction
 from src.domain.exceptions import (
     GatewayAccountNotConnectedException,
@@ -108,12 +109,15 @@ class CreateCheckoutUseCase:
         instructor_id = instructor_ids.pop()
 
         # 3. Verificar se já existe pagamento para algum dos agendamentos
+        existing_payments_map = {}
         for scheduling in schedulings:
             existing_payment = await self.payment_repository.get_by_scheduling_id(
                 scheduling.id
             )
             if existing_payment is not None:
-                raise PaymentAlreadyProcessedException()
+                if existing_payment.status == PaymentStatus.COMPLETED:
+                    raise PaymentAlreadyProcessedException()
+                existing_payments_map[scheduling.id] = existing_payment
 
         # 4. Verificar conta MP do instrutor
         instructor_profile = await self.instructor_repository.get_by_user_id(
@@ -138,18 +142,28 @@ class CreateCheckoutUseCase:
                 scheduling.price, instructor_base_amount=instructor_base_amount
             )
 
-            # 6. Criar Payment com status PENDING
-            payment = Payment(
-                scheduling_id=scheduling.id,
-                student_id=dto.student_id,
-                instructor_id=instructor_id,
-                amount=scheduling.price,
-                platform_fee_percentage=split_result.platform_fee_percentage,
-                platform_fee_amount=split_result.platform_fee_amount,
-                instructor_amount=split_result.instructor_amount,
-                preference_group_id=preference_group_id,
-            )
-            saved_payment = await self.payment_repository.create(payment)
+            # 6. Criar ou atualizar Payment com status PENDING
+            existing_payment = existing_payments_map.get(scheduling.id)
+            if existing_payment:
+                existing_payment.amount = scheduling.price
+                existing_payment.platform_fee_percentage = split_result.platform_fee_percentage
+                existing_payment.platform_fee_amount = split_result.platform_fee_amount
+                existing_payment.instructor_amount = split_result.instructor_amount
+                existing_payment.preference_group_id = preference_group_id
+                existing_payment.status = PaymentStatus.PENDING
+                saved_payment = await self.payment_repository.update(existing_payment)
+            else:
+                payment = Payment(
+                    scheduling_id=scheduling.id,
+                    student_id=dto.student_id,
+                    instructor_id=instructor_id,
+                    amount=scheduling.price,
+                    platform_fee_percentage=split_result.platform_fee_percentage,
+                    platform_fee_amount=split_result.platform_fee_amount,
+                    instructor_amount=split_result.instructor_amount,
+                    preference_group_id=preference_group_id,
+                )
+                saved_payment = await self.payment_repository.create(payment)
             saved_payments.append(saved_payment)
 
             # Montar item para MP
@@ -205,14 +219,7 @@ class CreateCheckoutUseCase:
             p.gateway_preference_id = checkout_result.preference_id
             await self.payment_repository.update(p)
 
-        # 9. Criar Transaction do tipo PAYMENT (uma por checkout)
-        transaction = Transaction.create_payment_transaction(
-            payment_id=first_payment.id,
-            student_id=dto.student_id,
-            amount=total_amount,
-            gateway_reference_id=checkout_result.preference_id,
-        )
-        await self.transaction_repository.create(transaction)
+        # 9. (Removido: Transaction será criada apenas no webhook quando aprovado)
 
         logger.info(
             "multi_item_checkout_created",

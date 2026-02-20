@@ -31,7 +31,13 @@ class TransactionModel(Base):
         PG_UUID(as_uuid=True), ForeignKey("users.id"), nullable=False
     )
     type: Mapped[TransactionType] = mapped_column(
-        Enum(TransactionType), nullable=False, index=True
+        Enum(
+            TransactionType,
+            name="transactiontype",
+            values_callable=lambda obj: [e.value for e in obj],
+        ),
+        nullable=False,
+        index=True,
     )
     amount: Mapped[float] = mapped_column(DECIMAL(10, 2), nullable=False)
     description: Mapped[str] = mapped_column(nullable=False)
