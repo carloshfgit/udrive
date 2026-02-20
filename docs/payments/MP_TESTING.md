@@ -92,19 +92,19 @@ O "segredo" para induzir resultados diferentes (sucesso, recusado, pendente) na 
 Para testar o fluxo onde o Instrutor vincula sua conta do Mercado Pago usando o Expo Go no dispositivo físico, é necessário configurar o seu ambiente local para receber o *callback* de autorização.
 
 ### 4.1. Expondo o Backend Local
-O celular (via `expo-web-browser`) e os servidores do Mercado Pago precisam de uma URL publicamente acessível que aponte para o seu backend rodando localmente na porta 8000. Utilizaremos o **localtunnel** para isso:
+O celular (via `expo-web-browser`) e os servidores do Mercado Pago precisam de uma URL publicamente acessível que aponte para o seu backend rodando localmente na porta 8000. Utilizaremos o **ngrok** para isso:
 
 Execute o comando no seu terminal:
 ```bash
-npx localtunnel --port 8000 --subdomain godrive-app
+ngrok http 8000 --url kinetic-unhazily-masako.ngrok-free.dev
 ```
-*(Nota: você pode escolher o subdomínio que preferir, apenas certifique-se de que a URL gerada seja `https`)*
+*(Nota: este é o seu domínio estático configurado)*
 
 ### 4.2. Configurando as Variáveis de Ambiente
 Copie a URL `https` gerada pelo localtunnel e atualize a variável `MP_REDIRECT_URI` no arquivo `backend/.env` do seu projeto:
 
 ```env
-MP_REDIRECT_URI=https://<seu-subdominio>.loca.lt/api/v1/oauth/mercadopago/callback
+MP_REDIRECT_URI=https://kinetic-unhazily-masako.ngrok-free.dev/api/v1/oauth/mercadopago/callback
 ```
 
 ### 4.3. Configurando a Aplicação no Mercado Pago
@@ -118,8 +118,33 @@ MP_REDIRECT_URI=https://<seu-subdominio>.loca.lt/api/v1/oauth/mercadopago/callba
 2. Na tela de perfil, clique em **Vincular conta Mercado Pago**.
 3. O app abrirá um navegador interno (in-app browser).
 4. Faça o login utilizando uma conta de teste do tipo **Vendedor (Seller)**.
-5. Após você autorizar, o Mercado Pago redirecionará para a sua URL do localtunnel. O backend processará a vinculação e retornará um JSON confirmando o sucesso.
+5. Após você autorizar, o Mercado Pago redirecionará para a sua URL do ngrok. O backend processará a vinculação e retornará um JSON confirmando o sucesso.
 6. Feche o navegador interno manualmente (botão "X" ou "Concluído"). A tela do aplicativo se atualizará, mostrando que a conta foi vinculada ("Sua conta já está vinculada ✅").
+
+### 4.5. Solução de Problemas no OAuth (Troubleshooting)
+
+**Erro comum**: Ao abrir o link de autorização, o Mercado Pago exibe a mensagem *"O aplicativo não está pronto para se conectar ao Mercado Pago"*, a tela fica parada e o backend não recebe nenhum *callback*.
+
+**Possíveis causas e soluções:**
+
+1. **Divergência na URL de Redirecionamento (Redirect URI)**
+   - **Causa**: O parâmetro `redirect_uri` enviado na URL do OAuth pela sua aplicação não é **exatamente igual** à "URL de Redirecionamento" salva no Painel do Desenvolvedor do Mercado Pago.
+   - **Solução**: Verifique se a URL da variável `MP_REDIRECT_URI` no seu `.env` confere letra por letra com o configurado em **Autenticação e Segurança > URLs de Redirecionamento** na sua Aplicação no Mercado Pago (incluindo `https://`, ausência de barra `/` no final, domínio exato do ngrok, etc).
+
+2. **Divergência de País (Site ID) do Usuário de Teste**
+   - **Causa**: O usuário de teste do tipo "Vendedor" (Seller) utilizado no login possui um país diferente (ex: MLM - México) do país da sua Aplicação / Integrador (ex: MLB - Brasil).
+   - **Solução**: Certifique-se de criar e fazer login no fluxo OAuth utilizando uma **conta de teste Vendedor** do **mesmo país** da conta principal (Integrador).
+
+3. **Tentativa de Autenticação Incorreta**
+   - **Causa**: Tentar realizar a autorização usando a própria conta desenvolvedora (dona da Aplicação) ao invés de uma conta de teste, ou usar uma conta de teste que não foi criada pela sua conta desenvolvedora.
+   - **Solução**: A vinculação em ambiente de testes deve ser estritamente feita com uma **conta de teste (perfil Vendedor)** gerada dentro da guia "Contas de teste" da sua própria aplicação no Mercado Pago.
+
+4. **Credenciais Incorretas (Client ID)**
+   - **Causa**: O `client_id` (App ID) passado na URL de autorização está incorreto, ausente, revogado ou com permissões mal configuradas.
+   - **Solução**: Cheque se o `MP_CLIENT_ID` no backend corresponde ao "ID do aplicativo" ativo. Verifique também no painel se as permissões necessárias para o OAuth estão ativas.
+
+> [!TIP]
+> Para evitar conflitos de sessão ou cache persistente, sempre copie a URL gerada para OAuth e abra-a em uma **janela anônima** do navegador do computador na hora de testar a vinculação com as senhas dos usuários de teste.
 
 ---
 
@@ -129,12 +154,12 @@ Como o backend está executando no Docker para testes locais, o Mercado Pago na 
 
 Para isso, siga os passos abaixo:
 
-### 5.1. Expondo o Ambiente Local com Localtunnel
-Mantenha o localtunnel rodando no seu terminal. Ele criará um túnel reverso apontando para a porta 8000 do seu backend:
+### 5.1. Expondo o Ambiente Local com Ngrok
+Mantenha o ngrok rodando no seu terminal. Ele criará um túnel reverso apontando para a porta 8000 do seu backend:
 ```bash
-npx localtunnel --port 8000 --subdomain godrive-app
+ngrok http 8000 --url kinetic-unhazily-masako.ngrok-free.dev
 ```
-*Isso gerará uma URL como `https://godrive-app.loca.lt`.*
+*Isso usará a URL `https://kinetic-unhazily-masako.ngrok-free.dev`.*
 
 ### 5.2. Configurando o Webhook no Painel do Mercado Pago
 1. Acesse o [Painel do Desenvolvedor (Suas Integrações)](https://www.mercadopago.com.br/developers/panel/app).
@@ -142,9 +167,9 @@ npx localtunnel --port 8000 --subdomain godrive-app
 3. No menu lateral, expanda a seção **Notificações** e clique em **Webhooks**.
 4. No campo **URL de Produção** e **URL de Teste**, insira a URL completa apontando para a rota específica do seu backend:
    ```text
-   https://<seu-subdominio>.loca.lt/api/v1/shared/webhooks/mercadopago
+   https://kinetic-unhazily-masako.ngrok-free.dev/api/v1/shared/webhooks/mercadopago
    ```
-   *(Exemplo: `https://godrive-app.loca.lt/api/v1/shared/webhooks/mercadopago`)*
+   *(Exemplo: `https://kinetic-unhazily-masako.ngrok-free.dev/api/v1/shared/webhooks/mercadopago`)*
 5. Na seção **Eventos**, selecione os tópicos que deseja receber. Para o fluxo de pagamentos, selecione pelo menos **Payments** (`payment`).
 6. Salve as configurações.
 
