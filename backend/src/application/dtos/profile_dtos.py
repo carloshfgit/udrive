@@ -104,6 +104,7 @@ class InstructorProfileResponseDTO:
     biological_sex: str | None = None
     location: LocationResponseDTO | None = None
     distance_km: float | None = None  # Preenchido em buscas por localização
+    has_mp_account: bool = False
 
 
 @dataclass

@@ -94,6 +94,7 @@ class SearchInstructorsByLocationUseCase:
                     is_available=profile.is_available,
                     location=location_dto,
                     distance_km=round(distance, 2) if distance is not None else None,
+                    has_mp_account=profile.has_mp_account,
                 )
             )
 

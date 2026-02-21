@@ -67,6 +67,7 @@ async def get_current_instructor_profile(
         birth_date=current_user.birth_date,
         biological_sex=current_user.biological_sex,
         location=LocationResponse.model_validate(profile.location) if profile.location else None,
+        has_mp_account=profile.has_mp_account,
     )
 
 

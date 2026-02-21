@@ -144,4 +144,5 @@ class UpdateInstructorProfileUseCase:
             birth_date=user.birth_date,
             biological_sex=user.biological_sex,
             location=location_dto,
+            has_mp_account=saved_profile.has_mp_account,
         )
