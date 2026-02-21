@@ -137,7 +137,25 @@ class IPaymentGateway(ABC):
             access_token: Token para autorizar a consulta.
 
         Returns:
-            PaymentStatusResult com detalhes do status.
+            PaymentStatusResult with details of the status.
+        """
+        ...
+
+    @abstractmethod
+    async def get_merchant_order(
+        self,
+        merchant_order_id: str,
+        access_token: str,
+    ) -> dict:
+        """
+        Consult details of a Merchant Order.
+
+        Args:
+            merchant_order_id: ID of the order in the gateway.
+            access_token: Token to authorize the query.
+
+        Returns:
+            Dict with order details.
         """
         ...
 

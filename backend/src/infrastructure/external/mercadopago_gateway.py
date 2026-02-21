@@ -131,6 +131,25 @@ class MercadoPagoGateway(IPaymentGateway):
                 payer_email=data.get("payer", {}).get("email"),
             )
 
+    async def get_merchant_order(
+        self,
+        merchant_order_id: str,
+        access_token: str,
+    ) -> dict[str, Any]:
+        """
+        Consulta detalhes de uma Merchant Order.
+        Útil para extrair IDs de pagamento de webhooks do tipo merchant_order.
+        """
+        url = f"{self.base_url}/merchant_orders/{merchant_order_id}"
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+        }
+
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url, headers=headers)
+            response.raise_for_status()
+            return response.json()
+
     async def process_refund(
         self,
         payment_id: str,

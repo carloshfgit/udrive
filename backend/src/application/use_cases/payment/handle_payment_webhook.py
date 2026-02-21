@@ -69,15 +69,9 @@ class HandlePaymentWebhookUseCase:
     async def execute(self, dto: WebhookNotificationDTO) -> None:
         """
         Processa notificação de webhook.
-
-        Args:
-            dto: Dados da notificação do Mercado Pago.
-
-        Raises:
-            WebhookProcessingException: Se houver erro irrecuperável.
         """
-        # 1. Filtrar — só processa notificações de pagamento
-        if dto.notification_type != "payment":
+        # 1. Filtrar — processa notificações de pagamento e merchant_order
+        if dto.notification_type not in ["payment", "merchant_order"]:
             logger.info(
                 "Webhook ignorado: tipo=%s action=%s",
                 dto.notification_type,
@@ -85,18 +79,96 @@ class HandlePaymentWebhookUseCase:
             )
             return
 
-        mp_payment_id = dto.data_id
-        logger.info("Processando webhook para pagamento MP: %s", mp_payment_id)
+        if dto.notification_type == "merchant_order":
+            await self._handle_merchant_order(dto.data_id)
+        else:
+            await self._process_single_payment(dto.data_id)
+
+    async def _handle_merchant_order(self, merchant_order_id: str) -> None:
+        """Busca detalhes da merchant_order e processa seus pagamentos."""
+        logger.info("Processando merchant_order MP: %s", merchant_order_id)
+        
+        # 1. Buscar ordem via platform token para identificar o grupo
+        try:
+            # Usamos o token da plataforma (settings), não do instrutor aqui,
+            # pois ainda não sabemos quem é o instrutor.
+            from src.infrastructure.config import Settings
+            settings = Settings()
+            order_data = await self.payment_gateway.get_merchant_order(
+                merchant_order_id, settings.mp_access_token
+            )
+        except Exception as e:
+            logger.error("Erro ao buscar merchant_order %s: %s", merchant_order_id, e)
+            return
+
+        external_reference = order_data.get("external_reference")
+        if not external_reference:
+            logger.warning("merchant_order %s sem external_reference", merchant_order_id)
+            return
+
+        # 2. Processar cada pagamento aprovado na ordem
+        payments_in_order = order_data.get("payments", [])
+        if not payments_in_order:
+            logger.info("merchant_order %s sem pagamentos ainda", merchant_order_id)
+            return
+
+        for mp_payment in payments_in_order:
+            payment_id = str(mp_payment.get("id"))
+            await self._process_single_payment(payment_id, preference_group_id=external_reference)
+
+    async def _process_single_payment(self, mp_payment_id: str, preference_group_id: str | None = None) -> None:
+        """Lógica original de processamento de um payment_id individual."""
+        logger.info("Processando pagamento individual MP: %s", mp_payment_id)
 
         # 2. Buscar Payment existente pelo gateway_payment_id
         payment = await self.payment_repository.get_by_gateway_payment_id(mp_payment_id)
 
+        # Tentar fallback pela preference_group_id se recebida pela IPN
+        if payment is None and preference_group_id:
+            import uuid
+            try:
+                group_uuid = uuid.UUID(preference_group_id)
+                group_payments = await self.payment_repository.get_by_preference_group_id(group_uuid)
+                if group_payments:
+                    # Todos do mesmo checkout compartilham o instrutor
+                    payment = group_payments[0]
+            except ValueError:
+                pass
+
         if payment is None:
+            # Tentar buscar por preference_id se o gateway_payment_id ainda for desconhecido
+            # (isso acontece na primeira notificação de um pagamento novo)
+            # Mas o get_payment_status nos dirá a preference_id.
             logger.warning(
-                "Payment não encontrado para gateway_payment_id=%s. "
-                "Tentando consultar via API do MP com token da plataforma.",
+                "Payment não encontrado para gateway_payment_id=%s no DB.",
                 mp_payment_id,
             )
+            # Como não temos o payment, não sabemos o instructor_id para pegar o token.
+            # Vamos tentar uma busca "cega" via API do MP usando o token da PLATAFORMA
+            # para descobrir a qual preferencia esse pagamento pertence.
+            try:
+                from src.infrastructure.config import Settings
+                settings = Settings()
+                status_result = await self.payment_gateway.get_payment_status(
+                    payment_id=mp_payment_id,
+                    access_token=settings.mp_access_token,
+                )
+                
+                # Buscar no DB pela preference_id (gateway_preference_id)
+                # O MP retorna isso no payment detail se disponível
+                # Se não, teremos que buscar por metadata ou external_reference se o status_result suportar
+                logger.info("Consulta via platform token obteve status: %s", status_result.status)
+                
+                # Se o status_result não tem preference_id, vamos precisar buscar o payment
+                # de outra forma. No GetPayment do MP tem.
+                # Por enquanto, vamos assumir que o payment JÁ existe com gateway_preference_id
+                # Vamos tentar buscar por gateway_preference_id no repositório
+                # mas o DTO do gateway precisa retornar isso.
+            except Exception as e:
+                logger.error("Falha na busca cega por payment %s: %s", mp_payment_id, e)
+                return
+            
+            # Se chegamos aqui sem o payment, temos um problema de rastreabilidade.
             return
 
         # 3. Buscar instrutor para obter access_token
@@ -113,7 +185,7 @@ class HandlePaymentWebhookUseCase:
                 f"Instrutor {payment.instructor_id} sem conta MP"
             )
 
-        # 4. Consultar status real no Mercado Pago
+        # 4. Consultar status real no Mercado Pago (usando token do vendedor)
         try:
             status_result = await self.payment_gateway.get_payment_status(
                 payment_id=mp_payment_id,
