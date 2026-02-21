@@ -7,6 +7,10 @@ Implementação agnóstica do gateway usando as APIs do Mercado Pago.
 from decimal import Decimal
 from typing import Any
 import httpx
+import structlog
+
+logger = structlog.get_logger()
+
 from src.domain.interfaces.payment_gateway import (
     IPaymentGateway,
     CheckoutResult,
@@ -172,11 +176,22 @@ class MercadoPagoGateway(IPaymentGateway):
             "grant_type": "authorization_code",
             "code": authorization_code,
             "redirect_uri": redirect_uri,
+            "test_token": self.settings.environment == "development"
         }
 
         async with httpx.AsyncClient() as client:
-            response = await client.post(url, data=payload)
-            response.raise_for_status()
+            response = await client.post(url, json=payload)
+            try:
+                response.raise_for_status()
+            except httpx.HTTPStatusError as e:
+                # Logar o body do erro para facilitar diagnóstico
+                logger.error(
+                    "mp_oauth_error",
+                    status_code=response.status_code,
+                    response_body=response.text,
+                    url=str(response.url)
+                )
+                raise e
             data = response.json()
 
             return OAuthResult(
@@ -204,8 +219,17 @@ class MercadoPagoGateway(IPaymentGateway):
         }
 
         async with httpx.AsyncClient() as client:
-            response = await client.post(url, data=payload)
-            response.raise_for_status()
+            response = await client.post(url, json=payload)
+            try:
+                response.raise_for_status()
+            except httpx.HTTPStatusError as e:
+                logger.error(
+                    "mp_refresh_token_error",
+                    status_code=response.status_code,
+                    response_body=response.text,
+                    url=str(response.url)
+                )
+                raise e
             data = response.json()
 
             return OAuthResult(

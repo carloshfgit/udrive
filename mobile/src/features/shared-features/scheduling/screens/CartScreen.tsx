@@ -374,7 +374,7 @@ export function CartScreen() {
             });
 
             // Abre o Checkout Pro no browser in-app
-            await WebBrowser.openBrowserAsync(result.sandbox_url || result.checkout_url);
+            await WebBrowser.openBrowserAsync(result.checkout_url);
         } catch (error: any) {
             const message =
                 error?.response?.data?.detail ||
