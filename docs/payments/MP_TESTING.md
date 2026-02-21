@@ -185,6 +185,31 @@ O painel do Mercado Pago oferece uma ferramenta para enviar eventos simulados, i
 ### 5.4. Validando o Fluxo Completo E2E
 Ao realizar uma compra pelo aplicativo mobile (usando o cartão de teste aprovado e a conta de comprador), o próprio Mercado Pago enviará a notificação real (em modo Live/Test) para a URL configurada. Verifique se o backend processa a notificação e atualiza o status do `Payment` no banco de dados para `COMPLETED`.
 
+## 6. Solução de Problemas Comuns (Troubleshooting)
+
+### Erro Genérico no Checkout Pro: "Ops, ocorreu um erro" ao finalizar compra como convidado no Sandbox
+Se durante uma compra de teste o aluno entrar como **convidado** no Checkout Pro, preencher os dados do cartão de teste e ao clicar em pagar receber a mensagem genérica **"Ops, ocorreu um erro"** na plataforma do Mercado Pago (sem que a requisição chegue ao backend), as causas mais comuns são:
+
+1. **Sessão Conflitante no Navegador (Muito Comum):**
+   - **Causa:** O navegador (ou Custom Tab/WebView no mobile) possui cookies armazenados e já está logado em uma conta real do Mercado Pago/Mercado Livre, ou logado na conta do próprio Vendedor. O Mercado Pago bloqueia a transação de teste ao detectar o conflito.
+   - **Solução:** Se estiver testando no Expo, limpe os dados do navegador padrão do aparelho. Se estiver na Web, use sempre uma **janela anônima** para abrir o link do Checkout.
+
+2. **Tentativa de "Pagar a si mesmo":**
+   - **Causa:** O Checkout não permite que o e-mail do comprador seja igual ao e-mail da conta recebedora (Instrutor) ou da conta principal (Integrador), mesmo na opção "Convidado".
+   - **Solução:** Na hora de preencher os dados de convidado no Checkout, utilize estritamente o e-mail de um **Usuário de Teste do tipo Comprador** (ex: `test_user_XXXX@testuser.com`), gerado no painel do Mercado Pago.
+
+3. **Nome do Titular do Cartão Incorreto para o Sandbox:**
+   - **Causa:** Em ambiente de testes, o Mercado Pago exige que o **Nome do Titular** seja preenchido com comandos de simulação específicos. Preencher um nome aleatório/real fará com que o cartão de teste seja rejeitado pelas validações bancárias simuladas, resultando em erro genérico.
+   - **Solução:** Preencha o nome do titular com o prefixo exato exigido para o cenário de teste (ex: coloque `APRO` no nome do titular se quiser aprovar o pagamento, ou `OTHE` para simular recusa).
+
+4. **Inconsistência de Credenciais em Marketplace (Split):**
+   - **Causa:** A preferência de pagamento foi gerada com o `access_token` de uma conta de Produção, mas o cartão usado é de Teste. Em Marketplaces, outro erro comum é gerar a _preference_ com o `access_token` do integrador em vez do `access_token` do vendedor (Instrutor) obtido via OAuth.
+   - **Solução:** Certifique-se de que está usando credentials de Teste do Vendedor correto (Seller) obtidas na autorização OAuth no momento de gerar a chamada `/checkout/preferences`.
+
+5. **Falha de Validação Silenciosa no País:**
+   - **Causa:** Os cartões fictícios (ex: baseados no Brasil - MLB) são incompatíveis caso a conta de teste do Vendedor tenha sido registrada para outro país (ex: MLM - México). Isso retorna erro na finalização.
+   - **Solução:** Confirme no painel que o Integrador, a Conta Teste Vendedor e a Conta Teste Comprador estão todas sob o mesmo _Site ID_ (MLB).
+
 ---
 *Referência do material pesquisado:*
 * [Contas de teste - Mercado Pago Docs](https://www.mercadopago.com.br/developers/pt/docs/checkout-api-payments/additional-content/your-integrations/test/accounts)

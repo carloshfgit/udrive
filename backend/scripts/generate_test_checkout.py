@@ -12,15 +12,25 @@ from src.infrastructure.external.mercadopago_gateway import MercadoPagoGateway
 from src.application.use_cases.payment.calculate_split import CalculateSplitUseCase
 from src.infrastructure.config import Settings
 from src.application.dtos.payment_dtos import CreateCheckoutDTO
+from sqlalchemy import select
+from src.infrastructure.db.models.scheduling_model import SchedulingModel
+from src.infrastructure.db.models.instructor_profile_model import InstructorProfileModel
 
 async def generate():
-    # IDs from the seed output - replacing with current values
-    student_id = UUID('84175e57-f9f2-4760-a774-a49c520a289c')
-    scheduling_id = UUID('b9ca64ed-aae5-4e60-ada8-6a105ce87e69')
-    
     settings = Settings()
     
     async with AsyncSessionLocal() as session:
+        # Puxar o primeiro agendamento pendente que tenha student_id válido
+        stmt = select(SchedulingModel).where(SchedulingModel.status == "pending").limit(1)
+        result_db = await session.execute(stmt)
+        scheduling = result_db.scalar_one_or_none()
+        if not scheduling:
+            print("Nenhum agendamento 'pending' encontrado no banco.")
+            return
+
+        student_id = scheduling.student_id
+        scheduling_id = scheduling.id
+        
         use_case = CreateCheckoutUseCase(
             scheduling_repository=SchedulingRepositoryImpl(session),
             payment_repository=PaymentRepositoryImpl(session),
@@ -32,7 +42,7 @@ async def generate():
         )
         
         dto = CreateCheckoutDTO(
-            scheduling_id=scheduling_id,
+            scheduling_ids=[scheduling_id],
             student_id=student_id,
             student_email="aluno_teste@example.com"
         )
@@ -49,7 +59,15 @@ async def generate():
         except Exception as e:
             import traceback
             traceback.print_exc()
-            print(f"\nErro ao gerar checkout: {e}")
+            print(f"\nErro original: {e}")
 
+        async with AsyncSessionLocal() as session:
+            stmt = select(InstructorProfileModel).where(InstructorProfileModel.user_id == '49d86d02-a54a-4097-a655-2797bd53c18a')
+            prof = (await session.execute(stmt)).scalar_one_or_none()
+            if prof:
+                print("RAW DB TOKEN:", prof.mp_access_token)
+                from src.infrastructure.services.token_encryption import decrypt_token 
+                print("DECRYPTED:", decrypt_token(prof.mp_access_token))
+        
 if __name__ == "__main__":
     asyncio.run(generate())
