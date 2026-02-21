@@ -1,5 +1,7 @@
 import asyncio
-from uuid import UUID
+import sys
+from datetime import datetime, timedelta
+from uuid import UUID, uuid4
 from decimal import Decimal
 
 from src.infrastructure.db.database import AsyncSessionLocal
@@ -15,15 +17,28 @@ from src.application.dtos.payment_dtos import CreateCheckoutDTO
 from sqlalchemy import select
 from src.infrastructure.db.models.scheduling_model import SchedulingModel
 from src.infrastructure.db.models.instructor_profile_model import InstructorProfileModel
+from src.infrastructure.db.models.user_model import UserModel
 
 async def generate():
+    instructor_email = sys.argv[1] if len(sys.argv) > 1 else None
+    
     settings = Settings()
     
     async with AsyncSessionLocal() as session:
-        # Puxar o primeiro agendamento pendente que tenha student_id válido
-        stmt = select(SchedulingModel).where(SchedulingModel.status == "pending").limit(1)
-        result_db = await session.execute(stmt)
-        scheduling = result_db.scalar_one_or_none()
+        # 1. Buscar um agendamento pendente
+        # Se email for passado, busca especificamente desse instrutor
+        query = select(SchedulingModel).where(SchedulingModel.status == "pending")
+        
+        if instructor_email:
+            # Join com User para filtrar por email
+            user_stmt = select(UserModel.id).where(UserModel.email == instructor_email)
+            user_id = (await session.execute(user_stmt)).scalar_one_or_none()
+            if not user_id:
+                print(f"Erro: Instrutor '{instructor_email}' não encontrado.")
+                return
+            query = query.where(SchedulingModel.instructor_id == user_id)
+
+        scheduling = (await session.execute(query.limit(1))).scalar_one_or_none()
         if not scheduling:
             print("Nenhum agendamento 'pending' encontrado no banco.")
             return
