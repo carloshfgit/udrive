@@ -195,6 +195,10 @@ Gerencia o ciclo de vida do pagamento de uma aula.
 
 #### `transactions`
 Log imutável de movimentações financeiras para auditoria.
+
+> [!WARNING]
+> Atualmente, a exclusão de um agendamento/pagamento causa a exclusão em cascata das transações associadas (`cascade="all, delete-orphan"`). Para um ambiente de produção rigoroso, considere alterar `payment_id` para opcional (`nullable=True`) com `ondelete="SET NULL"` e remover o cascade, garantindo que o histórico financeiro seja preservado integralmente para auditoria.
+
 *   **PK**: `id` (UUIDv4)
 *   **FKs**: `payment_id` -> `payments.id`, `user_id` -> `users.id`
 *   **Campos Chave**: `type` (Enum do tipo de transação), `amount`, `description`, `gateway_reference_id`.
@@ -248,4 +252,4 @@ O uso de dados espaciais requer atenção especial:
 1.  **Chaves Estrangeiras**: Sempre defina `ondelete` (ex: `CASCADE` ou `SET NULL`) para manter integridade referencial.
 2.  **Índices**: Campos usados em filtros (`WHERE`) ou ordenação frequente possuem índices explícitos.
 3.  **Tipos**: Uso estrito de tipos (ex: `Decimal` para dinheiro, não `Float`).
-4.  **Imutabilidade**: Tabelas financeiras (`transactions`) devem ser tratadas como *append-only* (nunca alterar registros passados).
+4.  **Imutabilidade e Auditoria**: Tabelas financeiras (`transactions`) devem ser tratadas como *append-only* (nunca alterar registros passados). Ao escalar para produção, priorize estratégias de "Soft Delete" ou exclusões lógicas para não perder histórico financeiro.

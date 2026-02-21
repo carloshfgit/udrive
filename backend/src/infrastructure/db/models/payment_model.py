@@ -73,7 +73,11 @@ class PaymentModel(Base):
         back_populates="instructor_payments",
     )
     scheduling = relationship("SchedulingModel", back_populates="payment")
-    transactions = relationship("TransactionModel", back_populates="payment")
+    transactions = relationship(
+        "TransactionModel",
+        back_populates="payment",
+        cascade="all, delete-orphan",
+    )
 
     def to_entity(self) -> Payment:
         """Converte model para entidade de domínio."""
