@@ -1,7 +1,11 @@
 Problema: 
 - Aluno abre o checkout como convidado, preenche os dados do cartão de teste, aluno tenta finalizar a compra ja na pagina do mercado pago e a mesma retorna um erro genérico. "Ops, ocorreu um erro." Backend não retorna nenhum log relacionado ao erro. (Esse problema aparece apenas com instrutores que criei e fiz o fluxo oAuth manualmente via app, Roberta Silva e Alfredo Lopes).
 - ATUALIZAÇÃO: ao usar o "Novo Intrutor" (novo_instrutor@example.com) criado e autenticado via script, o erro genérico desapareceu. No entanto uma nova tela de erro apareceu: Ocorreu um erro...  Não foi possível processar seu pagamento. E agora logs aparecem no backend:
+
 LOGS:
+godrive_backend   | INFO:     connection closed
+godrive_backend   | Assinatura inválida no webhook MP. x-signature=ts=1771703517,v1=f01074992a8f0c8036493760cc0fba359f3f4b8f0a9e0faed542153975a2774d
+godrive_backend   | INFO:     172.20.0.1:35498 - "POST /api/v1/shared/webhooks/mercadopago?id=38375256331&topic=merchant_order HTTP/1.1" 200 OK
 godrive_backend   | INFO:     172.20.0.1:35786 - "POST /api/v1/instructor/shared/webhooks/mercadopago?id=38372304899&topic=merchant_order HTTP/1.1" 404 Not Found
 
 Erro generico persiste com instrutores criados via app.
@@ -56,3 +60,23 @@ De acordo com o Quality Checklist e arquitetura do MP:
 Ao abrir o painel do Checkout Pro do aplicativo móvel, insira os dados do cartão de aprovação oficial do Mercado Pago:
 - **Bandeira:** Mastercard ou Visa
 - **Número do Cartão:** Solicite "APRO**" via digitação:
+
+---
+
+## 🔍 Levantamento de Causas e Possíveis Soluções (Resultados da Pesquisa)
+
+Após analisar a documentação oficial do Mercado Pago e fóruns de desenvolvedores, as causas mais comuns para os erros enfrentados no fluxo do Checkout Pro Sandbox são:
+
+### 1. Erro Genérico "Ops, ocorreu um erro" ou "Não foi possível processar..."
+*   **Contas de Comprador e Vendedor iguais ou inválidas:** O Mercado Pago bloqueia testes onde o comprador e o vendedor são a mesma entidade. Além disso, usar emails aleatórios como `aluno@godrive.com` pode disparar o sistema antifraude ou barreiras de Guest Checkout do Sandbox. A recomendação oficial é **sempre usar contas de teste geradas pelo painel de desenvolvedores** (terminadas em `@testuser.com`).
+*   **Nome do Titular do Cartão:** No Sandbox, o nome do titular do cartão dita o resultado do pagamento. Para que o pagamento seja aprovado com sucesso, o nome do titular **deve** ser preenchido exatamente como `"APRO"`. Outros nomes como `"OTHE"` (erro geral), `"FUND"` (saldo insuficiente) ou nomes comuns podem gerar falhas intencionais do Sandbox ou erros genéricos de validação.
+*   **Falta de Aplicação na Conta Compradora (Fluxo não-guest):** Se o fluxo exigir login do comprador, a conta de teste do comprador também deve ter uma aplicação criada no painel de desenvolvedores para que o Checkout Pro funcione perfeitamente.
+
+### 2. Erro de Webhook `404 Not Found` no Backend
+*   **Rota Inexistente ou Erro de Mapeamento:** O log `POST /api/v1/instructor/shared/webhooks/mercadopago?id=38372304899&topic=merchant_order HTTP/1.1 404 Not Found` indica claramente que o Mercado Pago enviou o webhook com sucesso para o ngrok, mas a aplicação FastAPI retornou 404. 
+*   **Causa provável:** O endpoint `/api/v1/instructor/shared/webhooks/mercadopago` não está definido nas rotas do backend, ou possui um trailing slash (`/`) divergente, ou o método esperado não é `POST`. Outra possibilidade é o endpoint existir, mas tentar buscar a `merchant_order` (ou a `preference`) no banco de dados e não encontrá-la, retornando um erro 404 mapeado pela própria lógica de negócios.
+
+### Próximos Passos Sugeridos:
+1. Validar se a rota do webhook `/api/v1/instructor/shared/webhooks/mercadopago` existe e está correta no backend.
+2. Certificar-se de que o webhook webhook handler responde status 200/201 antes de validar regras de negócio complexas (para o MP não re-tentar desnecessariamente).
+3. Gerar uma conta de teste oficial de comprador (ex: `test_user_123@testuser.com`) no painel do Mercado Pago e utilizá-la tanto no script quanto via app, preenchendo o nome do cartão de teste com `"APRO"`.

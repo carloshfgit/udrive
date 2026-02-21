@@ -8,14 +8,14 @@ import hashlib
 import hmac
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.dtos.payment_dtos import WebhookNotificationDTO
 from src.application.use_cases.payment import HandlePaymentWebhookUseCase
 from src.domain.exceptions import InvalidWebhookSignatureException
 from src.infrastructure.config import Settings
-from src.infrastructure.db.database import get_db
+from src.infrastructure.db.database import get_db, AsyncSessionLocal
 from src.infrastructure.external.mercadopago_gateway import MercadoPagoGateway
 from src.infrastructure.repositories.instructor_repository_impl import (
     InstructorRepositoryImpl,
@@ -81,6 +81,28 @@ def _validate_mp_signature(
     return hmac.compare_digest(expected, v1)
 
 
+async def process_webhook_background(dto: WebhookNotificationDTO, settings: Settings) -> None:
+    """Processa o webhook em background abrindo sua própria sessão no banco de dados."""
+    async with AsyncSessionLocal() as session:
+        try:
+            use_case = HandlePaymentWebhookUseCase(
+                payment_repository=PaymentRepositoryImpl(session),
+                scheduling_repository=SchedulingRepositoryImpl(session),
+                transaction_repository=TransactionRepositoryImpl(session),
+                instructor_repository=InstructorRepositoryImpl(session),
+                payment_gateway=MercadoPagoGateway(settings),
+            )
+            await use_case.execute(dto)
+            # Commit das alterações do webhook
+            await session.commit()
+        except InvalidWebhookSignatureException:
+            logger.warning("Assinatura inválida detectada pelo use case.")
+            await session.rollback()
+        except Exception as e:
+            logger.error("Erro ao processar webhook MP: %s", e, exc_info=True)
+            await session.rollback()
+
+
 @router.post(
     "/mercadopago",
     status_code=status.HTTP_200_OK,
@@ -89,7 +111,7 @@ def _validate_mp_signature(
 )
 async def mercadopago_webhook(
     request: Request,
-    db: AsyncSession = Depends(get_db),
+    background_tasks: BackgroundTasks,
 ) -> dict:
     """
     Recebe e processa notificações do Mercado Pago.
@@ -98,6 +120,7 @@ async def mercadopago_webhook(
     - Endpoint público (sem autenticação JWT)
     - Validação feita via x-signature (HMAC)
     - Sempre retorna HTTP 200 para evitar retries do MP
+    - Despacha regra de negócios no background para não ter timeouts
     """
     settings = Settings()
 
@@ -151,21 +174,7 @@ async def mercadopago_webhook(
         live_mode=live_mode,
     )
 
-    # 4. Executar use case
-    try:
-        use_case = HandlePaymentWebhookUseCase(
-            payment_repository=PaymentRepositoryImpl(db),
-            scheduling_repository=SchedulingRepositoryImpl(db),
-            transaction_repository=TransactionRepositoryImpl(db),
-            instructor_repository=InstructorRepositoryImpl(db),
-            payment_gateway=MercadoPagoGateway(settings),
-        )
-        await use_case.execute(dto)
-    except InvalidWebhookSignatureException:
-        logger.warning("Assinatura inválida detectada pelo use case.")
-    except Exception as e:
-        # Logar erro mas retornar 200 para o MP não reenviar indefinidamente
-        logger.error("Erro ao processar webhook MP: %s", e, exc_info=True)
+    # 4. Agendar a execução em background e retornar 200 pro Mercado Pago
+    background_tasks.add_task(process_webhook_background, dto, settings)
 
-    # 5. Sempre retornar 200
     return {"status": "ok"}
