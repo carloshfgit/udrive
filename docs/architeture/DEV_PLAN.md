@@ -36,10 +36,10 @@ backend/src/
     └── websockets/
 ```
 
-- [ ] Criar estrutura de pastas conforme Clean Architecture
-- [ ] Configurar FastAPI com estrutura modular
-- [ ] Configurar SQLAlchemy 2.0+ com suporte a async
-- [ ] Configurar Alembic para migrations
+- [x] Criar estrutura de pastas conforme Clean Architecture
+- [x] Configurar FastAPI com estrutura modular
+- [x] Configurar SQLAlchemy 2.0+ com suporte a async
+- [x] Configurar Alembic para migrations
 
 ### Etapa 1.3: Estrutura do Mobile (Feature-Based Architecture)
 
@@ -54,17 +54,17 @@ mobile/src/
 └── lib/
 ```
 
-- [ ] Inicializar projeto Expo com TypeScript (Strict Mode)
-- [ ] Configurar NativeWind (TailwindCSS)
-- [ ] Configurar Zustand para estado global
-- [ ] Configurar TanStack Query v5+ com Axios
+- [x] Inicializar projeto Expo com TypeScript (Strict Mode)
+- [x] Configurar NativeWind (TailwindCSS)
+- [x] Configurar Zustand para estado global
+- [x] Configurar TanStack Query v5+ com Axios
 
 ### Etapa 1.4: Banco de Dados
 
-- [ ] Configurar PostgreSQL 15+ com extensão PostGIS
-- [ ] Definir pool de conexões (pool_size=20, max_overflow=10)
-- [ ] Criar migration inicial com índices críticos (GIST para geometria)
-- [ ] Testar rollback de migrations
+- [x] Configurar PostgreSQL 15+ com extensão PostGIS
+- [x] Definir pool de conexões (pool_size=20, max_overflow=10)
+- [x] Criar migration inicial com índices críticos (GIST para geometria)
+- [x] Testar rollback de migrations
 
 ---
 
@@ -74,28 +74,28 @@ Objetivo: Implementar sistema de autenticação seguro e completo com suporte a 
 
 ### Etapa 2.1: Entidades e Interfaces (Domain Layer)
 
-- [ ] Criar entidade `User` (Aluno, Instrutor, Admin)
-- [ ] Criar entidade `RefreshToken`
-- [ ] Definir interface `IUserRepository`
-- [ ] Definir interface `IAuthService`
-- [ ] Criar exceções de domínio (`UserNotFoundException`, `InvalidCredentialsException`)
+- [x] Criar entidade `User` (Aluno, Instrutor, Admin)
+- [x] Criar entidade `RefreshToken`
+- [x] Definir interface `IUserRepository`
+- [x] Definir interface `IAuthService`
+- [x] Criar exceções de domínio (`UserNotFoundException`, `InvalidCredentialsException`)
 
 ### Etapa 2.2: Casos de Uso (Application Layer)
 
-- [ ] `register_user.py` - Cadastro de novos usuários
-- [ ] `login_user.py` - Autenticação com JWT
-- [ ] `refresh_token.py` - Rotação de refresh tokens
-- [ ] `reset_password.py` - Recuperação de senha
-- [ ] `logout_user.py` - Invalidação de tokens
+- [x] `register_user.py` - Cadastro de novos usuários
+- [x] `login_user.py` - Autenticação com JWT
+- [x] `refresh_token.py` - Rotação de refresh tokens
+- [x] `reset_password.py` - Recuperação de senha
+- [x] `logout_user.py` - Invalidação de tokens
 
 ### Etapa 2.3: Implementação (Infrastructure Layer)
 
-- [ ] Modelo SQLAlchemy para `User` e `RefreshToken`
-- [ ] Implementar `UserRepository`
-- [ ] Configurar JWT (python-jose/authlib)
+- [x] Modelo SQLAlchemy para `User` e `RefreshToken`
+- [x] Implementar `UserRepository`
+- [x] Configurar JWT (python-jose/authlib)
   - Access Token: 15 minutos
   - Refresh Token: 7 dias com rotação
-- [ ] Hash de senhas com bcrypt/argon2
+- [x] Hash de senhas com bcrypt/argon2
 
 ### Etapa 2.4: Endpoints REST (Interface Layer)
 
@@ -110,20 +110,20 @@ Objetivo: Implementar sistema de autenticação seguro e completo com suporte a 
 
 ### Etapa 2.5: Rate Limiting & Segurança
 
-- [ ] Configurar `slowapi` com limites:
+- [x] Configurar `slowapi` com limites:
   - Login: 5 tentativas/min por IP
   - API geral: 100 req/min por usuário
   - Endpoints públicos: 30 req/min por IP
-- [ ] Headers de segurança (HSTS, X-Frame-Options, X-Content-Type-Options)
-- [ ] CORS restrito a domínios conhecidos
+- [x] Headers de segurança (HSTS, X-Frame-Options, X-Content-Type-Options)
+- [x] CORS restrito a domínios conhecidos
 
 ### Etapa 2.6: Mobile - Feature Auth
 
-- [ ] Tela de Login
-- [ ] Tela de Cadastro (Aluno/Instrutor)
-- [ ] Tela de Recuperação de Senha
-- [ ] Armazenamento seguro com `expo-secure-store`
-- [ ] Hook `useAuth` para gerenciamento de estado
+- [x] Tela de Login
+- [x] Tela de Cadastro (Aluno/Instrutor)
+- [x] Tela de Recuperação de Senha
+- [x] Armazenamento seguro com `expo-secure-store`
+- [x] Hook `useAuth` para gerenciamento de estado
 
 ---
 
@@ -133,27 +133,27 @@ Objetivo: Implementar perfis de usuários e sistema de geolocalização para bus
 
 ### Etapa 3.1: Entidades e Interfaces (Domain Layer)
 
-- [ ] Criar entidade `InstructorProfile`
-- [ ] Criar entidade `StudentProfile`
-- [ ] Criar entidade `Location` (com suporte a geometria PostGIS)
-- [ ] Definir interface `IInstructorRepository`
-- [ ] Definir interface `ILocationService`
-- [ ] Exceção `DriverNotFoundException`
+- [x] Criar entidade `InstructorProfile`
+- [x] Criar entidade `StudentProfile`
+- [x] Criar entidade `Location` (com suporte a geometria PostGIS)
+- [x] Definir interface `IInstructorRepository`
+- [x] Definir interface `ILocationService`
+- [x] Exceção `DriverNotFoundException`
 
 ### Etapa 3.2: Casos de Uso (Application Layer)
 
-- [ ] `update_instructor_profile.py`
-- [ ] `update_student_profile.py`
-- [ ] `search_instructors_by_location.py` (raio configurável, padrão 10km)
-- [ ] `update_instructor_location.py`
-- [ ] `get_nearby_instructors.py`
+- [x] `update_instructor_profile.py`
+- [x] `update_student_profile.py`
+- [x] `search_instructors_by_location.py` (raio configurável, padrão 10km)
+- [x] `update_instructor_location.py`
+- [x] `get_nearby_instructors.py`
 
 ### Etapa 3.3: Implementação (Infrastructure Layer)
 
-- [ ] Modelos SQLAlchemy com colunas PostGIS (Geometry)
-- [ ] Índice GIST para colunas de geometria
-- [ ] Cache Redis para busca de instrutores
-- [ ] Implementar repositórios com queries espaciais
+- [x] Modelos SQLAlchemy com colunas PostGIS (Geometry)
+- [x] Índice GIST para colunas de geometria
+- [x] Cache Redis para busca de instrutores
+- [x] Implementar repositórios com queries espaciais
 
 ### Etapa 3.4: Endpoints REST (Interface Layer)
 
@@ -166,15 +166,15 @@ Objetivo: Implementar perfis de usuários e sistema de geolocalização para bus
 
 ### Etapa 3.5: Mobile - Features Map & Profiles
 
-- [ ] Integrar `react-native-maps`
-- [ ] Tela de Mapa com marcadores de instrutores
-- [ ] Tela de Perfil do Instrutor (visualização)
-- [ ] Tela de Edição de Perfil (Instrutor)
-- [ ] Tela de Perfil do Aluno
-- [ ] Implementar updates de posição:
+- [x] Integrar `react-native-maps`
+- [x] Tela de Mapa com marcadores de instrutores
+- [x] Tela de Perfil do Instrutor (visualização)
+- [x] Tela de Edição de Perfil (Instrutor)
+- [x] Tela de Perfil do Aluno
+- [x] Implementar updates de posição:
   - A cada **5s** em movimento
   - A cada **30s** parado
-- [ ] Otimização com `useCallback` e `useMemo` para listas
+- [x] Otimização com `useCallback` e `useMemo` para listas
 
 ---
 
@@ -184,29 +184,29 @@ Objetivo: Implementar o core do negócio - agendamento de aulas entre alunos e i
 
 ### Etapa 4.1: Entidades e Interfaces (Domain Layer)
 
-- [ ] Criar entidade `Scheduling` (Agendamento)
-- [ ] Criar entidade `Availability` (Disponibilidade do Instrutor)
-- [ ] Definir interface `ISchedulingRepository`
-- [ ] Definir interface `IAvailabilityRepository`
-- [ ] Exceções de domínio (`SchedulingConflictException`, `UnavailableSlotException`)
+- [x] Criar entidade `Scheduling` (Agendamento)
+- [x] Criar entidade `Availability` (Disponibilidade do Instrutor)
+- [x] Definir interface `ISchedulingRepository`
+- [x] Definir interface `IAvailabilityRepository`
+- [x] Exceções de domínio (`SchedulingConflictException`, `UnavailableSlotException`)
 
 ### Etapa 4.2: Casos de Uso (Application Layer)
 
-- [ ] `create_scheduling.py` - Criar agendamento
-- [ ] `cancel_scheduling.py` - Cancelar com regras:
+- [x] `create_scheduling.py` - Criar agendamento
+- [x] `cancel_scheduling.py` - Cancelar com regras:
   - \> 24h: reembolso 100%
   - < 24h: multa 50%
-- [ ] `confirm_scheduling.py` - Confirmação do instrutor
-- [ ] `complete_scheduling.py` - Marcar aula como concluída
-- [ ] `list_user_schedulings.py` - Histórico
-- [ ] `manage_availability.py` - CRUD de disponibilidade
+- [x] `confirm_scheduling.py` - Confirmação do instrutor
+- [x] `complete_scheduling.py` - Marcar aula como concluída
+- [x] `list_user_schedulings.py` - Histórico
+- [x] `manage_availability.py` - CRUD de disponibilidade
 
 ### Etapa 4.3: Implementação (Infrastructure Layer)
 
-- [ ] Modelos SQLAlchemy para `Scheduling` e `Availability`
-- [ ] Índices em `user_id`, `created_at`, campos de status
-- [ ] Implementar repositórios
-- [ ] Migrations com padrão de nomenclatura
+- [x] Modelos SQLAlchemy para `Scheduling` e `Availability`
+- [x] Índices em `user_id`, `created_at`, campos de status
+- [x] Implementar repositórios
+- [x] Migrations com padrão de nomenclatura
 
 ### Etapa 4.4: Endpoints REST (Interface Layer)
 
@@ -222,42 +222,42 @@ Objetivo: Implementar o core do negócio - agendamento de aulas entre alunos e i
 
 ### Etapa 4.5: Mobile - Feature Scheduling
 
-- [ ] Tela de Calendário de Disponibilidade (Instrutor)
-- [ ] Tela de Busca e Agendamento (Aluno)
-- [ ] Tela de Detalhes do Agendamento
-- [ ] Componente de Confirmação/Cancelamento
-- [ ] Lista de Agendamentos (histórico)
-- [ ] Hooks com TanStack Query para cache
+- [x] Tela de Calendário de Disponibilidade (Instrutor)
+- [x] Tela de Busca e Agendamento (Aluno)
+- [x] Tela de Detalhes do Agendamento
+- [x] Componente de Confirmação/Cancelamento
+- [x] Lista de Agendamentos (histórico)
+- [x] Hooks com TanStack Query para cache
 
 ---
 
 ## Fase 5: Sistema Financeiro e Pagamentos
 
-Objetivo: Implementar integração com Stripe para pagamentos com split atômico.
+Objetivo: Implementar integração com Mercado Pago para pagamentos com split atômico.
 
 ### Etapa 5.1: Entidades e Interfaces (Domain Layer)
 
-- [ ] Criar entidade `Payment`
-- [ ] Criar entidade `Transaction`
-- [ ] Definir interface `IPaymentGateway`
-- [ ] Definir interface `ITransactionRepository`
-- [ ] Exceções (`PaymentFailedException`, `RefundException`)
+- [x] Criar entidade `Payment`
+- [x] Criar entidade `Transaction`
+- [x] Definir interface `IPaymentGateway`
+- [x] Definir interface `ITransactionRepository`
+- [x] Exceções (`PaymentFailedException`, `RefundException`)
 
 ### Etapa 5.2: Casos de Uso (Application Layer)
 
-- [ ] `process_payment.py` - Processar pagamento com split atômico
-- [ ] `calculate_split.py` - Calcular divisão (instrutor + plataforma)
-- [ ] `process_refund.py` - Reembolso conforme regras
-- [ ] `get_payment_history.py` - Histórico financeiro
-- [ ] `connect_stripe_account.py` - Onboarding Stripe Connect
+- [x] `process_payment.py` - Processar pagamento com split atômico
+- [x] `calculate_split.py` - Calcular divisão (instrutor + plataforma)
+- [x] `process_refund.py` - Reembolso conforme regras
+- [x] `get_payment_history.py` - Histórico financeiro
+- [x] `connect_mercadopago_account.py` - Onboarding Mercado Pago
 
 ### Etapa 5.3: Implementação (Infrastructure Layer)
 
-- [ ] Modelos SQLAlchemy para `Payment` e `Transaction`
-- [ ] Integração Stripe Connect para split payments
-- [ ] **Split atômico** na transação (não acumular saldo)
-- [ ] Webhook handlers para Stripe
-- [ ] Tasks Celery para retry de webhooks
+- [x] Modelos SQLAlchemy para `Payment` e `Transaction`
+- [x] Integração Mercado Pago Checkout Pro para split payments
+- [x] **Split atômico** na transação (não acumular saldo)
+- [x] Webhook handlers para Mercado Pago
+- [x] Tasks Celery para retry de webhooks
 
 ### Etapa 5.4: Endpoints REST (Interface Layer)
 
@@ -265,17 +265,17 @@ Objetivo: Implementar integração com Stripe para pagamentos com split atômico
 |----------|--------|-----------|
 | `/payments/checkout` | POST | Iniciar pagamento |
 | `/payments/history` | GET | Histórico |
-| `/payments/webhook` | POST | Webhook Stripe |
-| `/instructors/stripe/connect` | POST | Onboarding Stripe |
+| `/payments/webhook` | POST | Webhook Mercado Pago |
+| `/instructors/mercadopago/connect` | POST | Onboarding Mercado Pago |
 | `/instructors/earnings` | GET | Ganhos do instrutor |
 
 ### Etapa 5.5: Mobile - Feature Payments
 
-- [ ] Tela de Checkout
-- [ ] Componente de Cartão (Stripe SDK)
-- [ ] Tela de Histórico Financeiro (Instrutor)
-- [ ] Tela de Extratos (Aluno)
-- [ ] Onboarding Stripe Connect (WebView)
+- [x] Tela de Checkout
+- [x] Componente de Cartão (Mercado Pago SDK (Checkout Pro))
+- [x] Tela de Histórico Financeiro (Instrutor)
+- [x] Tela de Extratos (Aluno)
+- [x] Onboarding Mercado Pago (WebView)
 
 ---
 
@@ -353,7 +353,7 @@ Objetivo: Garantir cobertura de testes e qualidade do código.
 - [ ] Testes unitários para Application Layer (casos de uso)
 - [ ] Testes de integração para Infrastructure Layer
 - [ ] Fixtures em `conftest.py`
-- [ ] Mocks apenas para I/O externo (Stripe, APIs)
+- [ ] Mocks apenas para I/O externo (Mercado Pago, APIs)
 
 ### Etapa 8.2: Testes Mobile (Jest)
 
@@ -462,7 +462,7 @@ Objetivo: Implementar stack completa de observabilidade para produção.
   - [ ] HTTPS obrigatório
 
 - [ ] **Financeiro**
-  - [ ] Split atômico no Stripe
+  - [ ] Split atômico no Mercado Pago
   - [ ] Rastreabilidade de transações
   - [ ] Relatórios de conformidade
 

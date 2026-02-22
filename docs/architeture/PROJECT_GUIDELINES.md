@@ -47,12 +47,13 @@ backend/src/
 ├── domain/            # Entidades puras e Interfaces (Protocolos)
 │   ├── entities/      # Ex: Agendamento, Instrutor (Dataclasses/Pydantic puros)
 │   └── interfaces/    # Ex: IAgendamentoRepository (Abstração)
-├── application/       # Casos de Uso (Regras de Negócio)
-│   └── use_cases/     # Ex: criar_agendamento.py, calcular_split.py
+├── application/       # Casos de Uso e DTOs (Regras de Negócio)
+│   ├── use_cases/     # Ex: criar_agendamento.py, calcular_split.py
+│   └── dtos/          # Data Transfer Objects (evita dependências circulares)
 ├── infrastructure/    # Implementações externas
 │   ├── db/            # SQLAlchemy Models, Alembic
 │   ├── repositories/  # Implementação concreta de IAgendamentoRepository
-│   └── external/      # Integrações (Stripe, Maps API)
+│   └── external/      # Integrações (Mercado Pago, Maps API)
 └── interface/         # Pontos de entrada
     ├── api/           # Routers FastAPI, Controllers
     └── websockets/    # Gerenciadores de conexão Socket
@@ -241,16 +242,34 @@ async def get_earnings(
 
 ## 5. Regras de Negócio Críticas (Hard Constraints)
 
-1. **Cancelamento:**
-    - `IF` tempo_para_aula > 24h `THEN` reembolso = 100%.
-    - `IF` tempo_para_aula < 24h `THEN` multa = 50%.
+### 5.1 Cancelamento e Reembolso (Antecedência)
+- **>= 48 horas:** 100% de reembolso.
+- **24h - 48h:** 50% de reembolso (retenção de 50% para o instrutor).
+- **< 24 horas:** 0% de reembolso (pagamento integral ao instrutor).
+- **Emergência:** 100% mediante justificativa e aprovação do suporte.
 
-2. **Geolocalização:**
-    - Updates de posição: a cada **5s** (movimento) ou **30s** (parado).
-    - Raio de busca padrão: Configurable (ex: 10km).
+### 5.2 Reagendamento
+- **Gratuidade:** Reagendamentos são sempre gratuitos.
+- **Limite:** Máximo de 1 reagendamento gratuito por aula.
+- **Consenso:** Requer aceite da outra parte. O gatilho de confirmação é resetado para a nova data.
+- **Trava de Multa:** Aulas reagendadas dentro da janela de multa (< 48h da data original) mantêm a janela original para fins de cálculo de reembolso em caso de cancelamento posterior.
 
-3. **Financeiro:**
-    - O Split de pagamento deve ocorrer **atomicamente** na transação do Stripe. Não acumular saldo na plataforma para distribuir depois (risco fiscal).
+### 5.3 Fluxo de Reserva
+- **Reserva Temporária:** Horários ficam bloqueados por **12 minutos** durante o checkout para evitar Double Booking.
+
+### 5.4 Geolocalização
+- **Updates de posição:** A cada **5s** (movimento) ou **30s** (parado).
+- **Raio de busca padrão:** Configurável via admin (padrão: 10km).
+
+### 5.5 Financeiro e Precificação (Modelo Markup)
+- **Split Atômico:** O split deve ocorrer **atomicamente** via Mercado Pago Marketplace. A plataforma nunca retém o valor do instrutor (evitar bitributação).
+- **Cálculo do Valor Final:**
+    1. **Valor Base:** Definido pelo instrutor.
+    2. **Target:** Base + 20% (Comissão da Plataforma).
+    3. **Markup MP:** `Target / (1 - Taxa_Mercado_Pago)` para embutir as taxas transacionais.
+    4. **Arredondamento:** Próximo múltiplo de 5 acima.
+    5. **Charm Pricing:** Se terminar em .00, subtrair R$ 0,10 (ex: 85.00 -> 84.90).
+- **Garantia:** O algoritmo deve garantir que o repasse ao instrutor seja exatamente o **Valor Base** definido.
 
 ---
 
@@ -328,23 +347,24 @@ async def get_earnings(
 - **Nunca editar migrations já mergeadas na main.**
 - **Sempre testar rollback:** `alembic downgrade -1` antes de merge.
 - **Migrations manuais:** Não usar `--autogenerate` para evitar código verbose e desnecessário.
+- **Execução:** Devem obrigatoriamente rodar **dentro do container docker**.
 
 ### Comandos Padrão
 ```bash
 # Criar nova migration (manual - sem autogenerate)
-alembic revision -m "descricao_da_mudanca"
+docker compose exec backend alembic revision -m "descricao_da_mudanca"
 
 # Aplicar migrations
-alembic upgrade head
+docker compose exec backend alembic upgrade head
 
 # Rollback
-alembic downgrade -1
+docker compose exec backend alembic downgrade -1
 
 # Verificar status atual
-alembic current
+docker compose exec backend alembic current
 
 # Histórico de migrations
-alembic history
+docker compose exec backend alembic history
 ```
 
 ### Template de Migration
@@ -394,7 +414,7 @@ def downgrade() -> None:
 - Envio de notificações push/email em massa.
 - Geração de relatórios financeiros.
 - Processamento de imagens (foto de perfil).
-- Sincronização com APIs externas (Stripe webhooks retry).
+- Sincronização com APIs externas (Mercado Pago webhooks retry).
 
 ### Stack
 - **Celery** + **Redis** (broker e backend).
