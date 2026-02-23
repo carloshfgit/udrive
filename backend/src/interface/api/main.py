@@ -23,7 +23,17 @@ from src.interface.websockets.chat_handler import ws_router, set_pubsub_service
 from src.interface.websockets.event_dispatcher import init_event_dispatcher
 from src.infrastructure.external.redis_pubsub import pubsub_service
 from src.application.tasks.cart_cleanup_task import cart_cleanup_loop
+import logging
+import sys
+
 from src.infrastructure.db.database import AsyncSessionLocal
+
+# Configurar logging básico para o standard library
+logging.basicConfig(
+    format="%(message)s",
+    stream=sys.stdout,
+    level=logging.INFO,
+)
 
 # Configurar logging estruturado
 structlog.configure(

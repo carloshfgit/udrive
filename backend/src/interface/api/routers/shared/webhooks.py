@@ -4,7 +4,7 @@ Webhooks Router
 Endpoints para receber notificações de webhooks de gateways de pagamento.
 """
 
-import logging
+import structlog
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -27,7 +27,7 @@ from src.infrastructure.repositories.transaction_repository_impl import (
     TransactionRepositoryImpl,
 )
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger()
 
 router = APIRouter(prefix="/webhooks", tags=["Webhooks"])
 
@@ -48,7 +48,7 @@ async def process_webhook_background(dto: WebhookNotificationDTO, settings: Sett
             # Commit das alterações do webhook
             await session.commit()
         except Exception as e:
-            logger.error("Erro ao processar webhook MP: %s", e, exc_info=True)
+            logger.error("webhook_processing_error", error=str(e))
             await session.rollback()
 
 
@@ -77,7 +77,7 @@ async def mercadopago_webhook(
     try:
         body = await request.json()
     except Exception as e:
-        logger.error("Erro ao parsear body do webhook: %s", e)
+        logger.error("webhook_body_parse_error", error=str(e))
         return {"status": "error", "detail": "Invalid body"}
 
     # Extrair tipo e ação
@@ -97,11 +97,11 @@ async def mercadopago_webhook(
     live_mode = body.get("live_mode", True)
 
     logger.info(
-        "Webhook MP recebido: type=%s action=%s data_id=%s notification_id=%s",
-        notification_type,
-        action,
-        data_id,
-        notification_id
+        "webhook_received",
+        type=notification_type,
+        action=action,
+        data_id=data_id,
+        notification_id=notification_id
     )
 
     # 2. (Removido) Validação de assinatura x-signature

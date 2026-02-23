@@ -9,7 +9,7 @@ Suporta checkout multi-item: usa preference_group_id para atualizar
 todos os payments de um mesmo checkout.
 """
 
-import logging
+import structlog
 from dataclasses import dataclass
 
 from src.application.dtos.payment_dtos import WebhookNotificationDTO
@@ -23,7 +23,7 @@ from src.domain.interfaces.scheduling_repository import ISchedulingRepository
 from src.domain.interfaces.transaction_repository import ITransactionRepository
 from src.infrastructure.services.token_encryption import decrypt_token
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger()
 
 # Mapeamento de status do Mercado Pago → PaymentStatus do domínio
 MP_STATUS_MAP = {
@@ -73,9 +73,9 @@ class HandlePaymentWebhookUseCase:
         # 1. Filtrar — processa notificações de pagamento e merchant_order
         if dto.notification_type not in ["payment", "merchant_order"]:
             logger.info(
-                "Webhook ignorado: tipo=%s action=%s",
-                dto.notification_type,
-                dto.action,
+                "webhook_ignored",
+                type=dto.notification_type,
+                action=dto.action,
             )
             return
 
@@ -86,7 +86,7 @@ class HandlePaymentWebhookUseCase:
 
     async def _handle_merchant_order(self, merchant_order_id: str) -> None:
         """Busca detalhes da merchant_order e processa seus pagamentos."""
-        logger.info("Processando merchant_order MP: %s", merchant_order_id)
+        logger.info("merchant_order_processing", merchant_order_id=merchant_order_id)
         
         # 1. Buscar ordem via platform token para identificar o grupo
         try:
@@ -98,19 +98,30 @@ class HandlePaymentWebhookUseCase:
                 merchant_order_id, settings.mp_access_token
             )
         except Exception as e:
-            logger.error("Erro ao buscar merchant_order %s: %s", merchant_order_id, e)
+            logger.error(
+                "merchant_order_fetch_error",
+                merchant_order_id=merchant_order_id,
+                error=str(e)
+            )
             return
 
         external_reference = order_data.get("external_reference")
         if not external_reference:
-            logger.warning("merchant_order %s sem external_reference", merchant_order_id)
+            logger.warning("merchant_order_missing_external_reference", merchant_order_id=merchant_order_id)
             return
 
         # 2. Processar cada pagamento aprovado na ordem
         payments_in_order = order_data.get("payments", [])
         if not payments_in_order:
-            logger.info("merchant_order %s sem pagamentos ainda", merchant_order_id)
+            logger.info("merchant_order_no_payments", merchant_order_id=merchant_order_id)
             return
+
+        # Log diagnóstico para entender o estado dos pagamentos quando falha na UI
+        logger.info(
+            "merchant_order_payments_status",
+            merchant_order_id=merchant_order_id,
+            payments=payments_in_order
+        )
 
         for mp_payment in payments_in_order:
             payment_id = str(mp_payment.get("id"))
@@ -118,7 +129,7 @@ class HandlePaymentWebhookUseCase:
 
     async def _process_single_payment(self, mp_payment_id: str, preference_group_id: str | None = None) -> None:
         """Lógica original de processamento de um payment_id individual."""
-        logger.info("Processando pagamento individual MP: %s", mp_payment_id)
+        logger.info("single_payment_processing", mp_payment_id=mp_payment_id)
 
         # 2. Buscar Payment existente pelo gateway_payment_id
         payment = await self.payment_repository.get_by_gateway_payment_id(mp_payment_id)
@@ -140,8 +151,8 @@ class HandlePaymentWebhookUseCase:
             # (isso acontece na primeira notificação de um pagamento novo)
             # Mas o get_payment_status nos dirá a preference_id.
             logger.warning(
-                "Payment não encontrado para gateway_payment_id=%s no DB.",
-                mp_payment_id,
+                "payment_not_found_on_db",
+                gateway_payment_id=mp_payment_id,
             )
             # Como não temos o payment, não sabemos o instructor_id para pegar o token.
             # Vamos tentar uma busca "cega" via API do MP usando o token da PLATAFORMA
@@ -165,7 +176,7 @@ class HandlePaymentWebhookUseCase:
                 # Vamos tentar buscar por gateway_preference_id no repositório
                 # mas o DTO do gateway precisa retornar isso.
             except Exception as e:
-                logger.error("Falha na busca cega por payment %s: %s", mp_payment_id, e)
+                logger.error("payment_blind_search_failed", mp_payment_id=mp_payment_id, error=str(e))
                 return
             
             # Se chegamos aqui sem o payment, temos um problema de rastreabilidade.
@@ -177,9 +188,9 @@ class HandlePaymentWebhookUseCase:
         )
         if instructor_profile is None or not instructor_profile.has_mp_account:
             logger.error(
-                "Instrutor %s sem conta MP vinculada para pagamento %s",
-                payment.instructor_id,
-                payment.id,
+                "instructor_missing_mp_account",
+                instructor_id=payment.instructor_id,
+                payment_id=payment.id,
             )
             raise WebhookProcessingException(
                 f"Instrutor {payment.instructor_id} sem conta MP"
@@ -193,9 +204,9 @@ class HandlePaymentWebhookUseCase:
             )
         except Exception as e:
             logger.error(
-                "Falha ao consultar status do pagamento %s no MP: %s",
-                mp_payment_id,
-                str(e),
+                "mp_payment_status_fetch_error",
+                mp_payment_id=mp_payment_id,
+                error=str(e),
             )
             raise WebhookProcessingException(
                 f"Falha ao consultar status: {e}"
@@ -205,9 +216,9 @@ class HandlePaymentWebhookUseCase:
         new_status = MP_STATUS_MAP.get(status_result.status)
         if new_status is None:
             logger.warning(
-                "Status MP desconhecido: %s para pagamento %s",
-                status_result.status,
-                mp_payment_id,
+                "mp_unknown_status",
+                mp_status=status_result.status,
+                mp_payment_id=mp_payment_id,
             )
             return
 
@@ -223,8 +234,8 @@ class HandlePaymentWebhookUseCase:
         # 7. Idempotência — se o primeiro já está no status esperado, retornar
         if all(p.status == new_status for p in group_payments):
             logger.info(
-                "Todos os payments do grupo já estão com status %s. Ignorando.",
-                new_status.value,
+                "payment_group_already_at_target_status",
+                status=new_status.value,
             )
             return
 
@@ -285,8 +296,8 @@ class HandlePaymentWebhookUseCase:
                 scheduling.confirm()
                 await self.scheduling_repository.update(scheduling)
                 logger.info(
-                    "Scheduling %s confirmado após pagamento aprovado.",
-                    scheduling.id,
+                    "scheduling_confirmed_after_payment",
+                    scheduling_id=scheduling.id,
                 )
 
     async def _handle_rejected(self, payments: list) -> None:
@@ -296,7 +307,7 @@ class HandlePaymentWebhookUseCase:
                 continue
             payment.mark_failed()
             await self.payment_repository.update(payment)
-            logger.info("Payment %s marcado como FAILED.", payment.id)
+            logger.info("payment_marked_failed", payment_id=payment.id)
 
     async def _handle_refunded(self, payments: list) -> None:
         """Trata reembolso: marca REFUNDED se possível para todos."""
@@ -304,10 +315,10 @@ class HandlePaymentWebhookUseCase:
             if payment.can_refund():
                 payment.process_refund(100)
                 await self.payment_repository.update(payment)
-                logger.info("Payment %s marcado como REFUNDED.", payment.id)
+                logger.info("payment_marked_refunded", payment_id=payment.id)
             else:
                 logger.warning(
-                    "Payment %s não pode ser reembolsado (status: %s).",
-                    payment.id,
-                    payment.status.value,
+                    "payment_refund_not_allowed",
+                    payment_id=payment.id,
+                    status=payment.status.value,
                 )

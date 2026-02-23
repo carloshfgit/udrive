@@ -72,7 +72,7 @@ class SchedulingEventDispatcher:
         )
         logger.info(
             "scheduling_event_emitted",
-            event=SchedulingEventType.SCHEDULING_CREATED,
+            event_type=SchedulingEventType.SCHEDULING_CREATED,
             target="instructor",
             scheduling_id=str(dto.id),
         )
@@ -85,7 +85,7 @@ class SchedulingEventDispatcher:
         )
         logger.info(
             "scheduling_event_emitted",
-            event=SchedulingEventType.SCHEDULING_CONFIRMED,
+            event_type=SchedulingEventType.SCHEDULING_CONFIRMED,
             target="student",
             scheduling_id=str(dto.id),
         )
@@ -101,7 +101,7 @@ class SchedulingEventDispatcher:
         )
         logger.info(
             "scheduling_event_emitted",
-            event=SchedulingEventType.SCHEDULING_CANCELLED,
+            event_type=SchedulingEventType.SCHEDULING_CANCELLED,
             target=str(target_id),
             scheduling_id=str(dto.id),
         )
@@ -117,7 +117,7 @@ class SchedulingEventDispatcher:
         )
         logger.info(
             "scheduling_event_emitted",
-            event=SchedulingEventType.SCHEDULING_STARTED,
+            event_type=SchedulingEventType.SCHEDULING_STARTED,
             target=str(target_id),
             scheduling_id=str(dto.id),
         )
@@ -129,7 +129,7 @@ class SchedulingEventDispatcher:
         await self._safe_publish(f"user:{dto.instructor_id}", data)
         logger.info(
             "scheduling_event_emitted",
-            event=SchedulingEventType.SCHEDULING_COMPLETED,
+            event_type=SchedulingEventType.SCHEDULING_COMPLETED,
             target="both",
             scheduling_id=str(dto.id),
         )
@@ -143,7 +143,7 @@ class SchedulingEventDispatcher:
         )
         logger.info(
             "scheduling_event_emitted",
-            event=SchedulingEventType.RESCHEDULE_REQUESTED,
+            event_type=SchedulingEventType.RESCHEDULE_REQUESTED,
             target=str(target_id),
             scheduling_id=str(dto.id),
         )
@@ -189,7 +189,7 @@ class SchedulingEventDispatcher:
         
         logger.info(
             "scheduling_event_emitted",
-            event=SchedulingEventType.RESCHEDULE_RESPONDED,
+            event_type=SchedulingEventType.RESCHEDULE_RESPONDED,
             target="both",
             accepted=accepted,
             scheduling_id=str(dto.id),
