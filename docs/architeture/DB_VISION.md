@@ -132,7 +132,7 @@ Armazena as mensagens trocadas no chat interno entre alunos e instrutores.
 #### `instructor_profiles`
 Armazena dados específicos de instrutores, incluindo dados espaciais.
 *   **PK**: `id` (UUIDv4)
-*   **FK**: `user_id` -> `users.id` (One-to-One, Unique)
+*   **FK**: `user_id` -> `users.id` (One-to-One, Unique, Cascade Delete)
 *   **Geolocalização**:
     *   campo `location`: Tipo `Geometry(Point, 4326)`. Armazena a posição geográfica do instrutor (WGS84).
     *   Índice Espacial: `GIST` na coluna `location` para queries de proximidade (`ST_DWithin`).
@@ -142,7 +142,7 @@ Armazena dados específicos de instrutores, incluindo dados espaciais.
 #### `student_profiles`
 Armazena dados de aprendizado dos alunos.
 *   **PK**: `id` (UUIDv4)
-*   **FK**: `user_id` -> `users.id` (One-to-One, Unique)
+*   **FK**: `user_id` -> `users.id` (One-to-One, Unique, Cascade Delete)
 *   **Campos Chave**: `learning_stage` (Iniciante, Intermediário...), `license_category_goal`, `preferred_schedule`, `notes`, `total_lessons`.
 
 ### 3.3. Agendamento e Disponibilidade
@@ -150,7 +150,7 @@ Armazena dados de aprendizado dos alunos.
 #### `schedulings`
 Registra as aulas agendadas.
 *   **PK**: `id` (UUIDv4)
-*   **FKs**:
+*   **FKs** (Cascade Delete):
     *   `student_id` -> `users.id`
     *   `instructor_id` -> `users.id`
 *   **Campos Chave**:
@@ -164,7 +164,7 @@ Registra as aulas agendadas.
 #### `reviews`
 Armazena as avaliações de feedback.
 *   **PK**: `id` (UUIDv4)
-*   **FKs**:
+*   **FKs** (Cascade Delete):
     *   `scheduling_id` -> `schedulings.id` (One-to-One, Unique)
     *   `student_id` -> `users.id`
     *   `instructor_id` -> `users.id`
@@ -173,7 +173,7 @@ Armazena as avaliações de feedback.
 #### `instructor_availability`
 Define a "grade horária" recorrente do instrutor.
 *   **PK**: `id` (UUIDv4)
-*   **FK**: `instructor_id` -> `users.id`
+*   **FK**: `instructor_id` -> `users.id` (Cascade Delete)
 *   **Campos Chave**:
     *   `day_of_week` (int 0-6).
     *   `start_time`, `end_time`.

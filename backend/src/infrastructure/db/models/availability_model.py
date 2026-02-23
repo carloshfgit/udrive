@@ -71,7 +71,7 @@ class AvailabilityModel(Base):
     instructor = relationship(
         "UserModel",
         foreign_keys=[instructor_id],
-        backref="availabilities",
+        back_populates="availabilities",
     )
 
     # Constraints e Índices

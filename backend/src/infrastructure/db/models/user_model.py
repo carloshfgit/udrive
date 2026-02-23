@@ -100,35 +100,89 @@ class UserModel(Base):
         "RefreshTokenModel",
         back_populates="user",
         cascade="all, delete-orphan",
+        passive_deletes=True,
     )
     instructor_profile = relationship(
         "InstructorProfileModel",
         back_populates="user",
         uselist=False,
         cascade="all, delete-orphan",
+        passive_deletes=True,
     )
     student_profile = relationship(
         "StudentProfileModel",
         back_populates="user",
         uselist=False,
         cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+    availabilities = relationship(
+        "AvailabilityModel",
+        back_populates="instructor",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+    student_schedulings = relationship(
+        "SchedulingModel",
+        foreign_keys="[SchedulingModel.student_id]",
+        back_populates="student",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+    instructor_schedulings = relationship(
+        "SchedulingModel",
+        foreign_keys="[SchedulingModel.instructor_id]",
+        back_populates="instructor",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
     )
     student_payments = relationship(
         "PaymentModel",
         foreign_keys="PaymentModel.student_id",
         back_populates="student",
         cascade="all, delete-orphan",
+        passive_deletes=True,
     )
     instructor_payments = relationship(
         "PaymentModel",
         foreign_keys="PaymentModel.instructor_id",
         back_populates="instructor",
         cascade="all, delete-orphan",
+        passive_deletes=True,
     )
     transactions = relationship(
         "TransactionModel",
         back_populates="user",
         cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+    sent_messages = relationship(
+        "MessageModel",
+        foreign_keys="[MessageModel.sender_id]",
+        back_populates="sender",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+    received_messages = relationship(
+        "MessageModel",
+        foreign_keys="[MessageModel.receiver_id]",
+        back_populates="receiver",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+    student_reviews = relationship(
+        "ReviewModel",
+        foreign_keys="[ReviewModel.student_id]",
+        back_populates="student",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+    instructor_reviews = relationship(
+        "ReviewModel",
+        foreign_keys="[ReviewModel.instructor_id]",
+        back_populates="instructor",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
     )
 
     # Índices compostos

@@ -128,12 +128,12 @@ class SchedulingModel(Base):
     student = relationship(
         "UserModel",
         foreign_keys=[student_id],
-        backref="student_schedulings",
+        back_populates="student_schedulings",
     )
     instructor = relationship(
         "UserModel",
         foreign_keys=[instructor_id],
-        backref="instructor_schedulings",
+        back_populates="instructor_schedulings",
     )
     canceller = relationship(
         "UserModel",

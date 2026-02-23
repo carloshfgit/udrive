@@ -72,8 +72,16 @@ class ReviewModel(Base):
 
     # Relacionamentos
     scheduling = relationship("SchedulingModel", back_populates="review")
-    student = relationship("UserModel", foreign_keys=[student_id])
-    instructor = relationship("UserModel", foreign_keys=[instructor_id])
+    student = relationship(
+        "UserModel", 
+        foreign_keys=[student_id],
+        back_populates="student_reviews",
+    )
+    instructor = relationship(
+        "UserModel", 
+        foreign_keys=[instructor_id],
+        back_populates="instructor_reviews",
+    )
 
     def to_entity(self) -> Review:
         """Converte o modelo para entidade de domínio."""

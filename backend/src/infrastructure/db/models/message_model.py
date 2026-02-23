@@ -66,12 +66,12 @@ class MessageModel(Base):
     sender = relationship(
         "UserModel",
         foreign_keys=[sender_id],
-        backref="sent_messages",
+        back_populates="sent_messages",
     )
     receiver = relationship(
         "UserModel",
         foreign_keys=[receiver_id],
-        backref="received_messages",
+        back_populates="received_messages",
     )
 
     def to_entity(self) -> Message:
