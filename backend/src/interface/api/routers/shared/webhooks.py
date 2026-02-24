@@ -95,13 +95,19 @@ async def mercadopago_webhook(
     
     notification_id = body.get("id", 0)
     live_mode = body.get("live_mode", True)
+    
+    # Extrair user_id (para contas vinculadas via OAuth, MP envia via query)
+    user_id = str(request.query_params.get("user_id", ""))
+    if not user_id:
+        user_id = str(body.get("user_id", ""))
 
     logger.info(
         "webhook_received",
         type=notification_type,
         action=action,
         data_id=data_id,
-        notification_id=notification_id
+        notification_id=notification_id,
+        user_id=user_id,
     )
 
     # 2. (Removido) Validação de assinatura x-signature
@@ -115,6 +121,7 @@ async def mercadopago_webhook(
         action=action,
         data_id=data_id,
         live_mode=live_mode,
+        user_id=user_id if user_id else None,
     )
 
     # 4. Agendar a execução em background e retornar 200 pro Mercado Pago

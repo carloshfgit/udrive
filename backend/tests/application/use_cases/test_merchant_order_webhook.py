@@ -75,7 +75,7 @@ async def test_handle_merchant_order_webhook_success(mock_repositories, mock_gat
     instructor = MagicMock()
     instructor.has_mp_account = True
     instructor.mp_access_token = "fake-token"
-    mock_repositories["instructor"].get_by_user_id.return_value = instructor
+    mock_repositories["instructor"].get_by_mp_user_id.return_value = instructor
 
     scheduling = MagicMock()
     scheduling.id = payment.scheduling_id
@@ -95,13 +95,14 @@ async def test_handle_merchant_order_webhook_success(mock_repositories, mock_gat
         notification_id=1,
         notification_type="merchant_order",
         action="",
-        data_id=merchant_order_id
+        data_id=merchant_order_id,
+        user_id="fake-mp-user-id"
     )
 
     await use_case.execute(dto)
 
     # 4. Verificações
-    mock_gateway.get_merchant_order.assert_called_once_with(merchant_order_id, ANY)
+    mock_gateway.get_merchant_order.assert_called_once_with(merchant_order_id, "fake-token")
     mock_gateway.get_payment_status.assert_called()
     mock_repositories["payment"].get_by_gateway_payment_id.assert_called_with(payment_id_mp)
     payment.mark_completed.assert_called_once()

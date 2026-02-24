@@ -6,6 +6,8 @@ Modelos SQLAlchemy para persistência de dados.
 
 from .availability_model import AvailabilityModel
 from .instructor_profile_model import InstructorProfileModel
+from .message_model import MessageModel
+from .payment_model import PaymentModel
 from .refresh_token_model import RefreshTokenModel
 from .review_model import ReviewModel
 from .scheduling_model import SchedulingModel
@@ -22,5 +24,7 @@ __all__ = [
     "AvailabilityModel",
     "ReviewModel",
     "TransactionModel",
+    "MessageModel",
+    "PaymentModel",
 ]
 

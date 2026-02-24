@@ -10,7 +10,7 @@ O slot do instrutor é liberado e o agendamento some do carrinho do aluno.
 """
 
 import asyncio
-import logging
+import structlog
 from datetime import datetime, timezone
 
 from sqlalchemy.ext.asyncio import async_sessionmaker
@@ -18,7 +18,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker
 CART_TIMEOUT_MINUTES = 12
 CLEANUP_INTERVAL_SECONDS = 120  # Roda a cada 2 minutos
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 async def cleanup_expired_cart_items(session_factory: async_sessionmaker) -> int:

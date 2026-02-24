@@ -2,8 +2,7 @@ import asyncio
 import sys
 from sqlalchemy import select
 from src.infrastructure.db.database import AsyncSessionLocal
-from src.infrastructure.db.models.user_model import UserModel
-from src.infrastructure.db.models.instructor_profile_model import InstructorProfileModel
+from src.infrastructure.db.models import UserModel, InstructorProfileModel, MessageModel, PaymentModel
 from src.infrastructure.services.token_encryption import encrypt_token
 
 async def update_token():

@@ -80,22 +80,32 @@ class HandlePaymentWebhookUseCase:
             return
 
         if dto.notification_type == "merchant_order":
-            await self._handle_merchant_order(dto.data_id)
+            await self._handle_merchant_order(dto.data_id, dto.user_id)
         else:
             await self._process_single_payment(dto.data_id)
 
-    async def _handle_merchant_order(self, merchant_order_id: str) -> None:
-        """Busca detalhes da merchant_order e processa seus pagamentos."""
-        logger.info("merchant_order_processing", merchant_order_id=merchant_order_id)
+    async def _handle_merchant_order(self, merchant_order_id: str, mp_user_id: str | None) -> None:
+        """Busca detalhes da merchant_order e processa seus pagamentos usando o token do instrutor."""
+        logger.info("merchant_order_processing", merchant_order_id=merchant_order_id, user_id=mp_user_id)
         
-        # 1. Buscar ordem via platform token para identificar o grupo
+        # O webhook não veio com user_id ou não foi passado corretamente
+        if not mp_user_id:
+            logger.error("merchant_order_missing_user_id", merchant_order_id=merchant_order_id)
+            return
+
+        instructor_profile = await self.instructor_repository.get_by_mp_user_id(mp_user_id)
+        if not instructor_profile or not instructor_profile.has_mp_account:
+            logger.error(
+                "merchant_order_instructor_not_found_or_no_account", 
+                merchant_order_id=merchant_order_id, 
+                mp_user_id=mp_user_id
+            )
+            return
+
+        # 1. Buscar ordem via token DO INSTRUTOR que a recebeu (dono da ordem)
         try:
-            # Usamos o token da plataforma (settings), não do instrutor aqui,
-            # pois ainda não sabemos quem é o instrutor.
-            from src.infrastructure.config import Settings
-            settings = Settings()
             order_data = await self.payment_gateway.get_merchant_order(
-                merchant_order_id, settings.mp_access_token
+                merchant_order_id, decrypt_token(instructor_profile.mp_access_token)
             )
         except Exception as e:
             logger.error(

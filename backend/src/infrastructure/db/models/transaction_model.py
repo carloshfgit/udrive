@@ -25,10 +25,10 @@ class TransactionModel(Base):
         PG_UUID(as_uuid=True), primary_key=True, index=True
     )
     payment_id: Mapped[UUID] = mapped_column(
-        PG_UUID(as_uuid=True), ForeignKey("payments.id"), nullable=False
+        PG_UUID(as_uuid=True), ForeignKey("payments.id", ondelete="CASCADE"), nullable=False
     )
     user_id: Mapped[UUID] = mapped_column(
-        PG_UUID(as_uuid=True), ForeignKey("users.id"), nullable=False
+        PG_UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
     type: Mapped[TransactionType] = mapped_column(
         Enum(

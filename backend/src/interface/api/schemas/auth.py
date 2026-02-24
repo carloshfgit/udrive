@@ -9,7 +9,7 @@ from datetime import date
 from enum import Enum
 from uuid import UUID
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, Field
 
 
 class UserTypeEnum(str, Enum):
@@ -28,7 +28,7 @@ class UserTypeEnum(str, Enum):
 class RegisterRequest(BaseModel):
     """Schema para cadastro de novo usuário."""
 
-    email: EmailStr = Field(..., description="Email do usuário")
+    email: str = Field(..., description="Email do usuário")
     password: str = Field(
         ...,
         min_length=8,
@@ -60,7 +60,7 @@ class RegisterRequest(BaseModel):
 class LoginRequest(BaseModel):
     """Schema para login de usuário."""
 
-    email: EmailStr = Field(..., description="Email do usuário")
+    email: str = Field(..., description="Email do usuário")
     password: str = Field(..., description="Senha do usuário")
 
     model_config = {
@@ -84,7 +84,7 @@ class RefreshTokenRequest(BaseModel):
 class ForgotPasswordRequest(BaseModel):
     """Schema para solicitação de reset de senha."""
 
-    email: EmailStr = Field(..., description="Email do usuário")
+    email: str = Field(..., description="Email do usuário")
 
 
 class ResetPasswordRequest(BaseModel):

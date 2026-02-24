@@ -99,7 +99,7 @@ class UserRepositoryImpl:
         Returns:
             User | None: Usuário encontrado ou None.
         """
-        stmt = select(UserModel).where(UserModel.email == email.lower())
+        stmt = select(UserModel).where(UserModel.email == email)
         result = await self._session.execute(stmt)
         model = result.scalar_one_or_none()
         return model.to_entity() if model else None

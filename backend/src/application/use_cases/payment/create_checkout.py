@@ -186,7 +186,7 @@ class CreateCheckoutUseCase:
                 payer = {"email": dto.student_email}
 
             base_url_str = self.settings.mp_redirect_uri.split("/api/")[0]
-            notification_url = f"{base_url_str}/api/v1/shared/webhooks/mercadopago"
+            notification_url = f"{base_url_str}/api/v1/shared/webhooks/mercadopago?user_id={instructor_profile.mp_user_id}"
 
             checkout_result = await self.payment_gateway.create_checkout(
                 items=items,

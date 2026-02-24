@@ -86,6 +86,7 @@ class WebhookNotificationDTO:
     action: str  # "payment.updated"
     data_id: str  # ID do pagamento no MP
     live_mode: bool = True
+    user_id: str | None = None  # MP user ID of the application that received the notification
 
 
 # === Output DTOs ===

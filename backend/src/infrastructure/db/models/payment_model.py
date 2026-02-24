@@ -28,10 +28,10 @@ class PaymentModel(Base):
         PG_UUID(as_uuid=True), ForeignKey("schedulings.id"), nullable=False, unique=True
     )
     student_id: Mapped[UUID] = mapped_column(
-        PG_UUID(as_uuid=True), ForeignKey("users.id"), nullable=False
+        PG_UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
     instructor_id: Mapped[UUID] = mapped_column(
-        PG_UUID(as_uuid=True), ForeignKey("users.id"), nullable=False
+        PG_UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
     amount: Mapped[float] = mapped_column(DECIMAL(10, 2), nullable=False)
     platform_fee_percentage: Mapped[float] = mapped_column(

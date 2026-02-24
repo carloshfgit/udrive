@@ -52,9 +52,9 @@ export function RegisterScreen() {
 
         if (!email.trim()) {
             newErrors.email = 'E-mail é obrigatório';
-        } else if (!/\S+@\S+\.\S+/.test(email)) {
+        } /* else if (!/\S+@\S+\.\S+/.test(email)) {
             newErrors.email = 'E-mail inválido';
-        }
+        } */
 
         if (!password.trim()) {
             newErrors.password = 'Senha é obrigatória';

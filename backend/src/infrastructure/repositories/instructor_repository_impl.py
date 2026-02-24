@@ -79,6 +79,27 @@ class InstructorRepositoryImpl(IInstructorRepository):
             return profile
         return None
 
+    async def get_by_mp_user_id(self, mp_user_id: str) -> InstructorProfile | None:
+        """Busca perfil do instrutor pelo ID de usuário do Mercado Pago."""
+        stmt = (
+            select(
+                InstructorProfileModel,
+                geo_func.ST_X(InstructorProfileModel.location).label("lon"),
+                geo_func.ST_Y(InstructorProfileModel.location).label("lat"),
+            )
+            .where(InstructorProfileModel.mp_user_id == mp_user_id)
+        )
+        result = await self._session.execute(stmt)
+        row = result.first()
+
+        if row:
+            model = row[0]
+            profile = self._model_to_entity(model)
+            if row.lat is not None and row.lon is not None:
+                profile.location = Location(latitude=row.lat, longitude=row.lon)
+            return profile
+        return None
+
     async def get_public_profile_by_user_id(self, user_id: UUID) -> InstructorProfile | None:
         """Busca apenas dados públicos do perfil do instrutor."""
         stmt = (

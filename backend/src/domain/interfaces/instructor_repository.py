@@ -58,6 +58,19 @@ class IInstructorRepository(ABC):
         ...
 
     @abstractmethod
+    async def get_by_mp_user_id(self, mp_user_id: str) -> InstructorProfile | None:
+        """
+        Busca perfil do instrutor pelo ID de usuário do Mercado Pago.
+
+        Args:
+            mp_user_id: O user_id retornado pelo Mercado Pago (OAuth).
+
+        Returns:
+            Perfil encontrado ou None.
+        """
+        ...
+
+    @abstractmethod
     async def get_public_profile_by_user_id(self, user_id: UUID) -> InstructorProfile | None:
         """
         Busca apenas dados públicos do perfil do instrutor.
