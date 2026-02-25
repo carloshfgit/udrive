@@ -195,7 +195,7 @@ class MercadoPagoGateway(IPaymentGateway):
             "grant_type": "authorization_code",
             "code": authorization_code,
             "redirect_uri": redirect_uri,
-            "test_token": self.settings.environment == "development"
+            "test_token": False
         }
 
         async with httpx.AsyncClient() as client:
