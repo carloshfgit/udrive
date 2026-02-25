@@ -20,6 +20,7 @@ class CreateCheckoutDTO:
     scheduling_ids: list[UUID]
     student_id: UUID
     student_email: str | None = None
+    return_url: str | None = None
 
 
 @dataclass(frozen=True)

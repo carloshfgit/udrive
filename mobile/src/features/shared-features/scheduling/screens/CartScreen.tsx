@@ -22,6 +22,7 @@ import {
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { ChevronLeft, ShoppingCart, Calendar, Clock, CreditCard, Trash2, AlertTriangle, Info, CheckCircle2, XCircle } from 'lucide-react-native';
 import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
 
 import { useAuthStore } from '../../../../lib/store';
 import { Badge } from '../../../../shared/components/Badge';
@@ -371,10 +372,12 @@ export function CartScreen() {
                 scheduling_ids: cartItems.map((item) => item.id),
                 student_id: user.id,
                 student_email: user.email,
+                return_url: Linking.createURL('payment'),
             });
 
-            // Abre o Checkout Pro no browser in-app
+            // Abre o Checkout Pro no browser in-app e refetch ao fechar
             await WebBrowser.openBrowserAsync(result.checkout_url);
+            refetch();
         } catch (error: any) {
             const message =
                 error?.response?.data?.detail ||

@@ -12,6 +12,7 @@ export interface CreateCheckoutRequest {
     scheduling_ids: string[];
     student_id: string;
     student_email?: string;
+    return_url?: string;
 }
 
 export interface CheckoutResponse {

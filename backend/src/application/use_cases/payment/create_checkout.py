@@ -188,11 +188,21 @@ class CreateCheckoutUseCase:
             base_url_str = self.settings.mp_redirect_uri.split("/api/")[0]
             notification_url = f"{base_url_str}/api/v1/shared/webhooks/mercadopago?user_id={instructor_profile.mp_user_id}"
 
+            # Construir back_urls usando a return_url dinâmica ou o fallback
+            back_urls = BACK_URLS
+            if dto.return_url:
+                base_return = dto.return_url.rstrip("/")
+                back_urls = {
+                    "success": f"{base_return}/success",
+                    "failure": f"{base_return}/error",
+                    "pending": f"{base_return}/pending",
+                }
+
             checkout_result = await self.payment_gateway.create_checkout(
                 items=items,
                 marketplace_fee=total_marketplace_fee,
                 seller_access_token=decrypt_token(instructor_profile.mp_access_token),
-                back_urls=BACK_URLS,
+                back_urls=back_urls,
                 payer=payer,
                 statement_descriptor="GODRIVE AULA",
                 external_reference=str(preference_group_id),
