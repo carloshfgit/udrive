@@ -8,6 +8,7 @@ import './global.css';
 import React, { useEffect } from 'react';
 import { StyleSheet, ActivityIndicator, View, Text, Linking, Platform } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
+import * as ExpoLinking from 'expo-linking';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -78,7 +79,8 @@ export default function App() {
   // Deep link: fechar Safari View Controller no iOS após retorno do checkout
   useEffect(() => {
     const subscription = Linking.addEventListener('url', (event) => {
-      if (event.url && event.url.includes('godrive://')) {
+      // Aceita tanto godrive:// quanto o scheme do Expo Go (exp://)
+      if (event.url && (event.url.includes('godrive://') || event.url.includes(ExpoLinking.createURL('')))) {
         if (Platform.OS === 'ios') {
           WebBrowser.dismissBrowser();
         }
@@ -89,7 +91,7 @@ export default function App() {
 
   // Configuração de deep links para NavigationContainer
   const linking = {
-    prefixes: ['godrive://'],
+    prefixes: ['godrive://', ExpoLinking.createURL('/')],
     config: {
       screens: {
         PaymentResult: 'payment/:status',

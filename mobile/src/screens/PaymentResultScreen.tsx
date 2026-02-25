@@ -60,10 +60,18 @@ export function PaymentResultScreen() {
     }, [queryClient]);
 
     const handlePress = () => {
-        // Navega para a raiz (Tab Navigator), que mostra as aulas
+        // Navega para a tela de Minhas Aulas dentro do Tab Navigator (Scheduling > MyLessons)
         navigation.reset({
             index: 0,
-            routes: [{ name: 'Main' as never }],
+            routes: [
+                {
+                    name: 'Main' as never,
+                    params: {
+                        screen: 'Scheduling',
+                        params: { screen: 'MyLessons' },
+                    },
+                } as never,
+            ],
         });
     };
 
