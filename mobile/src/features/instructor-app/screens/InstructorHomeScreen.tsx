@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { View, Text, SafeAreaView, ScrollView, RefreshControl } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { View, Text, SafeAreaView, ScrollView, RefreshControl, Alert, TouchableOpacity } from 'react-native';
 import { useAuthStore } from '../../../lib/store';
 import { Card } from '../../../shared/components';
 import { InstructorWelcomeHeader } from '../components/home/InstructorWelcomeHeader';
@@ -16,6 +16,8 @@ import {
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Calendar } from 'lucide-react-native';
+import { RescheduleModal } from '../../student-app/scheduling/components/RescheduleModal';
 
 
 export function InstructorHomeScreen() {
@@ -41,11 +43,31 @@ export function InstructorHomeScreen() {
     const { mutate: complete, isPending: isCompleting } = useCompleteScheduling();
     const { mutate: cancel, isPending: isCancelling } = useCancelScheduling();
 
+    const [rescheduleModalVisible, setRescheduleModalVisible] = useState(false);
+    const [schedulingToReschedule, setSchedulingToReschedule] = useState<any>(null);
+
+    const rescheduleMutation = useRequestReschedule();
+
     const handleReschedule = (scheduling: any) => {
-        navigation.navigate('InstructorSchedule', {
-            screen: 'Reschedule',
-            params: { scheduling }
-        });
+        setSchedulingToReschedule(scheduling);
+        setRescheduleModalVisible(true);
+    };
+
+    const handleConfirmReschedule = async (newDatetime: string) => {
+        if (!schedulingToReschedule) return;
+
+        try {
+            await rescheduleMutation.mutateAsync({
+                schedulingId: schedulingToReschedule.id,
+                newDatetime,
+            });
+            setRescheduleModalVisible(false);
+            setSchedulingToReschedule(null);
+            refetch();
+            Alert.alert('Sucesso', 'Reagendamento solicitado com sucesso!');
+        } catch (error: any) {
+            Alert.alert('Erro', error.message || 'Não foi possível solicitar reagendamento.');
+        }
     };
 
     return (
@@ -72,13 +94,27 @@ export function InstructorHomeScreen() {
                         Próxima Aula
                     </Text>
                     {nextClass && (
-                        <Text className="text-neutral-500 text-sm font-medium mb-4">
-                            {format(new Date(nextClass.scheduled_datetime), "EEEE, d 'de' MMMM", { locale: ptBR })
-                                .replace('-feira', '')
-                                .split(' ')
-                                .map((word, index) => (index === 0 || index === 3) ? word.charAt(0).toUpperCase() + word.slice(1) : word)
-                                .join(' ')}
-                        </Text>
+                        <View className="flex-row items-center justify-between mb-4">
+                            <Text className="text-neutral-500 text-sm font-medium">
+                                {format(new Date(nextClass.scheduled_datetime), "EEEE, d 'de' MMMM", { locale: ptBR })
+                                    .replace('-feira', '')
+                                    .split(' ')
+                                    .map((word, index) => (index === 0 || index === 3) ? word.charAt(0).toUpperCase() + word.slice(1) : word)
+                                    .join(' ')}
+                            </Text>
+                            <TouchableOpacity
+                                onPress={() => navigation.navigate('InstructorSchedule', {
+                                    screen: 'InstructorScheduleMain',
+                                    params: { initialDate: format(new Date(nextClass.scheduled_datetime), 'yyyy-MM-dd') }
+                                })}
+                                className="flex-row items-center"
+                                activeOpacity={0.7}
+                            >
+                                <Text className="text-blue-600 text-sm font-bold">
+                                    Ver na Agenda
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
                     )}
                     {nextClass ? (
                         <ScheduleCard
@@ -119,6 +155,15 @@ export function InstructorHomeScreen() {
                     </Card>
                 </View>
             </ScrollView>
+
+            <RescheduleModal
+                isVisible={rescheduleModalVisible}
+                onClose={() => setRescheduleModalVisible(false)}
+                onConfirm={handleConfirmReschedule}
+                instructorId={schedulingToReschedule?.instructor_id || ''}
+                durationMinutes={schedulingToReschedule?.duration_minutes || 50}
+                isSubmitting={rescheduleMutation.isPending}
+            />
         </SafeAreaView>
     );
 }

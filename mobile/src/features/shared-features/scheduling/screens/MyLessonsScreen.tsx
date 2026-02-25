@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { View, FlatList, RefreshControl, Text, SafeAreaView } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { History, Calendar, MessageSquare, ShoppingCart } from 'lucide-react-native';
+import { History, Calendar, MessageSquare, ShoppingCart, Info } from 'lucide-react-native';
 import { Header } from '../../../../shared/components/Header';
 import { IconButton } from '../../../../shared/components/IconButton';
 import { Button } from '../../../../shared/components/Button';
@@ -141,7 +141,16 @@ export function MyLessonsScreen() {
                 }
                 ListHeaderComponent={
                     sortedSchedulings.length > 0 ? (
-                        <View className="mb-4">
+                        <View className="mb-6">
+                            <View className="flex-row items-center bg-blue-50 p-4 rounded-2xl border border-blue-100 mb-6">
+                                <View className="bg-blue-100 p-2 rounded-full mr-3">
+                                    <Info size={20} color="#2563EB" />
+                                </View>
+                                <Text className="flex-1 text-blue-900 text-sm leading-5">
+                                    Clique em <Text className="font-bold">"Ver Detalhes"</Text> para gerenciar sua aula e enviar mensagens ao instrutor.
+                                </Text>
+                            </View>
+
                             <Text className="text-neutral-500 text-sm font-medium">
                                 Próximas aulas agendadas
                             </Text>

@@ -268,12 +268,22 @@ export default function InstructorScheduleScreen() {
     // Se vier de uma notificação, navegar para a data
     React.useEffect(() => {
         if (route.params?.initialDate) {
-            const targetDate = new Date(route.params.initialDate);
+            let targetDate: Date;
+            if (route.params.initialDate.includes('-') && route.params.initialDate.length === 10) {
+                // Ensure YYYY-MM-DD is parsed as local time to prevent timezone offset bugs
+                const [year, month, day] = route.params.initialDate.split('-');
+                targetDate = new Date(Number(year), Number(month) - 1, Number(day));
+            } else {
+                targetDate = new Date(route.params.initialDate);
+            }
             setSelectedDate(targetDate);
             setCurrentMonth(targetDate.getMonth());
             setCurrentYear(targetDate.getFullYear());
+
+            // Clear the param so it can trigger again if the user navigates with the same date
+            navigation.setParams({ initialDate: undefined });
         }
-    }, [route.params?.initialDate]);
+    }, [route.params?.initialDate, navigation]);
 
     const onRefresh = React.useCallback(() => {
         refetch();

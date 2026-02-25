@@ -177,7 +177,10 @@ export function ScheduleCard({
                     {/* Ações */}
                     {scheduling.status === 'reschedule_requested' && (
                         <TouchableOpacity
-                            onPress={() => navigation.navigate('RescheduleDetails', { scheduling })}
+                            onPress={() => navigation.navigate('InstructorSchedule', {
+                                screen: 'RescheduleDetails',
+                                params: { scheduling }
+                            })}
                             className="flex-row items-center justify-center py-3.5 rounded-2xl bg-amber-500 active:bg-amber-600 shadow-sm"
                         >
                             <Clock size={18} color="#ffffff" />
