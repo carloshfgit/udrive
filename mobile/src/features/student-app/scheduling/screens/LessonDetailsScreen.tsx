@@ -103,9 +103,11 @@ export function LessonDetailsScreen() {
 
         let message = "Deseja realmente cancelar este agendamento?";
         if (diffHours < 24) {
-            message += "\n\nAtenção: Falta menos de 24h para a aula. Haverá multa de 50%.";
+            message += "\n\nAtenção: Faltam menos de 24h para a aula. Não há direito a reembolso (0%).";
+        } else if (diffHours < 48) {
+            message += "\n\nAtenção: Faltam entre 24h e 48h para a aula. Haverá retenção de 50% como taxa de reserva.";
         } else {
-            message += "\n\nCancelamento gratuito disponível (reembolso 100%).";
+            message += "\n\nCancelamento gratuito disponível (reembolso integral de 100%).";
         }
 
         Alert.alert("Confirmar Cancelamento", message, [

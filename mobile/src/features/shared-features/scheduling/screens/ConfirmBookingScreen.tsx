@@ -152,24 +152,27 @@ export function ConfirmBookingScreen() {
                             Ponto de Encontro
                         </Text>
                         <Text className="text-sm text-info-600 mt-1">
-                            O instrutor entrará em contato para definir o local de encontro.
+                            O instrutor entrará em contato após a confirmação do pagamento para definir o local de encontro.
                         </Text>
                     </View>
                 </View>
 
-                {/* Política de Cancelamento */}
+                {/* Política de Reembolso */}
                 <View className="mt-4 p-4 bg-warning-50 rounded-xl flex-row">
                     <AlertCircle size={20} color="#D97706" />
                     <View className="flex-1 ml-3">
                         <Text className="text-sm font-medium text-warning-700">
-                            Política de Cancelamento
+                            Política de Reembolso
                         </Text>
                         <View className="mt-2">
                             <Text className="text-sm text-warning-600">
-                                • Cancelamento gratuito até 24h antes da aula
+                                • Cancelamento gratuito até 48h antes da aula
                             </Text>
                             <Text className="text-sm text-warning-600 mt-1">
-                                • Após 24h: multa de 50% do valor
+                                • Entre 48h e 24h antes da aula: multa de 50% do valor
+                            </Text>
+                            <Text className="text-sm text-warning-600 mt-1">
+                                • Menos de 24h antes da aula: sem reembolso.
                             </Text>
                         </View>
                     </View>
