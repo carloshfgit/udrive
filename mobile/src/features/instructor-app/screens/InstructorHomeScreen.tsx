@@ -119,9 +119,24 @@ export function InstructorHomeScreen() {
                     {nextClass ? (
                         <ScheduleCard
                             scheduling={nextClass}
-                            onConfirm={(id) => confirm(id)}
-                            onComplete={(id) => complete(id)}
-                            onCancel={(id) => cancel({ schedulingId: id })}
+                            onConfirm={(id) => confirm(id, {
+                                onError: (error: any) => {
+                                    const errorMessage = error.response?.data?.detail || error.message || 'Não foi possível confirmar a aula.';
+                                    Alert.alert('Erro', errorMessage);
+                                }
+                            })}
+                            onComplete={(id) => complete(id, {
+                                onError: (error: any) => {
+                                    const errorMessage = error.response?.data?.detail || error.message || 'Não foi possível concluir a aula.';
+                                    Alert.alert('Erro', errorMessage);
+                                }
+                            })}
+                            onCancel={(id) => cancel({ schedulingId: id }, {
+                                onError: (error: any) => {
+                                    const errorMessage = error.response?.data?.detail || error.message || 'Não foi possível cancelar a aula.';
+                                    Alert.alert('Erro', errorMessage);
+                                }
+                            })}
                             onReschedule={handleReschedule}
                             isConfirming={isConfirming}
                             isCompleting={isCompleting}

@@ -202,7 +202,8 @@ export default function InstructorScheduleScreen() {
             queryClient.invalidateQueries({ queryKey: [INSTRUCTOR_SCHEDULE_QUERY_KEY] });
             refetchDates();
         } catch (error: any) {
-            Alert.alert('Erro', error.message || 'Não foi possível confirmar a aula.');
+            const errorMessage = error.response?.data?.detail || error.message || 'Não foi possível confirmar a aula.';
+            Alert.alert('Erro', errorMessage);
         } finally {
             setConfirmingId(null);
         }
@@ -215,7 +216,8 @@ export default function InstructorScheduleScreen() {
             queryClient.invalidateQueries({ queryKey: [INSTRUCTOR_SCHEDULE_QUERY_KEY] });
             refetchDates();
         } catch (error: any) {
-            Alert.alert('Erro', error.message || 'Não foi possível concluir a aula.');
+            const errorMessage = error.response?.data?.detail || error.message || 'Não foi possível concluir a aula.';
+            Alert.alert('Erro', errorMessage);
         } finally {
             setCompletingId(null);
         }
@@ -228,7 +230,8 @@ export default function InstructorScheduleScreen() {
             queryClient.invalidateQueries({ queryKey: [INSTRUCTOR_SCHEDULE_QUERY_KEY] });
             refetchDates();
         } catch (error: any) {
-            Alert.alert('Erro', error.message || 'Não foi possível cancelar a aula.');
+            const errorMessage = error.response?.data?.detail || error.message || 'Não foi possível cancelar a aula.';
+            Alert.alert('Erro', errorMessage);
         } finally {
             setCancellingId(null);
         }

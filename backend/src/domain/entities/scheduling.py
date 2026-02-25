@@ -191,6 +191,10 @@ class Scheduling:
             from src.domain.exceptions import LessonNotStartedException
             raise LessonNotStartedException()
 
+        if self.student_confirmed_at is None:
+            from src.domain.exceptions import CompletionConfirmationMissingException
+            raise CompletionConfirmationMissingException()
+
         self.status = SchedulingStatus.COMPLETED
         self.completed_at = datetime.now(timezone.utc)
         self.updated_at = datetime.now(timezone.utc)

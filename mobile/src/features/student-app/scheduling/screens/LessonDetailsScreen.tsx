@@ -82,7 +82,15 @@ export function LessonDetailsScreen() {
             "Deseja iniciar o cronômetro desta aula agora?",
             [
                 { text: "Cancelar", style: "cancel" },
-                { text: "Sim, Iniciar", onPress: () => startLesson() }
+                {
+                    text: "Sim, Iniciar",
+                    onPress: () => startLesson(undefined, {
+                        onError: (error: any) => {
+                            const errorMessage = error.response?.data?.detail || error.message || 'Não foi possível iniciar a aula.';
+                            Alert.alert("Erro", errorMessage);
+                        }
+                    })
+                }
             ]
         );
     };
@@ -105,7 +113,12 @@ export function LessonDetailsScreen() {
             {
                 text: "Confirmar Cancelamento",
                 style: "destructive",
-                onPress: () => cancelLesson(undefined)
+                onPress: () => cancelLesson(undefined, {
+                    onError: (error: any) => {
+                        const errorMessage = error.response?.data?.detail || error.message || 'Não foi possível cancelar a aula.';
+                        Alert.alert("Erro", errorMessage);
+                    }
+                })
             }
         ]);
     };
@@ -121,6 +134,10 @@ export function LessonDetailsScreen() {
                     onPress: () => completeLesson(undefined, {
                         onSuccess: () => {
                             setIsEvaluationVisible(true);
+                        },
+                        onError: (error: any) => {
+                            const errorMessage = error.response?.data?.detail || error.message || 'Não foi possível concluir a aula.';
+                            Alert.alert('Erro', errorMessage);
                         }
                     })
                 }
