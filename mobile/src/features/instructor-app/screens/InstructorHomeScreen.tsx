@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, Text, SafeAreaView, ScrollView, RefreshControl } from 'react-native';
 import { useAuthStore } from '../../../lib/store';
 import { Card } from '../../../shared/components';
@@ -13,7 +13,7 @@ import {
     useCancelScheduling,
     useRequestReschedule
 } from '../hooks/useInstructorSchedule';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -29,6 +29,12 @@ export function InstructorHomeScreen() {
         isLoading,
         refetch,
     } = useInstructorHome();
+
+    useFocusEffect(
+        useCallback(() => {
+            refetch();
+        }, [refetch])
+    );
 
     // Hooks de mutação (reutilizados da agenda)
     const { mutate: confirm, isPending: isConfirming } = useConfirmScheduling();

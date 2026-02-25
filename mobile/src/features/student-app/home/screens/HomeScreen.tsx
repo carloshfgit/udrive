@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { ScrollView, View, Text, RefreshControl, SafeAreaView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useHomeData } from '../hooks/useHomeData';
 import { WelcomeHeader } from '../components/WelcomeHeader';
 import { QuickStepsTutorial } from '../components/QuickStepsTutorial';
@@ -16,6 +16,12 @@ export function HomeScreen() {
         isLoading,
         refetch
     } = useHomeData();
+
+    useFocusEffect(
+        useCallback(() => {
+            refetch();
+        }, [refetch])
+    );
 
     if (isLoading && !profile) {
         return (
