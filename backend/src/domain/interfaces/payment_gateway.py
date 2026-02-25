@@ -42,6 +42,7 @@ class PaymentStatusResult:
     status: str
     status_detail: str
     payer_email: str | None = None
+    external_reference: str | None = None
 
 
 @dataclass

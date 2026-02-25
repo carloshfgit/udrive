@@ -82,7 +82,7 @@ class HandlePaymentWebhookUseCase:
         if dto.notification_type == "merchant_order":
             await self._handle_merchant_order(dto.data_id, dto.user_id)
         else:
-            await self._process_single_payment(dto.data_id)
+            await self._process_single_payment(dto.data_id, mp_user_id=dto.user_id)
 
     async def _handle_merchant_order(self, merchant_order_id: str, mp_user_id: str | None) -> None:
         """Busca detalhes da merchant_order e processa seus pagamentos usando o token do instrutor."""
@@ -137,7 +137,9 @@ class HandlePaymentWebhookUseCase:
             payment_id = str(mp_payment.get("id"))
             await self._process_single_payment(payment_id, preference_group_id=external_reference)
 
-    async def _process_single_payment(self, mp_payment_id: str, preference_group_id: str | None = None) -> None:
+    async def _process_single_payment(
+        self, mp_payment_id: str, preference_group_id: str | None = None, mp_user_id: str | None = None
+    ) -> None:
         """Lógica original de processamento de um payment_id individual."""
         logger.info("single_payment_processing", mp_payment_id=mp_payment_id)
 
@@ -169,10 +171,18 @@ class HandlePaymentWebhookUseCase:
             # para descobrir a qual preferencia esse pagamento pertence.
             try:
                 from src.infrastructure.config import Settings
-                settings = Settings()
+                
+                # Definir qual token usar para a "busca cega"
+                access_token_to_use = Settings().mp_access_token
+                if mp_user_id:
+                    # Se tivermos o user_id (caso do Checkout Pro), tentamos pegar o token do instrutor
+                    instructor = await self.instructor_repository.get_by_mp_user_id(mp_user_id)
+                    if instructor and instructor.has_mp_account:
+                        access_token_to_use = decrypt_token(instructor.mp_access_token)
+                
                 status_result = await self.payment_gateway.get_payment_status(
                     payment_id=mp_payment_id,
-                    access_token=settings.mp_access_token,
+                    access_token=access_token_to_use,
                 )
                 
                 # Buscar no DB pela preference_id (gateway_preference_id)
@@ -180,17 +190,24 @@ class HandlePaymentWebhookUseCase:
                 # Se não, teremos que buscar por metadata ou external_reference se o status_result suportar
                 logger.info("Consulta via platform token obteve status: %s", status_result.status)
                 
-                # Se o status_result não tem preference_id, vamos precisar buscar o payment
-                # de outra forma. No GetPayment do MP tem.
-                # Por enquanto, vamos assumir que o payment JÁ existe com gateway_preference_id
-                # Vamos tentar buscar por gateway_preference_id no repositório
-                # mas o DTO do gateway precisa retornar isso.
+                if status_result.external_reference:
+                    import uuid
+                    try:
+                        group_uuid = uuid.UUID(status_result.external_reference)
+                        group_payments = await self.payment_repository.get_by_preference_group_id(group_uuid)
+                        if group_payments:
+                            payment = group_payments[0]
+                            logger.info("payment_found_via_external_reference", mp_payment_id=mp_payment_id)
+                    except ValueError:
+                        logger.warning("invalid_external_reference_uuid", external_reference=status_result.external_reference)
             except Exception as e:
                 logger.error("payment_blind_search_failed", mp_payment_id=mp_payment_id, error=str(e))
                 return
             
             # Se chegamos aqui sem o payment, temos um problema de rastreabilidade.
-            return
+            if payment is None:
+                logger.error("payment_not_found_after_blind_search", mp_payment_id=mp_payment_id)
+                return
 
         # 3. Buscar instrutor para obter access_token
         instructor_profile = await self.instructor_repository.get_by_user_id(

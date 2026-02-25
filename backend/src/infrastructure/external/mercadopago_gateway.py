@@ -129,6 +129,7 @@ class MercadoPagoGateway(IPaymentGateway):
                 status=data["status"],
                 status_detail=data["status_detail"],
                 payer_email=data.get("payer", {}).get("email"),
+                external_reference=data.get("external_reference"),
             )
 
     async def get_merchant_order(
