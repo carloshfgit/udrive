@@ -5,13 +5,14 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
-import { getHomeProfile, getUpcomingLessons, getNextLesson, StudentProfileResponse } from '../api/homeApi';
+import { getHomeProfile, getUpcomingLessons, getNextLesson, getCompletedLessonsCount, StudentProfileResponse } from '../api/homeApi';
 import { SchedulingListResponse, BookingResponse } from '../../../shared-features/scheduling/api/schedulingApi';
 
 export interface UseHomeDataResult {
     profile: StudentProfileResponse | undefined;
     upcomingLessons: BookingResponse[];
     nextLesson: BookingResponse | null | undefined;
+    completedLessons: number;
     isLoading: boolean;
     isError: boolean;
     error: Error | null;
@@ -43,18 +44,26 @@ export function useHomeData(): UseHomeDataResult {
         staleTime: 1000 * 60 * 2, // 2 minutos
     });
 
+    // 4. Busca total de aulas concluídas (para a barra de progresso)
+    const completedQuery = useQuery<number, Error>({
+        queryKey: ['student', 'lessons', 'completed-count'],
+        queryFn: getCompletedLessonsCount,
+        staleTime: 1000 * 60 * 5, // 5 minutos
+    });
+
     const upcomingLessons = lessonsQuery.data?.schedulings || [];
     const nextLesson = nextLessonQuery.data;
 
-    const isLoading = profileQuery.isLoading || lessonsQuery.isLoading || nextLessonQuery.isLoading;
-    const isError = profileQuery.isError || lessonsQuery.isError || nextLessonQuery.isError;
-    const error = profileQuery.error || lessonsQuery.error || nextLessonQuery.error;
+    const isLoading = profileQuery.isLoading || lessonsQuery.isLoading || nextLessonQuery.isLoading || completedQuery.isLoading;
+    const isError = profileQuery.isError || lessonsQuery.isError || nextLessonQuery.isError || completedQuery.isError;
+    const error = profileQuery.error || lessonsQuery.error || nextLessonQuery.error || completedQuery.error;
 
     const refetch = async () => {
         await Promise.all([
             profileQuery.refetch(),
             lessonsQuery.refetch(),
             nextLessonQuery.refetch(),
+            completedQuery.refetch(),
         ]);
     };
 
@@ -62,6 +71,7 @@ export function useHomeData(): UseHomeDataResult {
         profile: profileQuery.data,
         upcomingLessons,
         nextLesson,
+        completedLessons: completedQuery.data || 0,
         isLoading,
         isError,
         error,

@@ -50,3 +50,15 @@ export async function getNextLesson(): Promise<BookingResponse | null> {
     const response = await api.get<BookingResponse | null>(`${STUDENT_API}/lessons/next`);
     return response.data;
 }
+/**
+ * Busca a quantidade de aulas concluídas do aluno.
+ */
+export async function getCompletedLessonsCount(): Promise<number> {
+    const response = await api.get<SchedulingListResponse>(`${STUDENT_API}/lessons`, {
+        params: {
+            status_filter: 'completed',
+            limit: 1,
+        }
+    });
+    return response.data.total_count;
+}

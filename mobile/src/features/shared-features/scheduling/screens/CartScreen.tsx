@@ -29,6 +29,7 @@ import { Badge } from '../../../../shared/components/Badge';
 import { EmptyState } from '../../../../shared/components/EmptyState';
 import { LoadingState } from '../../../../shared/components/LoadingState';
 import { Avatar } from '../../../../shared/components/Avatar';
+import { Button } from '../../../../shared/components/Button';
 import { formatPrice } from '../../../../shared';
 import { useCartItems, useCreateCheckout, useRemoveCartItem, useClearStudentCart, CART_ITEMS_QUERY_KEY } from '../hooks/usePayment';
 import { BookingResponse } from '../api/schedulingApi';
@@ -467,6 +468,14 @@ export function CartScreen() {
                             icon={<ShoppingCart size={32} color="#2563EB" />}
                             title="Carrinho vazio"
                             message="Você não possui aulas aguardando pagamento no momento."
+                            action={
+                                <Button
+                                    title="Ver Agenda"
+                                    onPress={() => navigation.navigate('MyLessons')}
+                                    variant="outline"
+                                    leftIcon={<Calendar size={18} color="#2563EB" />}
+                                />
+                            }
                         />
                     )
                 }

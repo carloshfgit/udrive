@@ -13,6 +13,7 @@ export function HomeScreen() {
     const {
         profile,
         nextLesson,
+        completedLessons,
         isLoading,
         refetch
     } = useHomeData();
@@ -81,7 +82,7 @@ export function HomeScreen() {
 
                 {/* 3. Progress Bar */}
                 <LessonProgressBar
-                    completedLessons={profile?.total_lessons || 0}
+                    completedLessons={completedLessons}
                     totalGoal={10}
                 />
 
