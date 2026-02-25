@@ -394,6 +394,19 @@ export default function InstructorScheduleScreen() {
                     })}
                 </View>
 
+                {/* Dica */}
+                <View className="mx-4 mb-6 bg-blue-50 p-4 rounded-xl">
+                    <Text className="text-blue-800 font-medium">
+                        💡 Dicas
+                    </Text>
+                    <Text className="text-blue-700 text-sm mt-1">
+                        {[
+                            '- Configure seus horários disponíveis tocando em "Horários" para que alunos possam agendar aulas com você.',
+                            '- Observe as datas no calendário, aquelas com um ponto verde são dias com aulas agendadas.',
+                        ].join('\n')}
+                    </Text>
+                </View>
+
                 {/* Título da data selecionada */}
                 <View className="px-4 mb-4">
                     <Text className="text-lg font-semibold text-gray-900 capitalize">
@@ -450,20 +463,6 @@ export default function InstructorScheduleScreen() {
                             </View>
                         </Card>
                     )}
-                </View>
-
-                {/* Dica */}
-                <View className="mx-4 mt-6 bg-blue-50 p-4 rounded-xl">
-                    <Text className="text-blue-800 font-medium">
-                        💡 Dicas
-                    </Text>
-                    <Text className="text-blue-700 text-sm mt-1">
-                        {[
-                            '- Configure seus horários disponíveis tocando em "Horários" para que alunos possam agendar aulas com você.',
-                            '- Fique atento aos seus agendamentos e confirme-os para que os alunos possam realizar as aulas.',
-                            '- Observe as datas no calendário, aquelas com um ponto verde são dias com aulas agendadas.',
-                        ].join('\n')}
-                    </Text>
                 </View>
             </ScrollView>
 
