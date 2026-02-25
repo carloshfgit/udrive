@@ -55,7 +55,7 @@ export function MyLessonsScreen() {
     // Os dados já vêm ordenados (ASC) do backend para esta tela
     const sortedSchedulings = React.useMemo(() => {
         return (data?.schedulings ?? []).filter(
-            (s) => s.status.toLowerCase() !== 'completed' && s.payment_status === 'confirmed'
+            (s) => s.status.toLowerCase() !== 'completed' && s.payment_status === 'completed'
         );
     }, [data?.schedulings]);
 
