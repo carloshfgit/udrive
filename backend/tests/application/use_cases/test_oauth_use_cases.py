@@ -112,8 +112,18 @@ class TestOAuthAuthorizeInstructorUseCase:
 
         assert "auth.mercadopago.com/authorization" in result.authorization_url
         assert "TEST_CLIENT_ID" in result.authorization_url
-        assert str(instructor_profile.user_id) in result.authorization_url
-        assert result.state == str(instructor_profile.user_id)
+        
+        # O state não é mais o UUID puro, agora é JSON Base64
+        assert result.state != str(instructor_profile.user_id)
+        assert result.state in result.authorization_url
+        
+        # Opcional: validar conteúdo do state
+        import base64
+        import json
+        padding = len(result.state) % 4
+        decoded = base64.urlsafe_b64decode(result.state + ("=" * (4 - padding) if padding else "")).decode()
+        data = json.loads(decoded)
+        assert data["u"] == str(instructor_profile.user_id)
 
     @pytest.mark.asyncio
     async def test_authorize_instructor_not_found_raises(

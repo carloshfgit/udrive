@@ -90,6 +90,16 @@ class CreateSchedulingRequest(BaseModel):
     instructor_id: UUID
     scheduled_datetime: datetime
     duration_minutes: int = Field(50, ge=30, le=120)
+    lesson_category: str = Field(
+        ...,
+        pattern=r"^(A|B|AB)$",
+        description="Categoria da CNH (A, B ou AB)",
+    )
+    vehicle_ownership: str = Field(
+        ...,
+        pattern=r"^(instructor|student)$",
+        description="Propriedade do veículo (instructor ou student)",
+    )
 
 
 class CancelSchedulingRequest(BaseModel):
@@ -137,6 +147,12 @@ class SchedulingResponse(BaseModel):
     instructor_review_count: int | None = None
     has_review: bool = False
     payment_status: str | None = None
+
+    # Campos de precificação variável
+    lesson_category: str | None = None
+    vehicle_ownership: str | None = None
+    applied_base_price: Decimal | None = None
+    applied_final_price: Decimal | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

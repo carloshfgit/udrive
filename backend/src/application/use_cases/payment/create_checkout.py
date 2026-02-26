@@ -16,6 +16,7 @@ from src.application.use_cases.payment.calculate_split import CalculateSplitUseC
 from src.domain.entities.payment import Payment
 from src.domain.entities.payment_status import PaymentStatus
 from src.domain.entities.transaction import Transaction
+from src.domain.entities.vehicle_ownership import VehicleOwnership
 from src.domain.exceptions import (
     GatewayAccountNotConnectedException,
     MixedInstructorsException,
@@ -134,9 +135,13 @@ class CreateCheckoutUseCase:
         total_amount = Decimal("0.00")
 
         for scheduling in schedulings:
-            # Recalcular valor base conforme perfil atual
-            hours = Decimal(scheduling.duration_minutes) / Decimal(60)
-            instructor_base_amount = instructor_profile.hourly_rate * hours
+            # Usar applied_base_price (snapshot) se disponível, senão fallback para hourly_rate
+            if scheduling.applied_base_price is not None:
+                instructor_base_amount = scheduling.applied_base_price
+            else:
+                # Fallback para agendamentos legados (sem precificação variável)
+                hours = Decimal(scheduling.duration_minutes) / Decimal(60)
+                instructor_base_amount = instructor_profile.hourly_rate * hours
 
             split_result = self.calculate_split_use_case.execute(
                 scheduling.price, instructor_base_amount=instructor_base_amount
@@ -166,11 +171,23 @@ class CreateCheckoutUseCase:
                 saved_payment = await self.payment_repository.create(payment)
             saved_payments.append(saved_payment)
 
-            # Montar item para MP
+            # Montar item para MP com descrição enriquecida
+            category_label = scheduling.lesson_category.value if scheduling.lesson_category else "N/A"
+            vehicle_label = (
+                "Veículo do Instrutor"
+                if scheduling.vehicle_ownership == VehicleOwnership.INSTRUCTOR
+                else "Veículo do Aluno"
+            ) if scheduling.vehicle_ownership else ""
+
+            item_title = f"Aula de Direção - Cat. {category_label}"
+            item_desc = f"Aula em {scheduling.scheduled_datetime.strftime('%d/%m/%Y às %H:%M')}"
+            if vehicle_label:
+                item_desc += f" - {vehicle_label}"
+
             items.append({
                 "id": f"AULA-{scheduling.id}",
-                "title": "Aula de Direção - GoDrive",
-                "description": f"Aula de direção em {scheduling.scheduled_datetime.strftime('%d/%m/%Y às %H:%M')}",
+                "title": item_title,
+                "description": item_desc,
                 "category_id": "services",
                 "quantity": 1,
                 "unit_price": scheduling.price,
@@ -212,6 +229,12 @@ class CreateCheckoutUseCase:
                     "payment_ids": [str(p.id) for p in saved_payments],
                     "student_id": str(dto.student_id),
                     "instructor_id": str(instructor_id),
+                    "lesson_categories": [
+                        s.lesson_category.value for s in schedulings if s.lesson_category
+                    ],
+                    "vehicle_ownerships": [
+                        s.vehicle_ownership.value for s in schedulings if s.vehicle_ownership
+                    ],
                 },
                 notification_url=notification_url,
             )

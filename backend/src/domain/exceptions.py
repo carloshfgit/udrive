@@ -202,6 +202,17 @@ class CancellationException(DomainException):
 
 
 
+class PriceCombinationNotAvailableException(DomainException):
+    """Exceção lançada quando a combinação de categoria/veículo não está configurada pelo instrutor."""
+
+    def __init__(self, category: str, vehicle: str) -> None:
+        super().__init__(
+            f"O instrutor não oferece aulas para categoria {category} "
+            f"com veículo do {vehicle}",
+            "PRICE_COMBINATION_NOT_AVAILABLE"
+        )
+
+
 class LessonNotFinishedException(DomainException):
     """Exceção lançada quando tenta concluir uma aula que ainda não acabou."""
 

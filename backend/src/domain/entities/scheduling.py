@@ -9,7 +9,9 @@ from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from uuid import UUID, uuid4
 
+from .lesson_category import LessonCategory
 from .scheduling_status import SchedulingStatus
+from .vehicle_ownership import VehicleOwnership
 
 
 @dataclass
@@ -54,6 +56,12 @@ class Scheduling:
     instructor_review_count: int | None = None
     has_review: bool = False
     payment_status: str | None = None
+
+    # Campos de precificação variável (snapshots)
+    lesson_category: LessonCategory | None = None
+    vehicle_ownership: VehicleOwnership | None = None
+    applied_base_price: Decimal | None = None
+    applied_final_price: Decimal | None = None
 
     def __post_init__(self) -> None:
         """Valida campos após inicialização."""

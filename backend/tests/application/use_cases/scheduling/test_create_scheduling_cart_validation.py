@@ -47,6 +47,8 @@ async def test_should_raise_error_when_cart_has_different_instructor(use_case, m
         student_id=student_id,
         instructor_id=target_instructor_id,
         scheduled_datetime=datetime.now(),
+        lesson_category="B",
+        vehicle_ownership="instructor",
         duration_minutes=60
     )
 
@@ -82,6 +84,8 @@ async def test_should_succeed_when_cart_has_same_instructor(use_case, mock_sched
         student_id=student_id,
         instructor_id=instructor_id,
         scheduled_datetime=datetime.now(),
+        lesson_category="B",
+        vehicle_ownership="instructor",
         duration_minutes=60
     )
 
@@ -101,6 +105,7 @@ async def test_should_succeed_when_cart_has_same_instructor(use_case, mock_sched
     instructor_profile = MagicMock()
     instructor_profile.is_available = True
     instructor_profile.hourly_rate = 100
+    instructor_profile.price_cat_b_instructor_vehicle = 100
     mock_instructor_repo.get_by_user_id.return_value = instructor_profile
     
     mock_availability_repo.is_time_available.return_value = True
@@ -133,6 +138,8 @@ async def test_should_succeed_when_cart_is_empty(use_case, mock_scheduling_repo,
         student_id=student_id,
         instructor_id=instructor_id,
         scheduled_datetime=datetime.now(),
+        lesson_category="B",
+        vehicle_ownership="instructor",
         duration_minutes=60
     )
 
@@ -150,6 +157,7 @@ async def test_should_succeed_when_cart_is_empty(use_case, mock_scheduling_repo,
     instructor_profile = MagicMock()
     instructor_profile.is_available = True
     instructor_profile.hourly_rate = 100
+    instructor_profile.price_cat_b_instructor_vehicle = 100
     mock_instructor_repo.get_by_user_id.return_value = instructor_profile
     
     mock_availability_repo.is_time_available.return_value = True

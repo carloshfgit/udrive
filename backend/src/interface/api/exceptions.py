@@ -12,6 +12,7 @@ from src.domain.exceptions import (
     DomainException,
     InvalidCredentialsException,
     InvalidTokenException,
+    PriceCombinationNotAvailableException,
     TokenExpiredException,
     TokenRevokedException,
     UserAlreadyExistsException,
@@ -134,5 +135,6 @@ EXCEPTION_HANDLERS = {
     SchedulingNotFoundException: domain_exception_handler,
     ForbiddenContentException: domain_exception_handler,
     ActiveSchedulingRequiredException: domain_exception_handler,
+    PriceCombinationNotAvailableException: domain_exception_handler,
     DomainException: domain_exception_handler,
 }

@@ -84,6 +84,8 @@ async def create_scheduling(
         instructor_id=request.instructor_id,
         scheduled_datetime=request.scheduled_datetime,
         duration_minutes=request.duration_minutes,
+        lesson_category=request.lesson_category,
+        vehicle_ownership=request.vehicle_ownership,
     )
 
     result = await use_case.execute(dto)

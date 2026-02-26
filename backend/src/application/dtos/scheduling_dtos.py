@@ -22,6 +22,8 @@ class CreateSchedulingDTO:
     student_id: UUID
     instructor_id: UUID
     scheduled_datetime: datetime
+    lesson_category: str  # "A", "B" ou "AB"
+    vehicle_ownership: str  # "instructor" ou "student"
     duration_minutes: int = 50
 
 
@@ -143,6 +145,12 @@ class SchedulingResponseDTO:
     # Dados opcionais enriquecidos
     student_name: str | None = None
     instructor_name: str | None = None
+
+    # Campos de precificação variável
+    lesson_category: str | None = None
+    vehicle_ownership: str | None = None
+    applied_base_price: Decimal | None = None
+    applied_final_price: Decimal | None = None
 
 
 @dataclass

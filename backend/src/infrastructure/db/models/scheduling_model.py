@@ -21,8 +21,10 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from src.domain.entities.lesson_category import LessonCategory
 from src.domain.entities.scheduling import Scheduling
 from src.domain.entities.scheduling_status import SchedulingStatus
+from src.domain.entities.vehicle_ownership import VehicleOwnership
 from src.infrastructure.db.database import Base
 
 
@@ -111,6 +113,32 @@ class SchedulingModel(Base):
         nullable=True,
     )
 
+    # Campos de precificação variável
+    lesson_category: Mapped[LessonCategory | None] = mapped_column(
+        Enum(
+            LessonCategory,
+            name="lesson_category_enum",
+            values_callable=lambda obj: [e.value for e in obj],
+        ),
+        nullable=True,
+    )
+    vehicle_ownership: Mapped[VehicleOwnership | None] = mapped_column(
+        Enum(
+            VehicleOwnership,
+            name="vehicle_ownership_enum",
+            values_callable=lambda obj: [e.value for e in obj],
+        ),
+        nullable=True,
+    )
+    applied_base_price: Mapped[Decimal | None] = mapped_column(
+        Numeric(10, 2),
+        nullable=True,
+    )
+    applied_final_price: Mapped[Decimal | None] = mapped_column(
+        Numeric(10, 2),
+        nullable=True,
+    )
+
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -185,6 +213,10 @@ class SchedulingModel(Base):
             instructor_review_count=self.instructor.instructor_profile.total_reviews if "instructor" in self.__dict__ and self.instructor and self.instructor.instructor_profile else None,
             has_review=True if self.__dict__.get("review") else False,
             payment_status=self.payment.status.value if self.__dict__.get("payment") and self.payment else None,
+            lesson_category=self.lesson_category,
+            vehicle_ownership=self.vehicle_ownership,
+            applied_base_price=self.applied_base_price,
+            applied_final_price=self.applied_final_price,
         )
 
     @classmethod
@@ -208,4 +240,8 @@ class SchedulingModel(Base):
             rescheduled_by=scheduling.rescheduled_by,
             created_at=scheduling.created_at,
             updated_at=scheduling.updated_at,
+            lesson_category=scheduling.lesson_category,
+            vehicle_ownership=scheduling.vehicle_ownership,
+            applied_base_price=scheduling.applied_base_price,
+            applied_final_price=scheduling.applied_final_price,
         )

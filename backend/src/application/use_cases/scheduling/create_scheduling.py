@@ -8,11 +8,14 @@ from dataclasses import dataclass
 from decimal import Decimal
 
 from src.application.dtos.scheduling_dtos import CreateSchedulingDTO, SchedulingResponseDTO
+from src.domain.entities.lesson_category import LessonCategory
 from src.domain.entities.scheduling import Scheduling
 from src.domain.entities.user_type import UserType
+from src.domain.entities.vehicle_ownership import VehicleOwnership
 from src.domain.exceptions import (
     InstructorNotFoundException,
     MixedInstructorsException,
+    PriceCombinationNotAvailableException,
     SchedulingConflictException,
     StudentNotFoundException,
     UnavailableSlotException,
@@ -131,18 +134,23 @@ class CreateSchedulingUseCase:
                 "O instrutor já possui um agendamento neste horário"
             )
 
-        # 5. Calcular preço
-        hours = Decimal(dto.duration_minutes) / Decimal(60)
-        base_price = instructor_profile.hourly_rate * hours
-        price = PricingService.calculate_final_price(base_price)
+        # 5. Calcular preço com lookup dinâmico
+        category = LessonCategory(dto.lesson_category)
+        vehicle = VehicleOwnership(dto.vehicle_ownership)
+        base_price = self._resolve_base_price(instructor_profile, category, vehicle)
+        final_price = PricingService.calculate_final_price(base_price)
 
-        # 6. Criar agendamento
+        # 6. Criar agendamento com snapshots de preço
         scheduling = Scheduling(
             student_id=dto.student_id,
             instructor_id=dto.instructor_id,
             scheduled_datetime=dto.scheduled_datetime,
             duration_minutes=dto.duration_minutes,
-            price=price,
+            price=final_price,
+            lesson_category=category,
+            vehicle_ownership=vehicle,
+            applied_base_price=base_price,
+            applied_final_price=final_price,
         )
 
         saved_scheduling = await self.scheduling_repository.create(scheduling)
@@ -159,4 +167,54 @@ class CreateSchedulingUseCase:
             created_at=saved_scheduling.created_at,
             student_name=student.full_name,
             instructor_name=instructor.full_name,
+            lesson_category=saved_scheduling.lesson_category.value if saved_scheduling.lesson_category else None,
+            vehicle_ownership=saved_scheduling.vehicle_ownership.value if saved_scheduling.vehicle_ownership else None,
+            applied_base_price=saved_scheduling.applied_base_price,
+            applied_final_price=saved_scheduling.applied_final_price,
         )
+
+    @staticmethod
+    def _resolve_base_price(
+        profile: "InstructorProfile",
+        category: LessonCategory,
+        vehicle: VehicleOwnership,
+    ) -> Decimal:
+        """
+        Faz lookup do preço base no perfil do instrutor pela combinação categoria/veículo.
+
+        Args:
+            profile: Perfil do instrutor com os 4 campos de preço.
+            category: Categoria da aula (A, B, AB).
+            vehicle: Propriedade do veículo (instrutor ou aluno).
+
+        Returns:
+            Preço base (Decimal).
+
+        Raises:
+            PriceCombinationNotAvailableException: Se a combinação não está configurada.
+        """
+        # Mapa de combinações -> campo do perfil
+        price_map = {
+            (LessonCategory.A, VehicleOwnership.INSTRUCTOR): profile.price_cat_a_instructor_vehicle,
+            (LessonCategory.A, VehicleOwnership.STUDENT): profile.price_cat_a_student_vehicle,
+            (LessonCategory.B, VehicleOwnership.INSTRUCTOR): profile.price_cat_b_instructor_vehicle,
+            (LessonCategory.B, VehicleOwnership.STUDENT): profile.price_cat_b_student_vehicle,
+        }
+
+        # Para categoria AB, aceitar qualquer veículo na categoria B como fallback
+        if category == LessonCategory.AB:
+            # Categoria AB: tentar cat B primeiro (carro é o padrão mais comum)
+            price = price_map.get((LessonCategory.B, vehicle))
+            if price is not None:
+                return price
+            # Fallback para cat A
+            price = price_map.get((LessonCategory.A, vehicle))
+            if price is not None:
+                return price
+            raise PriceCombinationNotAvailableException(category.value, vehicle.value)
+
+        price = price_map.get((category, vehicle))
+        if price is None:
+            raise PriceCombinationNotAvailableException(category.value, vehicle.value)
+        return price
+
