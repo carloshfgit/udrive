@@ -5,7 +5,7 @@
  * Exibe informações sobre o processo e botão para iniciar a vinculação.
  */
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -15,9 +15,12 @@ import {
     ActivityIndicator,
     Alert,
     Image,
+    AppState,
+    AppStateStatus,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { openBrowserAsync } from 'expo-web-browser';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
 import {
     ArrowLeft,
     Shield,
@@ -69,6 +72,28 @@ export function LinkMercadoPagoScreen() {
     const { data: profile, refetch } = useInstructorProfile();
     const [isLoading, setIsLoading] = useState(false);
 
+    // Refetch the profile when the screen comes into focus
+    useFocusEffect(
+        useCallback(() => {
+            if (refetch) {
+                refetch();
+            }
+        }, [refetch])
+    );
+
+    // Refetch the profile when the app returns from background/web browser
+    useEffect(() => {
+        const subscription = AppState.addEventListener('change', (nextAppState: AppStateStatus) => {
+            if (nextAppState === 'active' && refetch) {
+                refetch();
+            }
+        });
+
+        return () => {
+            subscription.remove();
+        };
+    }, [refetch]);
+
     // Verifica se a conta MP já está vinculada
     // O campo has_mp_account pode não existir ainda no backend (Etapa 1)
     const isConnected = !!(profile as any)?.has_mp_account;
@@ -76,9 +101,16 @@ export function LinkMercadoPagoScreen() {
     const handleLinkAccount = useCallback(async () => {
         setIsLoading(true);
         try {
-            const { authorization_url } = await getOAuthAuthorizeUrl();
-            await openBrowserAsync(authorization_url);
-            if (refetch) {
+            // Geramos a URL de retorno dinâmica (compatível com Expo Go e Produção)
+            const returnUrl = Linking.createURL('oauth/callback');
+
+            const { authorization_url } = await getOAuthAuthorizeUrl(returnUrl);
+
+            // Usamos openAuthSessionAsync que captura o Deep Link e fecha o browser automaticamente
+            const result = await WebBrowser.openAuthSessionAsync(authorization_url, returnUrl);
+
+            // Se o login foi concluído com sucesso, o browser fecha e caímos aqui
+            if (result.type === 'success' && refetch) {
                 refetch();
             }
         } catch (error: unknown) {
@@ -90,7 +122,7 @@ export function LinkMercadoPagoScreen() {
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [refetch]);
 
     return (
         <SafeAreaView className="flex-1 bg-white">

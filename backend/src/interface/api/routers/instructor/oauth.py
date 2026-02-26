@@ -7,7 +7,7 @@ Endpoints para vinculação de conta Mercado Pago do instrutor via OAuth.
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from src.application.dtos.payment_dtos import (
     OAuthCallbackDTO,
     OAuthAuthorizeResponseDTO,
@@ -74,16 +74,14 @@ def _get_callback_use_case(
 )
 async def authorize(
     current_user: CurrentInstructor,
+    return_url: str | None = Query(None, description="URL para retorno após vinculação"),
     use_case: OAuthAuthorizeInstructorUseCase = Depends(_get_authorize_use_case),
 ) -> dict:
     """
     Gera a URL de autorização OAuth do Mercado Pago.
-
-    O instrutor deve abrir essa URL no browser para autorizar o GoDrive
-    a acessar sua conta Mercado Pago para receber pagamentos.
     """
     try:
-        result = await use_case.execute(current_user.id)
+        result = await use_case.execute(current_user.id, return_url=return_url)
         return {
             "authorization_url": result.authorization_url,
             "state": result.state,
@@ -131,7 +129,12 @@ async def callback(
             "oauth_callback_success",
             mp_user_id=result.mp_user_id,
             state=state,
+            return_url=result.return_url,
         )
+
+        # Se houver uma return_url (Deep Link), redirecionamos o browser
+        if result.return_url:
+            return RedirectResponse(url=result.return_url)
 
         html_content = """
         <html>

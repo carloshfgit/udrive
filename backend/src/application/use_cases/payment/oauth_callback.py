@@ -5,6 +5,8 @@ Processa o callback OAuth do Mercado Pago, trocando o code por tokens
 e salvando no perfil do instrutor.
 """
 
+import json
+import base64
 from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
@@ -39,22 +41,26 @@ class OAuthCallbackUseCase:
     async def execute(self, dto: OAuthCallbackDTO) -> OAuthCallbackResponseDTO:
         """
         Troca authorization code por tokens e salva no perfil do instrutor.
-
-        Args:
-            dto: OAuthCallbackDTO com code e state (instructor_user_id).
-
-        Returns:
-            OAuthCallbackResponseDTO com mp_user_id e status de conexão.
-
-        Raises:
-            InstructorNotFoundException: Se o instrutor do state não existir.
-            ValueError: Se o instrutor já estiver conectado.
         """
-        # 1. Extrair instructor_id do state
+        # 1. Extrair instructor_id e return_url do state
+        instructor_user_id: UUID | None = None
+        return_url: str | None = None
+
         try:
-            instructor_user_id = UUID(dto.state)
-        except ValueError:
-            raise ValueError(f"State inválido no callback OAuth: {dto.state}")
+            # Tenta decodificar o novo formato (Base64 JSON)
+            # Adicionamos padding se necessário
+            padding = len(dto.state) % 4
+            state_to_decode = dto.state + ("=" * (4 - padding) if padding else "")
+            decoded_state = base64.urlsafe_b64decode(state_to_decode).decode()
+            state_data = json.loads(decoded_state)
+            instructor_user_id = UUID(state_data.get("u"))
+            return_url = state_data.get("r")
+        except Exception:
+            # Fallback para o formato antigo (UUID puro)
+            try:
+                instructor_user_id = UUID(dto.state)
+            except ValueError:
+                raise ValueError(f"State inválido no callback OAuth: {dto.state}")
 
         # 2. Buscar instrutor
         instructor = await self.instructor_repository.get_by_user_id(
@@ -102,4 +108,5 @@ class OAuthCallbackUseCase:
         return OAuthCallbackResponseDTO(
             mp_user_id=oauth_result.user_id,
             is_connected=True,
+            return_url=return_url,
         )

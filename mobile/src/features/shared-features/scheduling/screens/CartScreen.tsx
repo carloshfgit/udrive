@@ -292,7 +292,7 @@ function RefundPolicies() {
 
                 <View className="mt-4 pt-3 border-t border-neutral-50">
                     <Text className="text-neutral-400 text-[10px] leading-relaxed italic">
-                        * Casos de emergência podem ser avaliados pelo suporte mediante justificativa e aprovação.
+                        * Casos de emergência ou não comparecimento podem ser avaliados pelo suporte mediante justificativa e aprovação.
                     </Text>
                 </View>
             </View>

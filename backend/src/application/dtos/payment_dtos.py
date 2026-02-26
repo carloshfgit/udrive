@@ -73,6 +73,7 @@ class OAuthCallbackResponseDTO:
 
     mp_user_id: str
     is_connected: bool
+    return_url: str | None = None
 
 
 # === Webhook DTOs ===

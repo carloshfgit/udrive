@@ -21,9 +21,10 @@ export interface OAuthAuthorizeResponse {
  * O instrutor deve abrir essa URL no browser para vincular
  * sua conta Mercado Pago ao GoDrive.
  */
-export async function getOAuthAuthorizeUrl(): Promise<OAuthAuthorizeResponse> {
+export async function getOAuthAuthorizeUrl(returnUrl?: string): Promise<OAuthAuthorizeResponse> {
     const response = await api.get<OAuthAuthorizeResponse>(
-        `${INSTRUCTOR_API}/oauth/mercadopago/authorize`
+        `${INSTRUCTOR_API}/oauth/mercadopago/authorize`,
+        { params: { return_url: returnUrl } }
     );
     return response.data;
 }

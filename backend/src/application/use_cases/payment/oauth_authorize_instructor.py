@@ -4,6 +4,8 @@ OAuthAuthorizeInstructor Use Case
 Gera a URL de autorização OAuth do Mercado Pago para o instrutor vincular sua conta.
 """
 
+import json
+import base64
 from urllib.parse import urlencode
 from uuid import UUID
 
@@ -26,12 +28,15 @@ class OAuthAuthorizeInstructorUseCase:
         self.instructor_repository = instructor_repository
         self.settings = settings
 
-    async def execute(self, instructor_user_id: UUID) -> OAuthAuthorizeResponseDTO:
+    async def execute(
+        self, instructor_user_id: UUID, return_url: str | None = None
+    ) -> OAuthAuthorizeResponseDTO:
         """
         Gera a URL de autorização OAuth.
 
         Args:
             instructor_user_id: ID do usuário instrutor.
+            return_url: URL para onde redirecionar o app após a vinculação.
 
         Returns:
             OAuthAuthorizeResponseDTO com a URL para redirecionar o instrutor.
@@ -41,9 +46,7 @@ class OAuthAuthorizeInstructorUseCase:
             ValueError: Se o instrutor já tiver conta MP vinculada.
         """
         # 1. Buscar instrutor
-        instructor = await self.instructor_repository.get_by_user_id(
-            instructor_user_id
-        )
+        instructor = await self.instructor_repository.get_by_user_id(instructor_user_id)
         if instructor is None:
             raise InstructorNotFoundException(instructor_user_id)
 
@@ -54,7 +57,13 @@ class OAuthAuthorizeInstructorUseCase:
             )
 
         # 3. Montar URL OAuth
-        state = str(instructor_user_id)
+        # Codificamos o user_id e a return_url no state para recuperar no callback
+        state_data = {"u": str(instructor_user_id)}
+        if return_url:
+            state_data["r"] = return_url
+
+        state_json = json.dumps(state_data)
+        state = base64.urlsafe_b64encode(state_json.encode()).decode().strip("=")
 
         params = {
             "client_id": self.settings.mp_client_id,
