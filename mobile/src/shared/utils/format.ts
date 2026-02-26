@@ -14,7 +14,7 @@
 export function formatPrice(value: number | string | undefined | null): string {
     if (value === undefined || value === null) return 'R$ 0,00';
 
-    let numericValue = typeof value === 'string' ? parseFloat(value) : value;
+    const numericValue = typeof value === 'string' ? parseFloat(value) : value;
 
     if (isNaN(numericValue)) return 'R$ 0,00';
 

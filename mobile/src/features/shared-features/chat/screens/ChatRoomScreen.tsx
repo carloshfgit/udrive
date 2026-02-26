@@ -34,12 +34,12 @@ export function ChatRoomScreen() {
 
     const [messageText, setMessageText] = useState('');
     const [isTyping, setIsTyping] = useState(false);
-    
+
     // Hooks
     const { messages, sendMessage, isSending, isLoading } = useMessages(otherUserId);
     const isConnected = useWebSocketStore((s) => s.isConnected);
     const insets = useSafeAreaInsets();
-    
+
     // Refs
     const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -82,7 +82,7 @@ export function ChatRoomScreen() {
 
         const content = messageText.trim();
         setMessageText(''); // Limpa input imediatamente para UX ágil
-        
+
         try {
             await sendMessage(content);
         } catch (error: any) {
@@ -98,17 +98,15 @@ export function ChatRoomScreen() {
         return (
             <View className={`mb-4 flex-row ${isMine ? 'justify-end' : 'justify-start'}`}>
                 <View
-                    className={`max-w-[80%] px-4 py-2 rounded-2xl ${
-                        isMine ? 'bg-blue-600 rounded-tr-none' : 'bg-neutral-100 rounded-tl-none'
-                    }`}
+                    className={`max-w-[80%] px-4 py-2 rounded-2xl ${isMine ? 'bg-blue-600 rounded-tr-none' : 'bg-neutral-100 rounded-tl-none'
+                        }`}
                 >
                     <Text className={`text-sm ${isMine ? 'text-white' : 'text-neutral-900'}`}>
                         {item.content}
                     </Text>
                     <Text
-                        className={`text-[10px] mt-1 text-right ${
-                            isMine ? 'text-blue-100' : 'text-neutral-500'
-                        }`}
+                        className={`text-[10px] mt-1 text-right ${isMine ? 'text-blue-100' : 'text-neutral-500'
+                            }`}
                     >
                         {format(new Date(item.timestamp), 'HH:mm', { locale: ptBR })}
                     </Text>
@@ -147,17 +145,16 @@ export function ChatRoomScreen() {
 
     return (
         <View className="flex-1 bg-white">
-            {/* FIX 1: Header fora do KeyboardAvoidingView 
-              Isso impede que o header seja empurrado para fora da tela quando o teclado abre.
-              Usamos padding top manual para simular SafeAreaView apenas nesta parte.
-            */}
+            {/* Header FORA do KeyboardAvoidingView para que fique sempre fixo no topo.
+                No Android com 'resize', o view pai continua com o mesmo tamanho da janela, 
+                e o KeyboardAvoidingView abaixo dele será espremido. */}
             <View style={{ paddingTop: insets.top }} className="bg-white z-10 shadow-sm">
                 <Header
                     title={otherUserName}
                     onBack={() => navigation.goBack()}
                     rightElement={renderHeaderRight()}
                 />
-                
+
                 <View className="bg-blue-50 px-4 py-2 border-b border-blue-100 flex-row items-center">
                     <Text className="text-blue-700 text-xs font-medium">
                         💡 Para ver as aulas agendadas clique em "Ver Aulas" no topo
@@ -165,12 +162,9 @@ export function ChatRoomScreen() {
                 </View>
             </View>
 
-            {/* FIX 2: KeyboardAvoidingView configurado corretamente 
-              O behavior 'padding' no iOS precisa de um offset que considere o Header + Status Bar.
-            */}
             <KeyboardAvoidingView
+                style={{ flex: 1 }}
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-                className="flex-1"
                 keyboardVerticalOffset={Platform.OS === 'ios' ? HEADER_OFFSET + insets.top : 0}
             >
                 <View className="flex-1">
@@ -183,7 +177,7 @@ export function ChatRoomScreen() {
                             data={reversedMessages}
                             renderItem={renderMessage}
                             keyExtractor={(item) => item.id}
-                            
+
                             // UX: Lista invertida mantém o scroll ancorado no fundo
                             inverted
                             showsVerticalScrollIndicator={false}
@@ -192,7 +186,7 @@ export function ChatRoomScreen() {
                                 paddingVertical: 16,
                                 flexGrow: 1,
                             }}
-                            
+
                             // Em modo inverted, o Footer é o topo visual
                             ListFooterComponent={
                                 <View className="py-6 items-center">
@@ -201,7 +195,7 @@ export function ChatRoomScreen() {
                                     </Text>
                                 </View>
                             }
-                            
+
                             // Header é a parte inferior visual (acima do input)
                             ListHeaderComponent={isTyping ? <TypingIndicator /> : null}
 
@@ -235,9 +229,8 @@ export function ChatRoomScreen() {
                         <TouchableOpacity
                             onPress={handleSend}
                             disabled={!messageText.trim() || isSending}
-                            className={`w-12 h-12 rounded-full items-center justify-center shadow-sm ${
-                                !messageText.trim() || isSending ? 'bg-neutral-200' : 'bg-blue-600'
-                            }`}
+                            className={`w-12 h-12 rounded-full items-center justify-center shadow-sm ${!messageText.trim() || isSending ? 'bg-neutral-200' : 'bg-blue-600'
+                                }`}
                             activeOpacity={0.7}
                         >
                             {isSending ? (
