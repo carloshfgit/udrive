@@ -72,6 +72,20 @@ class InstructorProfileModel(Base):
     mp_token_expiry: Mapped[datetime | None] = mapped_column(nullable=True)
     mp_user_id: Mapped[str | None] = mapped_column(String(50), nullable=True)
 
+    # Preços por categoria e tipo de veículo
+    price_cat_a_instructor_vehicle: Mapped[Decimal | None] = mapped_column(
+        Numeric(10, 2), nullable=True,
+    )
+    price_cat_a_student_vehicle: Mapped[Decimal | None] = mapped_column(
+        Numeric(10, 2), nullable=True,
+    )
+    price_cat_b_instructor_vehicle: Mapped[Decimal | None] = mapped_column(
+        Numeric(10, 2), nullable=True,
+    )
+    price_cat_b_student_vehicle: Mapped[Decimal | None] = mapped_column(
+        Numeric(10, 2), nullable=True,
+    )
+
     # Avaliações
     rating: Mapped[float] = mapped_column(
         Numeric(3, 2),
@@ -154,6 +168,10 @@ class InstructorProfileModel(Base):
             mp_refresh_token=self.mp_refresh_token,
             mp_token_expiry=self.mp_token_expiry,
             mp_user_id=self.mp_user_id,
+            price_cat_a_instructor_vehicle=self.price_cat_a_instructor_vehicle,
+            price_cat_a_student_vehicle=self.price_cat_a_student_vehicle,
+            price_cat_b_instructor_vehicle=self.price_cat_b_instructor_vehicle,
+            price_cat_b_student_vehicle=self.price_cat_b_student_vehicle,
             created_at=self.created_at,
             updated_at=self.updated_at,
         )
@@ -182,6 +200,10 @@ class InstructorProfileModel(Base):
             mp_refresh_token=profile.mp_refresh_token,
             mp_token_expiry=profile.mp_token_expiry,
             mp_user_id=profile.mp_user_id,
+            price_cat_a_instructor_vehicle=profile.price_cat_a_instructor_vehicle,
+            price_cat_a_student_vehicle=profile.price_cat_a_student_vehicle,
+            price_cat_b_instructor_vehicle=profile.price_cat_b_instructor_vehicle,
+            price_cat_b_student_vehicle=profile.price_cat_b_student_vehicle,
             created_at=profile.created_at,
             updated_at=profile.updated_at,
         )

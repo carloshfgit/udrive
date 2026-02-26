@@ -70,6 +70,10 @@ async def get_current_instructor_profile(
         biological_sex=current_user.biological_sex,
         location=LocationResponse.model_validate(profile.location) if profile.location else None,
         has_mp_account=profile.has_mp_account,
+        price_cat_a_instructor_vehicle=profile.price_cat_a_instructor_vehicle,
+        price_cat_a_student_vehicle=profile.price_cat_a_student_vehicle,
+        price_cat_b_instructor_vehicle=profile.price_cat_b_instructor_vehicle,
+        price_cat_b_student_vehicle=profile.price_cat_b_student_vehicle,
     )
 
 
@@ -106,6 +110,10 @@ async def update_instructor_profile(
         biological_sex=request.biological_sex,
         latitude=request.latitude,
         longitude=request.longitude,
+        price_cat_a_instructor_vehicle=request.price_cat_a_instructor_vehicle,
+        price_cat_a_student_vehicle=request.price_cat_a_student_vehicle,
+        price_cat_b_instructor_vehicle=request.price_cat_b_instructor_vehicle,
+        price_cat_b_student_vehicle=request.price_cat_b_student_vehicle,
     )
 
     try:

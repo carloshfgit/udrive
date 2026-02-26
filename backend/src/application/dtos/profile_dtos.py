@@ -31,6 +31,10 @@ class UpdateInstructorProfileDTO:
     cpf: str | None = None
     birth_date: date | None = None
     biological_sex: str | None = None
+    price_cat_a_instructor_vehicle: Decimal | None = None
+    price_cat_a_student_vehicle: Decimal | None = None
+    price_cat_b_instructor_vehicle: Decimal | None = None
+    price_cat_b_student_vehicle: Decimal | None = None
 
 
 @dataclass(frozen=True)
@@ -105,6 +109,10 @@ class InstructorProfileResponseDTO:
     location: LocationResponseDTO | None = None
     distance_km: float | None = None  # Preenchido em buscas por localização
     has_mp_account: bool = False
+    price_cat_a_instructor_vehicle: Decimal | None = None
+    price_cat_a_student_vehicle: Decimal | None = None
+    price_cat_b_instructor_vehicle: Decimal | None = None
+    price_cat_b_student_vehicle: Decimal | None = None
 
 
 @dataclass

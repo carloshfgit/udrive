@@ -22,7 +22,6 @@ import { useNavigation } from '@react-navigation/native';
 import {
     ChevronLeft,
     Camera,
-    DollarSign,
     MapPin,
     RefreshCw,
     Lightbulb,
@@ -33,8 +32,7 @@ import { useAuthStore, useLocationStore } from '../../../lib/store';
 import { useInstructorProfile, useUpdateInstructorProfile } from '../hooks/useInstructorProfile';
 import { Avatar } from '../../../shared/components';
 
-// Categorias de CNH disponíveis
-const CNH_CATEGORIES = ['A', 'B', 'AB', 'C', 'D', 'E'];
+
 
 // Palavras e padrões proibidos na biografia (anti-bypass)
 const PROHIBITED_KEYWORDS = [
@@ -143,48 +141,7 @@ function FormInput({
     );
 }
 
-// Componente de seleção de categoria CNH
-interface CNHSelectorProps {
-    selected: string;
-    onSelect: (category: string) => void;
-}
 
-function CNHSelector({ selected, onSelect }: CNHSelectorProps) {
-    return (
-        <View className="mb-4">
-            <Text className="text-sm font-medium text-gray-600 mb-2">
-                Categoria da CNH
-            </Text>
-            <View className="flex-row flex-wrap gap-2">
-                {CNH_CATEGORIES.map((category) => {
-                    const isSelected = selected === category;
-                    return (
-                        <TouchableOpacity
-                            key={category}
-                            onPress={() => onSelect(category)}
-                            className={`
-                                px-4 py-2.5 rounded-xl border-2
-                                ${isSelected
-                                    ? 'bg-blue-600 border-blue-600'
-                                    : 'bg-white border-gray-200'
-                                }
-                            `}
-                        >
-                            <Text
-                                className={`
-                                    text-base font-semibold
-                                    ${isSelected ? 'text-white' : 'text-gray-700'}
-                                `}
-                            >
-                                {category}
-                            </Text>
-                        </TouchableOpacity>
-                    );
-                })}
-            </View>
-        </View>
-    );
-}
 
 export function EditPublicProfileScreen() {
     const navigation = useNavigation();
@@ -199,8 +156,6 @@ export function EditPublicProfileScreen() {
     const [bio, setBio] = useState('');
     const [city, setCity] = useState('');
     const [vehicleType, setVehicleType] = useState('');
-    const [licenseCategory, setLicenseCategory] = useState('B');
-    const [hourlyRate, setHourlyRate] = useState('');
     const [isAvailable, setIsAvailable] = useState(true);
 
     // Location state
@@ -214,8 +169,6 @@ export function EditPublicProfileScreen() {
             setBio(profile.bio || '');
             setCity(profile.city || '');
             setVehicleType(profile.vehicle_type || '');
-            setLicenseCategory(profile.license_category || 'B');
-            setHourlyRate(profile.hourly_rate?.toString() || '80');
             setIsAvailable(profile.is_available ?? true);
 
             // Sincronizar localização salva no perfil (se houver)
@@ -310,12 +263,7 @@ export function EditPublicProfileScreen() {
         );
     };
 
-    // Formatar valor monetário
-    const formatCurrency = (text: string) => {
-        const cleaned = text.replace(/[^\d.,]/g, '');
-        const normalized = cleaned.replace(',', '.');
-        return normalized;
-    };
+
 
     // Salvar perfil público
     const handleSave = async () => {
@@ -331,18 +279,12 @@ export function EditPublicProfileScreen() {
                 return;
             }
 
-            const rate = parseFloat(hourlyRate);
-            if (isNaN(rate) || rate < 0) {
-                Alert.alert('Erro', 'Por favor, informe um valor válido para a hora/aula.');
-                return;
-            }
+            const rate = parseFloat(profile?.hourly_rate?.toString() || '0');
 
             await updateProfile.mutateAsync({
                 bio: bio || undefined,
                 city: city || undefined,
                 vehicle_type: vehicleType || undefined,
-                license_category: licenseCategory,
-                hourly_rate: rate,
                 is_available: isAvailable,
                 latitude: latitude || undefined,
                 longitude: longitude || undefined,
@@ -469,21 +411,6 @@ export function EditPublicProfileScreen() {
                         placeholder="Ex: Fiat Mobi"
                     />
 
-                    {/* Categoria CNH */}
-                    <CNHSelector
-                        selected={licenseCategory}
-                        onSelect={setLicenseCategory}
-                    />
-
-                    {/* Valor da Hora/Aula */}
-                    <FormInput
-                        label="Valor da Hora/Aula"
-                        value={hourlyRate}
-                        onChangeText={(text) => setHourlyRate(formatCurrency(text))}
-                        placeholder="80.00"
-                        keyboardType="decimal-pad"
-                        leftIcon={<DollarSign size={18} color="#9CA3AF" />}
-                    />
 
                     {/* Disponibilidade */}
                     <View className="flex-row items-center justify-between py-4 px-4 bg-gray-50 border border-gray-200 rounded-xl">

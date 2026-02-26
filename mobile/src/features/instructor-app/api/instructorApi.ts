@@ -26,6 +26,10 @@ export interface InstructorProfile {
     biological_sex?: 'male' | 'female' | null;
     location: LocationData | null;
     distance_km?: number;
+    price_cat_a_instructor_vehicle?: number | null;
+    price_cat_a_student_vehicle?: number | null;
+    price_cat_b_instructor_vehicle?: number | null;
+    price_cat_b_student_vehicle?: number | null;
 }
 
 export interface LocationData {
@@ -61,6 +65,10 @@ export interface UpdateInstructorProfileRequest {
     biological_sex?: 'male' | 'female';
     latitude?: number;
     longitude?: number;
+    price_cat_a_instructor_vehicle?: number;
+    price_cat_a_student_vehicle?: number;
+    price_cat_b_instructor_vehicle?: number;
+    price_cat_b_student_vehicle?: number;
 }
 
 // ============= API Functions =============

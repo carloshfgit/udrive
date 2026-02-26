@@ -44,6 +44,12 @@ class InstructorProfile:
     full_name: str | None = None
     biological_sex: str | None = None
     stripe_account_id: str | None = None  # DEPRECATED: Usar credenciais MP
+
+    # Preços por categoria e tipo de veículo
+    price_cat_a_instructor_vehicle: Decimal | None = None
+    price_cat_a_student_vehicle: Decimal | None = None
+    price_cat_b_instructor_vehicle: Decimal | None = None
+    price_cat_b_student_vehicle: Decimal | None = None
     
     # Mercado Pago OAuth
     mp_access_token: str | None = None
@@ -109,6 +115,10 @@ class InstructorProfile:
         vehicle_type: str | None = None,
         license_category: str | None = None,
         hourly_rate: Decimal | None = None,
+        price_cat_a_instructor_vehicle: Decimal | None = None,
+        price_cat_a_student_vehicle: Decimal | None = None,
+        price_cat_b_instructor_vehicle: Decimal | None = None,
+        price_cat_b_student_vehicle: Decimal | None = None,
     ) -> None:
         """
         Atualiza informações do perfil.
@@ -118,6 +128,10 @@ class InstructorProfile:
             vehicle_type: Novo tipo de veículo (opcional).
             license_category: Nova categoria de CNH (opcional).
             hourly_rate: Novo valor por hora (opcional).
+            price_cat_a_instructor_vehicle: Preço cat. A no veículo do instrutor (opcional).
+            price_cat_a_student_vehicle: Preço cat. A no veículo do aluno (opcional).
+            price_cat_b_instructor_vehicle: Preço cat. B no veículo do instrutor (opcional).
+            price_cat_b_student_vehicle: Preço cat. B no veículo do aluno (opcional).
         """
         if bio is not None:
             self.bio = bio
@@ -129,6 +143,19 @@ class InstructorProfile:
             if hourly_rate < 0:
                 raise ValueError("Valor por hora não pode ser negativo")
             self.hourly_rate = hourly_rate
+
+        # Preços por categoria e veículo
+        pricing_fields = {
+            'price_cat_a_instructor_vehicle': price_cat_a_instructor_vehicle,
+            'price_cat_a_student_vehicle': price_cat_a_student_vehicle,
+            'price_cat_b_instructor_vehicle': price_cat_b_instructor_vehicle,
+            'price_cat_b_student_vehicle': price_cat_b_student_vehicle,
+        }
+        for field_name, value in pricing_fields.items():
+            if value is not None:
+                if value < 0:
+                    raise ValueError(f"Valor de preço não pode ser negativo: {field_name}")
+                setattr(self, field_name, value)
 
         self.updated_at = datetime.utcnow()
 

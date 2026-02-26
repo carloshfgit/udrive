@@ -70,12 +70,20 @@ class UpdateInstructorProfileUseCase:
 
         # Atualizar campos fornecidos
         if dto.bio is not None or dto.vehicle_type is not None or \
-           dto.license_category is not None or dto.hourly_rate is not None:
+           dto.license_category is not None or dto.hourly_rate is not None or \
+           dto.price_cat_a_instructor_vehicle is not None or \
+           dto.price_cat_a_student_vehicle is not None or \
+           dto.price_cat_b_instructor_vehicle is not None or \
+           dto.price_cat_b_student_vehicle is not None:
             profile.update_profile(
                 bio=dto.bio,
                 vehicle_type=dto.vehicle_type,
                 license_category=dto.license_category,
                 hourly_rate=dto.hourly_rate,
+                price_cat_a_instructor_vehicle=dto.price_cat_a_instructor_vehicle,
+                price_cat_a_student_vehicle=dto.price_cat_a_student_vehicle,
+                price_cat_b_instructor_vehicle=dto.price_cat_b_instructor_vehicle,
+                price_cat_b_student_vehicle=dto.price_cat_b_student_vehicle,
             )
 
         # Atualizar localização se fornecida
@@ -145,4 +153,8 @@ class UpdateInstructorProfileUseCase:
             biological_sex=user.biological_sex,
             location=location_dto,
             has_mp_account=saved_profile.has_mp_account,
+            price_cat_a_instructor_vehicle=saved_profile.price_cat_a_instructor_vehicle,
+            price_cat_a_student_vehicle=saved_profile.price_cat_a_student_vehicle,
+            price_cat_b_instructor_vehicle=saved_profile.price_cat_b_instructor_vehicle,
+            price_cat_b_student_vehicle=saved_profile.price_cat_b_student_vehicle,
         )

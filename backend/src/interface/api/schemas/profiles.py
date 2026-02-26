@@ -31,6 +31,10 @@ class UpdateInstructorProfileRequest(BaseModel):
     city: str | None = Field(None, max_length=100, description="Cidade do instrutor")
     latitude: float | None = Field(None, ge=-90, le=90, description="Latitude da localização")
     longitude: float | None = Field(None, ge=-180, le=180, description="Longitude da localização")
+    price_cat_a_instructor_vehicle: Decimal | None = Field(None, ge=0, description="Preço cat. A no veículo do instrutor")
+    price_cat_a_student_vehicle: Decimal | None = Field(None, ge=0, description="Preço cat. A no veículo do aluno")
+    price_cat_b_instructor_vehicle: Decimal | None = Field(None, ge=0, description="Preço cat. B no veículo do instrutor")
+    price_cat_b_student_vehicle: Decimal | None = Field(None, ge=0, description="Preço cat. B no veículo do aluno")
 
 
 class UpdateStudentProfileRequest(BaseModel):
@@ -93,7 +97,10 @@ class InstructorProfileResponse(BaseModel):
     location: LocationResponse | None = None
     distance_km: float | None = None
     has_mp_account: bool = False
-
+    price_cat_a_instructor_vehicle: Decimal | None = None
+    price_cat_a_student_vehicle: Decimal | None = None
+    price_cat_b_instructor_vehicle: Decimal | None = None
+    price_cat_b_student_vehicle: Decimal | None = None
     model_config = ConfigDict(from_attributes=True)
 
 

@@ -24,6 +24,7 @@ import {
     ChevronRight,
     Camera,
     Star,
+    DollarSign,
 } from 'lucide-react-native';
 
 import { useAuthStore } from '../../../lib/store';
@@ -51,6 +52,12 @@ const MENU_ITEMS = [
         title: 'Informações Pessoais',
         icon: User,
         route: 'EditInstructorProfile' as const,
+    },
+    {
+        id: 'pricing',
+        title: 'Meus Preços',
+        icon: DollarSign,
+        route: 'InstructorPricing' as const,
     },
     {
         id: 'mercadoPago',
@@ -86,6 +93,8 @@ export function InstructorProfileScreen() {
             navigation.navigate('LinkMercadoPago');
         } else if (route === 'InstructorReviews') {
             navigation.navigate('InstructorReviews');
+        } else if (route === 'InstructorPricing') {
+            navigation.navigate('InstructorPricing');
         }
     };
 

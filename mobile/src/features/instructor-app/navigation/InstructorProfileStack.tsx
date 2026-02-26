@@ -12,6 +12,7 @@ import { EditInstructorProfileScreen } from '../screens/EditInstructorProfileScr
 import { EditPublicProfileScreen } from '../screens/EditPublicProfileScreen';
 import { LinkMercadoPagoScreen } from '../screens/LinkMercadoPagoScreen';
 import { InstructorReviewsScreen } from '../screens/InstructorReviewsScreen';
+import { InstructorPricingScreen } from '../screens/InstructorPricingScreen';
 
 // Tipos de rotas do perfil do perfil do instrutor
 export type InstructorProfileStackParamList = {
@@ -20,6 +21,7 @@ export type InstructorProfileStackParamList = {
     EditPublicProfile: undefined;
     LinkMercadoPago: undefined;
     InstructorReviews: undefined;
+    InstructorPricing: undefined;
 };
 
 const Stack = createNativeStackNavigator<InstructorProfileStackParamList>();
@@ -36,6 +38,7 @@ export function InstructorProfileStack() {
             <Stack.Screen name="EditPublicProfile" component={EditPublicProfileScreen} />
             <Stack.Screen name="LinkMercadoPago" component={LinkMercadoPagoScreen} />
             <Stack.Screen name="InstructorReviews" component={InstructorReviewsScreen} />
+            <Stack.Screen name="InstructorPricing" component={InstructorPricingScreen} />
         </Stack.Navigator>
     );
 }
