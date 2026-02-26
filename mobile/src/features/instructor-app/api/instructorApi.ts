@@ -33,6 +33,20 @@ export interface LocationData {
     longitude: number;
 }
 
+export interface InstructorReview {
+    id: string;
+    rating: number;
+    comment: string | null;
+    student_name: string;
+    created_at: string;
+}
+
+export interface InstructorReviewsList {
+    rating: number;
+    total_reviews: number;
+    reviews: InstructorReview[];
+}
+
 export interface UpdateInstructorProfileRequest {
     bio?: string;
     city?: string;
@@ -81,5 +95,13 @@ export async function updateInstructorProfile(
     data: UpdateInstructorProfileRequest
 ): Promise<InstructorProfile> {
     const response = await api.put<InstructorProfile>(`${INSTRUCTOR_API}/profile`, data);
+    return response.data;
+}
+
+/**
+ * Obtém as avaliações do instrutor autenticado.
+ */
+export async function getInstructorReviews(): Promise<InstructorReviewsList> {
+    const response = await api.get<InstructorReviewsList>(`${INSTRUCTOR_API}/profile/reviews`);
     return response.data;
 }

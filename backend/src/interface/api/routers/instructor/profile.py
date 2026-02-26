@@ -26,8 +26,10 @@ from src.interface.api.schemas.profiles import (
 from src.interface.api.dependencies import (
     CurrentInstructor,
     InstructorRepo,
+    ReviewRepo,
     UserRepo,
 )
+from src.interface.api.schemas.reviews import InstructorReviewsListResponse, InstructorReviewResponse
 
 router = APIRouter(tags=["Instructor - Profile"])
 
@@ -152,3 +154,53 @@ async def update_location(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e),
         ) from e
+
+
+@router.get(
+    "/profile/reviews",
+    response_model=InstructorReviewsListResponse,
+    summary="Obter avaliações do instrutor atual",
+    description="Retorna a nota média e os comentários dos alunos para o instrutor autenticado.",
+)
+async def get_current_instructor_reviews(
+    current_user: CurrentInstructor,
+    instructor_repo: InstructorRepo,
+    review_repo: ReviewRepo,
+) -> InstructorReviewsListResponse:
+    """Retorna as avaliações do instrutor logado."""
+    profile = await instructor_repo.get_by_user_id(current_user.id)
+    if profile is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Perfil de instrutor não encontrado",
+        )
+
+    reviews = await review_repo.get_by_instructor_id_with_student(current_user.id)
+
+    # Filtrar para ter o mesmo comportamento do endpoint público (uma avaliação por aluno)
+    best_reviews = {}
+    for r in reviews:
+        student_id = r.student_id
+        if student_id not in best_reviews:
+            best_reviews[student_id] = r
+        else:
+            current_best = best_reviews[student_id]
+            current_has_comment = bool(current_best.comment and current_best.comment.strip())
+            new_has_comment = bool(r.comment and r.comment.strip())
+            if not current_has_comment and new_has_comment:
+                best_reviews[student_id] = r
+
+    return InstructorReviewsListResponse(
+        rating=float(profile.rating),
+        total_reviews=profile.total_reviews,
+        reviews=[
+            InstructorReviewResponse(
+                id=r.id,
+                rating=r.rating,
+                comment=r.comment,
+                student_name=r.student_name or "Aluno",
+                created_at=r.created_at,
+            )
+            for r in best_reviews.values()
+        ],
+    )

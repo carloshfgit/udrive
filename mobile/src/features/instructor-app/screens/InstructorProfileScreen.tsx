@@ -23,6 +23,7 @@ import {
     LogOut,
     ChevronRight,
     Camera,
+    Star,
 } from 'lucide-react-native';
 
 import { useAuthStore } from '../../../lib/store';
@@ -58,6 +59,12 @@ const MENU_ITEMS = [
         route: 'LinkMercadoPago' as const,
     },
     {
+        id: 'reviews',
+        title: 'Minhas Avaliações',
+        icon: Star,
+        route: 'InstructorReviews' as const,
+    },
+    {
         id: 'settings',
         title: 'Configurações',
         icon: Settings,
@@ -77,6 +84,8 @@ export function InstructorProfileScreen() {
             navigation.navigate('EditPublicProfile');
         } else if (route === 'LinkMercadoPago') {
             navigation.navigate('LinkMercadoPago');
+        } else if (route === 'InstructorReviews') {
+            navigation.navigate('InstructorReviews');
         }
     };
 

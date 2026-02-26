@@ -7,12 +7,14 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
     getInstructorProfile,
+    getInstructorReviews,
     updateInstructorProfile,
     UpdateInstructorProfileRequest,
 } from '../api/instructorApi';
 
 // Query keys
 export const INSTRUCTOR_PROFILE_QUERY_KEY = ['instructor', 'profile'];
+export const INSTRUCTOR_REVIEWS_QUERY_KEY = ['instructor', 'reviews'];
 
 /**
  * Hook para buscar o perfil do instrutor.
@@ -37,5 +39,15 @@ export function useUpdateInstructorProfile() {
             // Invalidar cache do perfil para recarregar
             queryClient.invalidateQueries({ queryKey: INSTRUCTOR_PROFILE_QUERY_KEY });
         },
+    });
+}
+
+/**
+ * Hook para buscar as avaliações do instrutor.
+ */
+export function useInstructorReviews() {
+    return useQuery({
+        queryKey: INSTRUCTOR_REVIEWS_QUERY_KEY,
+        queryFn: getInstructorReviews,
     });
 }
