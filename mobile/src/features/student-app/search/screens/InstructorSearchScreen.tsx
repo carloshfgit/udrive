@@ -258,20 +258,10 @@ export function InstructorSearchScreen() {
 function Header() {
     return (
         <View className="flex-row items-center justify-between px-4 py-3 bg-white border-b border-neutral-100">
-            {/* Botão Voltar */}
-            <TouchableOpacity className="w-10 h-10 items-center justify-center">
-                <Text className="text-xl">‹</Text>
-            </TouchableOpacity>
-
             {/* Título */}
             <Text className="text-lg font-bold text-neutral-900">
                 Busca de Instrutores
             </Text>
-
-            {/* Botão Notificações */}
-            <TouchableOpacity className="w-10 h-10 items-center justify-center">
-                <Text className="text-xl">🔔</Text>
-            </TouchableOpacity>
         </View>
     );
 }
