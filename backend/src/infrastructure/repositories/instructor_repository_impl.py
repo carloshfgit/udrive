@@ -125,6 +125,10 @@ class InstructorRepositoryImpl(IInstructorRepository):
                     InstructorProfileModel.vehicle_type,
                     InstructorProfileModel.license_category,
                     InstructorProfileModel.is_available,
+                    InstructorProfileModel.price_cat_a_instructor_vehicle,
+                    InstructorProfileModel.price_cat_a_student_vehicle,
+                    InstructorProfileModel.price_cat_b_instructor_vehicle,
+                    InstructorProfileModel.price_cat_b_student_vehicle,
                     InstructorProfileModel.created_at,
                     InstructorProfileModel.updated_at,
                 ),
@@ -147,6 +151,10 @@ class InstructorRepositoryImpl(IInstructorRepository):
                 rating=float(model.rating),
                 total_reviews=model.total_reviews,
                 is_available=model.is_available,
+                price_cat_a_instructor_vehicle=model.price_cat_a_instructor_vehicle,
+                price_cat_a_student_vehicle=model.price_cat_a_student_vehicle,
+                price_cat_b_instructor_vehicle=model.price_cat_b_instructor_vehicle,
+                price_cat_b_student_vehicle=model.price_cat_b_student_vehicle,
                 full_name=model.user.full_name if model.user else None,
                 biological_sex=model.user.biological_sex if model.user else None,
                 created_at=model.created_at,
@@ -175,6 +183,12 @@ class InstructorRepositoryImpl(IInstructorRepository):
         model.rating = profile.rating
         model.total_reviews = profile.total_reviews
         model.is_available = profile.is_available
+
+        # Atualizar campos de preço
+        model.price_cat_a_instructor_vehicle = profile.price_cat_a_instructor_vehicle
+        model.price_cat_a_student_vehicle = profile.price_cat_a_student_vehicle
+        model.price_cat_b_instructor_vehicle = profile.price_cat_b_instructor_vehicle
+        model.price_cat_b_student_vehicle = profile.price_cat_b_student_vehicle
 
         # Atualizar campos Mercado Pago OAuth
         model.mp_access_token = profile.mp_access_token
@@ -451,6 +465,10 @@ class InstructorRepositoryImpl(IInstructorRepository):
             mp_refresh_token=model.mp_refresh_token,
             mp_token_expiry=model.mp_token_expiry,
             mp_user_id=model.mp_user_id,
+            price_cat_a_instructor_vehicle=model.price_cat_a_instructor_vehicle,
+            price_cat_a_student_vehicle=model.price_cat_a_student_vehicle,
+            price_cat_b_instructor_vehicle=model.price_cat_b_instructor_vehicle,
+            price_cat_b_student_vehicle=model.price_cat_b_student_vehicle,
             created_at=model.created_at,
             updated_at=model.updated_at,
         )

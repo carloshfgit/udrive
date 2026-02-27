@@ -313,8 +313,8 @@ export function InstructorPricingScreen() {
 
                 {/* Seção: Valor no seu veículo */}
                 <PriceSection
-                    title="Valor no seu veículo"
-                    description="Valor da aula quando o aluno utiliza o seu veículo"
+                    title="Valor no SEU veículo:"
+                    description="Valor da aula ministrada no seu veículo."
                     icon={<Car size={20} color="#2563EB" />}
                     priceA={priceAInstructor}
                     onChangePriceA={setPriceAInstructor}
@@ -326,8 +326,8 @@ export function InstructorPricingScreen() {
 
                 {/* Seção: Valor no veículo do aluno */}
                 <PriceSection
-                    title="Valor no veículo do aluno"
-                    description="Valor da aula quando o aluno utiliza o próprio veículo"
+                    title="Valor no veículo do ALUNO:"
+                    description="Valor da aula quando o aluno utiliza o próprio veículo."
                     icon={<Car size={20} color="#10B981" />}
                     priceA={priceAStudent}
                     onChangePriceA={setPriceAStudent}
