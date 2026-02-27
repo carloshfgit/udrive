@@ -30,6 +30,10 @@ export interface Instructor {
     name?: string;
     full_name?: string;
     avatar_url?: string;
+    price_cat_a_instructor_vehicle?: number;
+    price_cat_a_student_vehicle?: number;
+    price_cat_b_instructor_vehicle?: number;
+    price_cat_b_student_vehicle?: number;
 }
 
 export interface SearchInstructorsParams {

@@ -98,8 +98,12 @@ class GetNearbyInstructorsUseCase:
                 return InstructorSearchResultDTO(
                     instructors=[
                         InstructorProfileResponseDTO(
-                            **{k: v for k, v in inst.items() if k != "hourly_rate"},
-                            hourly_rate=Decimal(inst["hourly_rate"])
+                        **{k: v for k, v in inst.items() if k not in ["hourly_rate", "price_cat_a_instructor_vehicle", "price_cat_a_student_vehicle", "price_cat_b_instructor_vehicle", "price_cat_b_student_vehicle"]},
+                            hourly_rate=Decimal(inst["hourly_rate"]),
+                            price_cat_a_instructor_vehicle=Decimal(inst["price_cat_a_instructor_vehicle"]) if inst.get("price_cat_a_instructor_vehicle") else None,
+                            price_cat_a_student_vehicle=Decimal(inst["price_cat_a_student_vehicle"]) if inst.get("price_cat_a_student_vehicle") else None,
+                            price_cat_b_instructor_vehicle=Decimal(inst["price_cat_b_instructor_vehicle"]) if inst.get("price_cat_b_instructor_vehicle") else None,
+                            price_cat_b_student_vehicle=Decimal(inst["price_cat_b_student_vehicle"]) if inst.get("price_cat_b_student_vehicle") else None,
                         )
                         for inst in data["instructors"]
                     ],
@@ -157,6 +161,10 @@ class GetNearbyInstructorsUseCase:
                     location=location_dto,
                     distance_km=round(distance, 2) if distance is not None else None,
                     has_mp_account=profile.has_mp_account,
+                    price_cat_a_instructor_vehicle=PricingService.calculate_final_price(profile.price_cat_a_instructor_vehicle) if profile.price_cat_a_instructor_vehicle else None,
+                    price_cat_a_student_vehicle=PricingService.calculate_final_price(profile.price_cat_a_student_vehicle) if profile.price_cat_a_student_vehicle else None,
+                    price_cat_b_instructor_vehicle=PricingService.calculate_final_price(profile.price_cat_b_instructor_vehicle) if profile.price_cat_b_instructor_vehicle else None,
+                    price_cat_b_student_vehicle=PricingService.calculate_final_price(profile.price_cat_b_student_vehicle) if profile.price_cat_b_student_vehicle else None,
                 )
             )
 
@@ -190,6 +198,10 @@ class GetNearbyInstructorsUseCase:
                         } if inst.location else None,
                         "distance_km": inst.distance_km,
                         "has_mp_account": inst.has_mp_account,
+                        "price_cat_a_instructor_vehicle": str(inst.price_cat_a_instructor_vehicle) if inst.price_cat_a_instructor_vehicle else None,
+                        "price_cat_a_student_vehicle": str(inst.price_cat_a_student_vehicle) if inst.price_cat_a_student_vehicle else None,
+                        "price_cat_b_instructor_vehicle": str(inst.price_cat_b_instructor_vehicle) if inst.price_cat_b_instructor_vehicle else None,
+                        "price_cat_b_student_vehicle": str(inst.price_cat_b_student_vehicle) if inst.price_cat_b_student_vehicle else None,
                     }
                     for inst in instructors
                 ],

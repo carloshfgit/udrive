@@ -34,6 +34,10 @@ export interface InstructorDetail {
     location: Location | null;
     avatar_url?: string;
     reviews: PublicReview[];
+    price_cat_a_instructor_vehicle?: number | null;
+    price_cat_a_student_vehicle?: number | null;
+    price_cat_b_instructor_vehicle?: number | null;
+    price_cat_b_student_vehicle?: number | null;
 }
 
 // === Funções de API ===

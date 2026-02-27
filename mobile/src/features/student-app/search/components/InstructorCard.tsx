@@ -50,8 +50,43 @@ function InstructorCardComponent({ instructor, onViewProfile }: InstructorCardPr
         distance_km !== null ? `${distance_km.toFixed(1)} km` : null
     ].filter(Boolean).join(' • ');
 
-    // Verifica se o instrutor tem localização disponível
-    const hasLocation = location !== null && distance_km !== null;
+    // Preços no veículo do aluno
+    const priceA = instructor.price_cat_a_student_vehicle;
+    const priceB = instructor.price_cat_b_student_vehicle;
+
+    const renderPrice = () => {
+        if (license_category === 'AB') {
+            return (
+                <View className="mt-3 flex-row items-center gap-3">
+                    <View className="flex-row items-baseline">
+                        <Text className="text-neutral-400 text-[10px] font-bold mr-1">A:</Text>
+                        <Text className="text-primary-600 text-lg font-bold">
+                            {priceA ? formatPrice(priceA) : '---'}
+                        </Text>
+                        <Text className="text-neutral-400 text-[10px] ml-0.5">/h</Text>
+                    </View>
+                    <View className="w-[1px] h-4 bg-neutral-200" />
+                    <View className="flex-row items-baseline">
+                        <Text className="text-neutral-400 text-[10px] font-bold mr-1">B:</Text>
+                        <Text className="text-primary-600 text-lg font-bold">
+                            {priceB ? formatPrice(priceB) : '---'}
+                        </Text>
+                        <Text className="text-neutral-400 text-[10px] ml-0.5">/h</Text>
+                    </View>
+                </View>
+            );
+        }
+
+        const price = license_category === 'A' ? priceA : priceB;
+        return (
+            <View className="mt-3 flex-row items-baseline gap-0.5">
+                <Text className="text-primary-600 text-xl font-bold">
+                    {price ? formatPrice(price) : '---'}
+                </Text>
+                <Text className="text-neutral-400 text-xs">/hora</Text>
+            </View>
+        );
+    };
 
     return (
         <View className="mx-4 my-2">
@@ -70,7 +105,6 @@ function InstructorCardComponent({ instructor, onViewProfile }: InstructorCardPr
                                 {rating.toFixed(1)} ({total_reviews} avaliações)
                             </Text>
                         </View>
-
                         {/* Nome */}
                         <Text className="text-neutral-900 text-lg font-bold leading-tight" numberOfLines={2}>
                             {displayName}
@@ -95,13 +129,8 @@ function InstructorCardComponent({ instructor, onViewProfile }: InstructorCardPr
                         )}
                     </View>
 
-                    {/* Preço apenas */}
-                    <View className="mt-3 flex-row items-baseline gap-0.5">
-                        <Text className="text-primary-600 text-xl font-bold">
-                            {formatPrice(hourly_rate)}
-                        </Text>
-                        <Text className="text-neutral-400 text-xs">/hora</Text>
-                    </View>
+                    {/* Preço renderizado dinamicamente */}
+                    {renderPrice()}
                 </View>
 
                 {/* Coluna Direita: Avatar + Botão */}

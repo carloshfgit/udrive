@@ -58,6 +58,10 @@ class InstructorDetailResponse(BaseModel):
     is_available: bool
     location: LocationData | None = None
     reviews: list[PublicReviewResponse] = []
+    price_cat_a_instructor_vehicle: float | None = None
+    price_cat_a_student_vehicle: float | None = None
+    price_cat_b_instructor_vehicle: float | None = None
+    price_cat_b_student_vehicle: float | None = None
 
 
 # === Endpoints ===
@@ -179,4 +183,8 @@ async def get_instructor_by_id(
         is_available=instructor.is_available,
         location=location,
         reviews=filtered_reviews,
+        price_cat_a_instructor_vehicle=float(PricingService.calculate_final_price(instructor.price_cat_a_instructor_vehicle)) if instructor.price_cat_a_instructor_vehicle else None,
+        price_cat_a_student_vehicle=float(PricingService.calculate_final_price(instructor.price_cat_a_student_vehicle)) if instructor.price_cat_a_student_vehicle else None,
+        price_cat_b_instructor_vehicle=float(PricingService.calculate_final_price(instructor.price_cat_b_instructor_vehicle)) if instructor.price_cat_b_instructor_vehicle else None,
+        price_cat_b_student_vehicle=float(PricingService.calculate_final_price(instructor.price_cat_b_student_vehicle)) if instructor.price_cat_b_student_vehicle else None,
     )

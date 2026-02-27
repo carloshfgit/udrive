@@ -29,7 +29,6 @@ export function ProfileHeader({ instructor }: ProfileHeaderProps) {
         rating,
         total_reviews,
         license_category,
-        hourly_rate,
         is_available,
         avatar_url,
     } = instructor;
@@ -90,13 +89,6 @@ export function ProfileHeader({ instructor }: ProfileHeaderProps) {
                 />
             </View>
 
-            {/* Preço */}
-            <View className="flex-row items-baseline mt-4">
-                <Text className="text-primary-600 text-4xl font-bold">
-                    {formatPrice(hourly_rate)}
-                </Text>
-                <Text className="text-gray-500 text-base ml-1">/hora</Text>
-            </View>
         </View>
     );
 }

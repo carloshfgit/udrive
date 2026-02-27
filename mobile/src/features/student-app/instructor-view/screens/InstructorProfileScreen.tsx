@@ -19,7 +19,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ChevronLeft, Calendar } from 'lucide-react-native';
 
 import { useInstructorProfile } from '../hooks/useInstructorProfile';
-import { ProfileHeader, AboutSection, VehicleSection, ReviewsSection } from '../components';
+import { ProfileHeader, AboutSection, VehicleSection, ReviewsSection, PricingSection } from '../components';
 import { EmptyState } from '../../../../shared/components';
 import { SearchStackParamList } from '../../search/navigation/SearchStackNavigator';
 
@@ -127,6 +127,15 @@ export function InstructorProfileScreen() {
             >
                 {/* Header do Perfil */}
                 <ProfileHeader instructor={instructor} />
+
+                {/* Seção de Preços */}
+                <PricingSection
+                    priceAInstructor={instructor.price_cat_a_instructor_vehicle}
+                    priceAStudent={instructor.price_cat_a_student_vehicle}
+                    priceBInstructor={instructor.price_cat_b_instructor_vehicle}
+                    priceBStudent={instructor.price_cat_b_student_vehicle}
+                    licenseCategory={instructor.license_category}
+                />
 
                 {/* Seção Sobre */}
                 <AboutSection bio={instructor.bio} />
