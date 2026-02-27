@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, SafeAreaView, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
-import { Calendar, Clock, User, ChevronRight, MessageSquare, AlertCircle, CheckCircle2 } from 'lucide-react-native';
+import { Calendar, Clock, User, ChevronRight, MessageSquare, AlertCircle, CheckCircle2, Car, Bike } from 'lucide-react-native';
 import { Header } from '../../../../shared/components/Header';
 import { Button } from '../../../../shared/components/Button';
 import { Avatar } from '../../../../shared/components/Avatar';
@@ -72,7 +72,12 @@ export function LessonDetailsScreen() {
     };
 
     const getStatusLabel = (status: string): string => {
-        if (status.toLowerCase() === 'reschedule_requested') return 'REAGENDAMENTO';
+        const s = status.toLowerCase();
+        if (s === 'confirmed') return 'CONFIRMADA';
+        if (s === 'pending') return 'PENDENTE';
+        if (s === 'reschedule_requested') return 'REAGENDAMENTO';
+        if (s === 'completed') return 'CONCLUÍDA';
+        if (s === 'canceled' || s === 'cancelled') return 'CANCELADA';
         return status.toUpperCase();
     };
 
@@ -250,6 +255,36 @@ export function LessonDetailsScreen() {
                             </Text>
                         </View>
                     </View>
+
+                    {/* Categoria e Veículo */}
+                    {(lesson.lesson_category || lesson.vehicle_ownership) && (
+                        <View className="mt-6 pt-6 border-t border-neutral-100 flex-row items-center justify-between">
+                            {lesson.lesson_category && (
+                                <View className="flex-row items-center">
+                                    <View className="p-2 bg-primary-100/50 rounded-xl mr-3">
+                                        {lesson.lesson_category === 'A' ? <Bike size={18} color="#2563EB" /> : <Car size={18} color="#2563EB" />}
+                                    </View>
+                                    <View>
+                                        <Text className="text-neutral-400 text-[10px] font-bold uppercase tracking-wider">CATEGORIA</Text>
+                                        <Text className="text-neutral-900 font-bold text-sm">Cat. {lesson.lesson_category}</Text>
+                                    </View>
+                                </View>
+                            )}
+                            {lesson.vehicle_ownership && (
+                                <View className="flex-row items-center">
+                                    <View className="p-2 bg-emerald-100/50 rounded-xl mr-3">
+                                        <Car size={18} color="#059669" />
+                                    </View>
+                                    <View>
+                                        <Text className="text-neutral-400 text-[10px] font-bold uppercase tracking-wider">VEÍCULO</Text>
+                                        <Text className="text-neutral-900 font-bold text-sm">
+                                            {lesson.vehicle_ownership === 'instructor' ? 'Do Instrutor' : 'Próprio'}
+                                        </Text>
+                                    </View>
+                                </View>
+                            )}
+                        </View>
+                    )}
                 </View>
 
                 {/* Instructor Block */}

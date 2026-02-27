@@ -53,7 +53,10 @@ erDiagram
         uuid user_id FK
         geometry location "PostGIS Point"
         bool is_available
-        decimal hourly_rate
+        decimal price_cat_a_instructor_vehicle
+        decimal price_cat_a_student_vehicle
+        decimal price_cat_b_instructor_vehicle
+        decimal price_cat_b_student_vehicle
         float rating
         int total_reviews
     }
@@ -70,6 +73,10 @@ erDiagram
         uuid instructor_id FK
         datetime scheduled_datetime
         int duration_minutes
+        enum lesson_category "A | B | AB"
+        enum vehicle_ownership "INSTRUCTOR | STUDENT"
+        decimal applied_base_price
+        decimal applied_final_price
         enum status "PENDING | CONFIRMED | ..."
     }
 
@@ -136,7 +143,12 @@ Armazena dados específicos de instrutores, incluindo dados espaciais.
 *   **Geolocalização**:
     *   campo `location`: Tipo `Geometry(Point, 4326)`. Armazena a posição geográfica do instrutor (WGS84).
     *   Índice Espacial: `GIST` na coluna `location` para queries de proximidade (`ST_DWithin`).
-*   **Campos Chave**: `bio`, `vehicle_type`, `license_category`, `hourly_rate`, `is_available`, `rating`, `total_reviews`, `city`, `stripe_account_id`.
+*   **Campos Chave**: `bio`, `vehicle_type`, `license_category`, `is_available`, `rating`, `total_reviews`, `city`, `stripe_account_id`.
+*   **Precificação Variável**:
+    *   `price_cat_a_instructor_vehicle`: Preço para Categoria A (Moto) usando veículo do instrutor.
+    *   `price_cat_a_student_vehicle`: Preço para Categoria A (Moto) usando veículo do aluno.
+    *   `price_cat_b_instructor_vehicle`: Preço para Categoria B (Carro) usando veículo do instrutor.
+    *   `price_cat_b_student_vehicle`: Preço para Categoria B (Carro) usando veículo do aluno.
 *   **Integração Mercado Pago**: `mp_access_token`, `mp_refresh_token`, `mp_token_expiry`, `mp_user_id`.
 
 #### `student_profiles`
@@ -157,7 +169,11 @@ Registra as aulas agendadas.
     *   `scheduled_datetime`: Data e hora da aula.
     *   `duration_minutes`: Tempo em minutos (padrão 50).
     *   `status`: Enum (`PENDING`, `CONFIRMED`, `COMPLETED`, `CANCELLED`).
-    *   `price`: Valor congelado no momento do agendamento.
+    *   **Snapshots de Precificação** (Congelados no checkout):
+        *   `lesson_category`: Categoria escolhida (`A`, `B`, `AB`).
+        *   `vehicle_ownership`: De quem é o veículo (`INSTRUCTOR`, `STUDENT`).
+        *   `applied_base_price`: Valor líquido do instrutor no momento da reserva.
+        *   `applied_final_price`: Valor total pago pelo aluno (incluindo markup).
     *   `cancellation_reason`, `cancelled_by`, `rescheduled_datetime`: Controle do ciclo de vida da aula.
 *   **Índices**: Compostos para buscas rápidas por aluno/data e instrutor/data.
 

@@ -119,9 +119,9 @@ export function CalendarPicker({
     }, [currentMonth]);
 
     return (
-        <View className="bg-white rounded-2xl border border-neutral-100 p-4">
+        <View className="bg-white rounded-2xl border border-neutral-100 p-2">
             {/* Header com navegação */}
-            <View className="flex-row items-center justify-between mb-4">
+            <View className="flex-row items-center justify-between mb-2">
                 <TouchableOpacity
                     onPress={goToPreviousMonth}
                     disabled={!canGoToPrevious}
@@ -146,9 +146,9 @@ export function CalendarPicker({
             </View>
 
             {/* Dias da semana */}
-            <View className="flex-row mb-2">
+            <View className="flex-row">
                 {WEEK_DAYS.map((day) => (
-                    <View key={day} className="flex-1 items-center py-2">
+                    <View key={day} className="flex-1 items-center py-0.5">
                         <Text className="text-xs font-medium text-gray-500">{day}</Text>
                     </View>
                 ))}
@@ -171,21 +171,21 @@ export function CalendarPicker({
                             disabled={!available}
                             onPress={() => onDateSelect(date)}
                             className={`w-[14.28%] aspect-square items-center justify-center rounded-full ${selected
-                                    ? 'bg-primary-600'
-                                    : available
-                                        ? 'active:bg-primary-50'
-                                        : ''
+                                ? 'bg-primary-600'
+                                : available
+                                    ? 'active:bg-primary-50'
+                                    : ''
                                 }`}
                             accessibilityLabel={`${date.getDate()} de ${MONTHS[date.getMonth()]}`}
                         >
                             <Text
                                 className={`text-sm font-medium ${selected
-                                        ? 'text-white'
-                                        : available
-                                            ? today
-                                                ? 'text-primary-600'
-                                                : 'text-gray-900'
-                                            : 'text-gray-300'
+                                    ? 'text-white'
+                                    : available
+                                        ? today
+                                            ? 'text-primary-600'
+                                            : 'text-gray-900'
+                                        : 'text-gray-300'
                                     }`}
                             >
                                 {date.getDate()}

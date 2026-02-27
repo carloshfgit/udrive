@@ -65,6 +65,8 @@ export interface BookingResponse {
     student_confirmed_at?: string;
     rescheduled_datetime?: string;
     rescheduled_by?: string;
+    lesson_category?: string;
+    vehicle_ownership?: string;
 }
 
 export interface SchedulingListResponse {

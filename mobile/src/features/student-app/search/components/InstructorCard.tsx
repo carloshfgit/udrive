@@ -25,7 +25,6 @@ interface InstructorCardProps {
  */
 function InstructorCardComponent({ instructor, onViewProfile }: InstructorCardProps) {
     const {
-        id,
         user_id,
         name,
         full_name,
@@ -34,10 +33,8 @@ function InstructorCardComponent({ instructor, onViewProfile }: InstructorCardPr
         total_reviews,
         vehicle_type,
         license_category,
-        hourly_rate,
         avatar_url,
         distance_km,
-        location,
     } = instructor;
 
     // Fallback para nome se não vier da API
@@ -112,7 +109,7 @@ function InstructorCardComponent({ instructor, onViewProfile }: InstructorCardPr
 
                         {/* Veículo + Categoria */}
                         <Text className="text-neutral-500 text-sm" numberOfLines={1}>
-                            {vehicle_type} • Categoria {license_category}
+                            {vehicle_type} • CNH {license_category}
                         </Text>
 
                         {/* Localização (Cidade e Distância) */}

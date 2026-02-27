@@ -159,7 +159,7 @@ export function SelectDateTimeScreen() {
 
             <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
                 {/* Info do Instrutor */}
-                <View className="px-6 py-4 flex-row items-center bg-neutral-50 border-b border-neutral-100">
+                <View className="px-6 py-3 flex-row items-center bg-neutral-50 border-b border-neutral-100">
                     <Avatar
                         source={instructorAvatar ? { uri: instructorAvatar } : undefined}
                         fallback={instructorName.charAt(0)}
@@ -194,8 +194,8 @@ export function SelectDateTimeScreen() {
                 </View>
 
                 {/* Calendário */}
-                <View className="px-6 pt-6">
-                    <Text className="text-base font-semibold text-gray-900 mb-3">
+                <View className="px-6 pt-2">
+                    <Text className="text-base font-semibold text-gray-900 mb-2">
                         Selecione a data
                     </Text>
                     {loadingAvailability ? (
@@ -213,8 +213,8 @@ export function SelectDateTimeScreen() {
 
                 {/* Horários */}
                 {selectedDate && (
-                    <View className="px-6 pt-6 pb-4">
-                        <Text className="text-base font-semibold text-gray-900 mb-3">
+                    <View className="px-6 pt-3 pb-4">
+                        <Text className="text-base font-semibold text-gray-900 mb-2">
                             Horários disponíveis
                         </Text>
                         <TimeSlotPicker
