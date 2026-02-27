@@ -89,7 +89,6 @@ export default function InstructorScheduleScreen() {
     const [currentMonth, setCurrentMonth] = useState(today.getMonth());
     const [currentYear, setCurrentYear] = useState(today.getFullYear());
     const [selectedDate, setSelectedDate] = useState(today);
-    const [confirmingId, setConfirmingId] = useState<string | null>(null);
     const [completingId, setCompletingId] = useState<string | null>(null);
     const [cancellingId, setCancellingId] = useState<string | null>(null);
     const [rescheduleModalVisible, setRescheduleModalVisible] = useState(false);
@@ -112,7 +111,6 @@ export default function InstructorScheduleScreen() {
     } = useSchedulingDates(currentYear, currentMonth + 1);
 
     // Mutations
-    const confirmMutation = useConfirmScheduling();
     const completeMutation = useCompleteScheduling();
     const cancelMutation = useCancelScheduling();
     const rescheduleMutation = useRequestReschedule();
@@ -194,20 +192,6 @@ export default function InstructorScheduleScreen() {
     }, [selectedDate]);
 
     // Handlers para ações nos cards
-    const handleConfirm = async (id: string) => {
-        setConfirmingId(id);
-        try {
-            await confirmMutation.mutateAsync(id);
-            // Invalidar queries para atualizar a lista
-            queryClient.invalidateQueries({ queryKey: [INSTRUCTOR_SCHEDULE_QUERY_KEY] });
-            refetchDates();
-        } catch (error: any) {
-            const errorMessage = error.response?.data?.detail || error.message || 'Não foi possível confirmar a aula.';
-            Alert.alert('Erro', errorMessage);
-        } finally {
-            setConfirmingId(null);
-        }
-    };
 
     const handleComplete = async (id: string) => {
         setCompletingId(id);
@@ -442,12 +426,8 @@ export default function InstructorScheduleScreen() {
                             <ScheduleCard
                                 key={scheduling.id}
                                 scheduling={scheduling}
-                                onConfirm={handleConfirm}
-                                onComplete={handleComplete}
                                 onCancel={() => { }} // Not used but kept for interface compatibility
                                 onReschedule={handleReschedulePress}
-                                isConfirming={confirmingId === scheduling.id}
-                                isCompleting={completingId === scheduling.id}
                                 isCancelling={cancellingId === scheduling.id}
                             />
                         ))

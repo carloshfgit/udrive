@@ -39,7 +39,7 @@ export function InstructorHomeScreen() {
     );
 
     // Hooks de mutação (reutilizados da agenda)
-    const { mutate: confirm, isPending: isConfirming } = useConfirmScheduling();
+    // Hooks de mutação (reutilizados da agenda)
     const { mutate: complete, isPending: isCompleting } = useCompleteScheduling();
     const { mutate: cancel, isPending: isCancelling } = useCancelScheduling();
 
@@ -119,18 +119,6 @@ export function InstructorHomeScreen() {
                     {nextClass ? (
                         <ScheduleCard
                             scheduling={nextClass}
-                            onConfirm={(id) => confirm(id, {
-                                onError: (error: any) => {
-                                    const errorMessage = error.response?.data?.detail || error.message || 'Não foi possível confirmar a aula.';
-                                    Alert.alert('Erro', errorMessage);
-                                }
-                            })}
-                            onComplete={(id) => complete(id, {
-                                onError: (error: any) => {
-                                    const errorMessage = error.response?.data?.detail || error.message || 'Não foi possível concluir a aula.';
-                                    Alert.alert('Erro', errorMessage);
-                                }
-                            })}
                             onCancel={(id) => cancel({ schedulingId: id }, {
                                 onError: (error: any) => {
                                     const errorMessage = error.response?.data?.detail || error.message || 'Não foi possível cancelar a aula.';
@@ -138,8 +126,6 @@ export function InstructorHomeScreen() {
                                 }
                             })}
                             onReschedule={handleReschedule}
-                            isConfirming={isConfirming}
-                            isCompleting={isCompleting}
                             isCancelling={isCancelling}
                         />
                     ) : (

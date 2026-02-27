@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, SafeAreaView, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
-import { Calendar, Clock, User, ChevronRight, MessageSquare, AlertCircle, CheckCircle2, Car, Bike } from 'lucide-react-native';
+import { Calendar, Clock, User, ChevronRight, MessageSquare, AlertCircle, CheckCircle2, Car, Bike, Award } from 'lucide-react-native';
 import { Header } from '../../../../shared/components/Header';
 import { Button } from '../../../../shared/components/Button';
 import { Avatar } from '../../../../shared/components/Avatar';
@@ -258,11 +258,11 @@ export function LessonDetailsScreen() {
 
                     {/* Categoria e Veículo */}
                     {(lesson.lesson_category || lesson.vehicle_ownership) && (
-                        <View className="mt-6 pt-6 border-t border-neutral-100 flex-row items-center justify-between">
+                        <View className="mt-6 pt-6 border-t border-neutral-100 flex-row items-center gap-10">
                             {lesson.lesson_category && (
                                 <View className="flex-row items-center">
                                     <View className="p-2 bg-primary-100/50 rounded-xl mr-3">
-                                        {lesson.lesson_category === 'A' ? <Bike size={18} color="#2563EB" /> : <Car size={18} color="#2563EB" />}
+                                        <Award size={18} color="#2563EB" />
                                     </View>
                                     <View>
                                         <Text className="text-neutral-400 text-[10px] font-bold uppercase tracking-wider">CATEGORIA</Text>
@@ -272,8 +272,8 @@ export function LessonDetailsScreen() {
                             )}
                             {lesson.vehicle_ownership && (
                                 <View className="flex-row items-center">
-                                    <View className="p-2 bg-emerald-100/50 rounded-xl mr-3">
-                                        <Car size={18} color="#059669" />
+                                    <View className="p-2 bg-primary-100/50 rounded-xl mr-3">
+                                        {lesson.lesson_category === 'A' ? <Bike size={18} color="#2563EB" /> : <Car size={18} color="#2563EB" />}
                                     </View>
                                     <View>
                                         <Text className="text-neutral-400 text-[10px] font-bold uppercase tracking-wider">VEÍCULO</Text>
@@ -410,7 +410,7 @@ export function LessonDetailsScreen() {
                                 title="Concluir Aula"
                                 onPress={handleFinish}
                                 loading={isCompleting}
-                                variant="primary"
+                                variant="success"
                                 size="lg"
                                 fullWidth
                             />

@@ -14,7 +14,7 @@ import {
     TextStyle,
 } from 'react-native';
 
-type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
+type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'success';
 type ButtonSize = 'sm' | 'md' | 'lg';
 
 interface ButtonProps {
@@ -56,6 +56,7 @@ export function Button({
         outline: 'bg-transparent border-2 border-primary-500',
         ghost: 'bg-transparent',
         danger: 'bg-error-500',
+        success: 'bg-emerald-600',
     };
 
     const sizeStyles = {
@@ -70,6 +71,7 @@ export function Button({
         outline: 'text-primary-500',
         ghost: 'text-primary-500',
         danger: 'text-white',
+        success: 'text-white',
     };
 
     const textSizeStyles = {

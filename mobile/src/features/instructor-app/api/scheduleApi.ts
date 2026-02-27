@@ -29,6 +29,8 @@ export interface Scheduling {
     instructor_name?: string | null;
     rescheduled_datetime?: string | null;
     rescheduled_by?: string | null;
+    lesson_category?: string;
+    vehicle_ownership?: string;
 }
 
 export interface SchedulingListResponse {

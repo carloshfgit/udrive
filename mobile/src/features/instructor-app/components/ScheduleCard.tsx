@@ -15,9 +15,11 @@ import {
 import {
     Clock,
     Check,
-    CheckCircle,
     User,
     MessageSquare,
+    Car,
+    Award,
+    Bike,
 } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Card } from '../../../shared/components';
@@ -26,23 +28,15 @@ import { useAuth } from '../../auth/hooks/useAuth';
 
 interface ScheduleCardProps {
     scheduling: Scheduling;
-    onConfirm: (id: string) => void;
-    onComplete: (id: string) => void;
     onCancel: (id: string) => void;
     onReschedule: (scheduling: Scheduling) => void;
-    isConfirming: boolean;
-    isCompleting: boolean;
     isCancelling: boolean;
 }
 
 export function ScheduleCard({
     scheduling,
-    onConfirm,
-    onComplete,
     onCancel,
     onReschedule,
-    isConfirming,
-    isCompleting,
     isCancelling,
 }: ScheduleCardProps) {
     const scheduledTime = new Date(scheduling.scheduled_datetime);
@@ -54,42 +48,34 @@ export function ScheduleCard({
     const getStatusColor = (status: SchedulingStatus) => {
         switch (status) {
             case 'pending':
-                return { bg: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-yellow-200', accent: 'bg-yellow-500', label: 'Pendente' };
+                return { bg: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-yellow-200', accent: 'bg-yellow-500', icon: '#A16207', label: 'Pendente' };
             case 'confirmed':
-                return { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', accent: 'bg-emerald-500', label: 'Confirmado' };
+                return { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', accent: 'bg-emerald-500', icon: '#047857', label: 'Confirmado' };
             case 'completed':
-                return { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', accent: 'bg-blue-500', label: 'Concluído' };
+                return { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200', accent: 'bg-purple-500', icon: '#7E22CE', label: 'Concluído' };
             case 'cancelled':
-                return { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200', accent: 'bg-red-500', label: 'Cancelado' };
+                return { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200', accent: 'bg-red-500', icon: '#B91C1C', label: 'Cancelado' };
             case 'reschedule_requested':
-                return { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', accent: 'bg-amber-500', label: 'Reagendamento' };
+                return { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', accent: 'bg-amber-500', icon: '#B45309', label: 'Reagendamento' };
             default:
-                return { bg: 'bg-gray-50', text: 'text-gray-700', border: 'border-gray-200', accent: 'bg-gray-500', label: status };
+                return { bg: 'bg-gray-50', text: 'text-gray-700', border: 'border-gray-200', accent: 'bg-gray-500', icon: '#374151', label: status };
         }
     };
 
     const statusInfo = getStatusColor(scheduling.status);
 
-    const handleConfirm = () => {
-        Alert.alert(
-            'Confirmar Aula',
-            `Deseja confirmar a aula das ${timeStr}?`,
-            [
-                { text: 'Cancelar', style: 'cancel' },
-                { text: 'Confirmar', onPress: () => onConfirm(scheduling.id) },
-            ]
-        );
+
+    const getVehicleLabel = (ownership?: string) => {
+        if (ownership === 'instructor') return 'Veículo do Instrutor';
+        if (ownership === 'student') return 'Veículo do Aluno';
+        return 'Veículo não informado';
     };
 
-    const handleComplete = () => {
-        Alert.alert(
-            'Concluir Aula',
-            `Deseja marcar a aula das ${timeStr} como concluída?`,
-            [
-                { text: 'Voltar', style: 'cancel' },
-                { text: 'Concluir', onPress: () => onComplete(scheduling.id) },
-            ]
-        );
+    const getCategoryLabel = (category?: string) => {
+        if (category === 'A') return 'A';
+        if (category === 'B') return 'B';
+        if (category === 'AB') return 'A+B';
+        return category || 'B'; // Mantém 'B' como default para compatibilidade
     };
 
     const handleCancel = () => {
@@ -166,7 +152,7 @@ export function ScheduleCard({
                     {/* Detalhes Adicionais */}
                     <View className="flex-row items-center justify-between pb-3 border-b border-gray-50 mb-4">
                         <View className="flex-row items-center">
-                            <View className="w-2 h-2 rounded-full bg-blue-500 mr-2" />
+                            <View className={`w-2 h-2 rounded-full ${statusInfo.accent} mr-2`} />
                             <Text className="text-sm text-gray-500">Valor da aula</Text>
                         </View>
                         <Text className="text-lg font-black text-gray-900">
@@ -174,7 +160,28 @@ export function ScheduleCard({
                         </Text>
                     </View>
 
-                    {/* Ações */}
+                    {/* Informações da Aula (Categoria e Veículo) */}
+                    {(scheduling.status === 'pending' || scheduling.status === 'confirmed' || scheduling.status === 'completed') && (
+                        <View className={`flex-row items-center justify-around ${statusInfo.bg} border ${statusInfo.border} p-3 rounded-2xl mb-4`}>
+                            <View className="flex-row items-center px-2">
+                                <Award size={16} color={statusInfo.icon} />
+                                <Text className={`font-bold ml-2 ${statusInfo.text}`}>
+                                    Cat. {getCategoryLabel(scheduling.lesson_category)}
+                                </Text>
+                            </View>
+                            <View className="flex-row items-center px-2">
+                                {scheduling.lesson_category === 'A' ? (
+                                    <Bike size={16} color={statusInfo.icon} />
+                                ) : (
+                                    <Car size={16} color={statusInfo.icon} />
+                                )}
+                                <Text className={`font-bold ml-2 ${statusInfo.text}`}>
+                                    {getVehicleLabel(scheduling.vehicle_ownership)}
+                                </Text>
+                            </View>
+                        </View>
+                    )}
+
                     {scheduling.status === 'reschedule_requested' && (
                         <TouchableOpacity
                             onPress={() => navigation.navigate('InstructorSchedule', {
@@ -190,49 +197,7 @@ export function ScheduleCard({
                         </TouchableOpacity>
                     )}
 
-                    {scheduling.status === 'pending' && (
-                        <TouchableOpacity
-                            onPress={handleConfirm}
-                            disabled={isConfirming}
-                            className={`
-                                flex-row items-center justify-center py-3.5 rounded-2xl
-                                ${isConfirming ? 'bg-blue-400' : 'bg-blue-600 active:bg-blue-700 shadow-sm shadow-blue-200'}
-                            `}
-                        >
-                            {isConfirming ? (
-                                <ActivityIndicator size="small" color="#ffffff" />
-                            ) : (
-                                <>
-                                    <Check size={18} color="#ffffff" />
-                                    <Text className="text-white font-bold ml-2">
-                                        Confirmar Aula
-                                    </Text>
-                                </>
-                            )}
-                        </TouchableOpacity>
-                    )}
 
-                    {scheduling.status === 'confirmed' && (
-                        <TouchableOpacity
-                            onPress={handleComplete}
-                            disabled={isCompleting}
-                            className={`
-                                flex-row items-center justify-center py-3.5 rounded-2xl
-                                ${isCompleting ? 'bg-emerald-400' : 'bg-emerald-600 active:bg-emerald-700 shadow-sm shadow-emerald-200'}
-                            `}
-                        >
-                            {isCompleting ? (
-                                <ActivityIndicator size="small" color="#ffffff" />
-                            ) : (
-                                <>
-                                    <CheckCircle size={18} color="#ffffff" />
-                                    <Text className="text-white font-bold ml-2">
-                                        Marcar como Concluída
-                                    </Text>
-                                </>
-                            )}
-                        </TouchableOpacity>
-                    )}
 
                     {/* Botão de Reagendar - para pending e confirmed */}
                     {(scheduling.status === 'pending' || scheduling.status === 'confirmed') && (
