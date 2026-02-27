@@ -40,7 +40,7 @@ const STEPS: TutorialStep[] = [
     },
     {
         id: '4',
-        title: 'Aceite Aulas',
+        title: 'Olho na Agenda!',
         description: 'Fique atento às notificações de novos agendamentos.',
         icon: <CheckSquare size={24} color="#F59E0B" />,
         color: 'bg-amber-50',
@@ -65,6 +65,9 @@ export function InstructorQuickSteps() {
         switch (id) {
             case '1': // Complete seu Perfil
                 navigation.navigate('InstructorProfile', { screen: 'EditPublicProfile' });
+                break;
+            case '2': // Receba sem Taxas!
+                navigation.navigate('InstructorProfile', { screen: 'InstructorProfileMain' });
                 break;
             case '3': // Configure sua Agenda
                 navigation.navigate('InstructorSchedule', { screen: 'InstructorAvailability' });

@@ -162,7 +162,7 @@ export function ScheduleCard({
 
                     {/* Informações da Aula (Categoria e Veículo) */}
                     {(scheduling.status === 'pending' || scheduling.status === 'confirmed' || scheduling.status === 'completed') && (
-                        <View className={`flex-row items-center justify-around ${statusInfo.bg} border ${statusInfo.border} p-3 rounded-2xl mb-4`}>
+                        <View className={`flex-row items-center justify-around ${statusInfo.bg} border ${statusInfo.border} p-3 rounded-2xl mb-2`}>
                             <View className="flex-row items-center px-2">
                                 <Award size={16} color={statusInfo.icon} />
                                 <Text className={`font-bold ml-2 ${statusInfo.text}`}>
@@ -203,7 +203,7 @@ export function ScheduleCard({
                     {(scheduling.status === 'pending' || scheduling.status === 'confirmed') && (
                         <TouchableOpacity
                             onPress={() => onReschedule(scheduling)}
-                            className="flex-row items-center justify-center py-3 rounded-2xl mt-2 bg-white active:bg-gray-50 border border-gray-100"
+                            className="flex-row items-center justify-center py-3 rounded-2xl mt-1 bg-white active:bg-gray-50 border border-gray-100"
                         >
                             <Clock size={18} color="#6B7280" />
                             <Text className="text-gray-600 font-semibold ml-2">

@@ -42,16 +42,16 @@ const APP_VERSION = '2.4.0';
 // Itens do menu de perfil do instrutor
 const MENU_ITEMS = [
     {
-        id: 'publicProfile',
-        title: 'Editar Perfil Público',
-        icon: Eye,
-        route: 'EditPublicProfile' as const,
-    },
-    {
         id: 'personal',
         title: 'Informações Pessoais',
         icon: User,
         route: 'EditInstructorProfile' as const,
+    },
+    {
+        id: 'publicProfile',
+        title: 'Editar Perfil Público',
+        icon: Eye,
+        route: 'EditPublicProfile' as const,
     },
     {
         id: 'pricing',
