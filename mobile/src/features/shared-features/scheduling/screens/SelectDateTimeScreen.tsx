@@ -27,24 +27,39 @@ import { TimeSlot } from '../api/schedulingApi';
 export type SchedulingStackParamList = {
     MyLessons: undefined;
     Cart: undefined;
+    LessonOptions: {
+        instructorId: string;
+        instructorName: string;
+        instructorAvatar?: string;
+        licenseCategory: string;
+        rating?: number;
+        priceAInstructor?: number | null;
+        priceAStudent?: number | null;
+        priceBInstructor?: number | null;
+        priceBStudent?: number | null;
+    };
     SelectDateTime: {
         instructorId: string;
         instructorName: string;
         instructorAvatar?: string;
-        hourlyRate: number;
+        selectedPrice: number;
         licenseCategory?: string;
         rating?: number;
+        lessonCategory: string;
+        vehicleOwnership: string;
     };
     ConfirmBooking: {
         instructorId: string;
         instructorName: string;
         instructorAvatar?: string;
-        hourlyRate: number;
+        selectedPrice: number;
         licenseCategory?: string;
         selectedDate: string; // ISO string
         selectedSlot: TimeSlot;
         durationMinutes: number;
         rating?: number;
+        lessonCategory: string;
+        vehicleOwnership: string;
     };
     BookingSuccess: {
         schedulingId: string;
@@ -52,9 +67,11 @@ export type SchedulingStackParamList = {
         scheduledDatetime: string;
         instructorId: string;
         instructorAvatar?: string;
-        hourlyRate: number;
+        selectedPrice: number;
         licenseCategory?: string;
         rating?: number;
+        lessonCategory: string;
+        vehicleOwnership: string;
     };
 };
 
@@ -68,9 +85,11 @@ export function SelectDateTimeScreen() {
         instructorId,
         instructorName,
         instructorAvatar,
-        hourlyRate,
+        selectedPrice,
         licenseCategory,
         rating,
+        lessonCategory,
+        vehicleOwnership,
     } = route.params;
 
     // Estado local
@@ -108,12 +127,14 @@ export function SelectDateTimeScreen() {
             instructorId,
             instructorName,
             instructorAvatar,
-            hourlyRate,
+            selectedPrice,
             licenseCategory,
             selectedDate: selectedDate.toISOString(),
             selectedSlot,
             durationMinutes,
             rating,
+            lessonCategory,
+            vehicleOwnership,
         });
     };
 
@@ -166,9 +187,9 @@ export function SelectDateTimeScreen() {
                     </View>
                     <View className="items-end">
                         <Text className="text-lg font-bold text-primary-600">
-                            {formatPrice(hourlyRate)}
+                            {formatPrice(selectedPrice)}
                         </Text>
-                        <Text className="text-xs text-gray-500">/hora</Text>
+                        <Text className="text-xs text-gray-500">/aula</Text>
                     </View>
                 </View>
 

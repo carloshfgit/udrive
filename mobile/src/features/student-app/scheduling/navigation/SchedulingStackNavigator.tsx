@@ -7,6 +7,7 @@ import { InstructorProfileScreen } from '../../instructor-view/screens/Instructo
 import { ChatRoomScreen } from '../../../shared-features/chat/screens/ChatRoomScreen';
 import { StudentLessonHistoryScreen } from '../../../shared-features/chat/screens/StudentLessonHistoryScreen';
 import {
+    LessonOptionsScreen,
     SelectDateTimeScreen,
     ConfirmBookingScreen,
     BookingSuccessScreen,
@@ -22,24 +23,39 @@ export type SchedulingStackParamList = {
     InstructorProfile: { instructorId: string };
     ChatRoom: { otherUserId: string; otherUserName: string };
     StudentLessonHistory: { studentId: string; studentName: string };
+    LessonOptions: {
+        instructorId: string;
+        instructorName: string;
+        instructorAvatar?: string;
+        licenseCategory: string;
+        rating?: number;
+        priceAInstructor?: number | null;
+        priceAStudent?: number | null;
+        priceBInstructor?: number | null;
+        priceBStudent?: number | null;
+    };
     SelectDateTime: {
         instructorId: string;
         instructorName: string;
         instructorAvatar?: string;
-        hourlyRate: number;
+        selectedPrice: number;
         licenseCategory?: string;
         rating?: number;
+        lessonCategory: string;
+        vehicleOwnership: string;
     };
     ConfirmBooking: {
         instructorId: string;
         instructorName: string;
         instructorAvatar?: string;
-        hourlyRate: number;
+        selectedPrice: number;
         licenseCategory?: string;
         selectedDate: string;
         selectedSlot: TimeSlot;
         durationMinutes: number;
         rating?: number;
+        lessonCategory: string;
+        vehicleOwnership: string;
     };
     BookingSuccess: {
         schedulingId: string;
@@ -47,9 +63,11 @@ export type SchedulingStackParamList = {
         scheduledDatetime: string;
         instructorId: string;
         instructorAvatar?: string;
-        hourlyRate: number;
+        selectedPrice: number;
         licenseCategory?: string;
         rating?: number;
+        lessonCategory: string;
+        vehicleOwnership: string;
     };
 };
 
@@ -69,6 +87,7 @@ export function SchedulingStackNavigator() {
             <Stack.Screen name="InstructorProfile" component={InstructorProfileScreen} />
             <Stack.Screen name="ChatRoom" component={ChatRoomScreen} />
             <Stack.Screen name="StudentLessonHistory" component={StudentLessonHistoryScreen} />
+            <Stack.Screen name="LessonOptions" component={LessonOptionsScreen} />
             <Stack.Screen name="SelectDateTime" component={SelectDateTimeScreen} />
             <Stack.Screen name="ConfirmBooking" component={ConfirmBookingScreen} />
             <Stack.Screen name="BookingSuccess" component={BookingSuccessScreen} />

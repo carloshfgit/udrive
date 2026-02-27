@@ -44,13 +44,16 @@ export function InstructorProfileScreen() {
     const handleScheduleLesson = () => {
         if (!instructor) return;
 
-        navigation.navigate('SelectDateTime', {
+        navigation.navigate('LessonOptions', {
             instructorId,
             instructorName: instructor.name || 'Instrutor',
             instructorAvatar: instructor.avatar_url,
-            hourlyRate: instructor.hourly_rate,
             licenseCategory: instructor.license_category,
             rating: instructor.rating,
+            priceAInstructor: instructor.price_cat_a_instructor_vehicle,
+            priceAStudent: instructor.price_cat_a_student_vehicle,
+            priceBInstructor: instructor.price_cat_b_instructor_vehicle,
+            priceBStudent: instructor.price_cat_b_student_vehicle,
         });
     };
 

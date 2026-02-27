@@ -33,21 +33,22 @@ export function ConfirmBookingScreen() {
         instructorId,
         instructorName,
         instructorAvatar,
-        hourlyRate,
+        selectedPrice,
         licenseCategory,
         selectedDate,
         selectedSlot,
         durationMinutes,
         rating,
+        lessonCategory,
+        vehicleOwnership,
     } = route.params;
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const createBookingMutation = useCreateBooking();
     const queryClient = useQueryClient();
 
-    // Calcular preço
-    const hours = durationMinutes / 60;
-    const totalPrice = hourlyRate * hours;
+    // Preço já calculado na seleção de opções
+    const totalPrice = selectedPrice;
 
     // Converter data
     const dateObj = new Date(selectedDate);
@@ -87,6 +88,8 @@ export function ConfirmBookingScreen() {
                 instructor_id: instructorId,
                 scheduled_datetime: scheduledDatetime,
                 duration_minutes: durationMinutes,
+                lesson_category: lessonCategory,
+                vehicle_ownership: vehicleOwnership,
             });
 
             // Invalida cache para garantir que a lista seja atualizada
@@ -99,9 +102,11 @@ export function ConfirmBookingScreen() {
                 scheduledDatetime,
                 instructorId,
                 instructorAvatar,
-                hourlyRate,
+                selectedPrice,
                 licenseCategory,
                 rating,
+                lessonCategory,
+                vehicleOwnership,
             });
         } catch (error: any) {
             const message = error?.response?.data?.detail || 'Erro ao criar agendamento. Tente novamente.';
@@ -141,6 +146,8 @@ export function ConfirmBookingScreen() {
                         durationMinutes={durationMinutes}
                         price={totalPrice}
                         licenseCategory={licenseCategory}
+                        lessonCategory={lessonCategory}
+                        vehicleOwnership={vehicleOwnership}
                     />
                 </View>
 

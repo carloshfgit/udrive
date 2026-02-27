@@ -13,6 +13,7 @@ import { InstructorProfileScreen } from '../../instructor-view/screens/Instructo
 
 // Telas de agendamento
 import {
+    LessonOptionsScreen,
     SelectDateTimeScreen,
     ConfirmBookingScreen,
     BookingSuccessScreen,
@@ -24,24 +25,39 @@ export type SearchStackParamList = {
     InstructorSearch: undefined;
     InstructorProfile: { instructorId: string };
     // Fluxo de agendamento
+    LessonOptions: {
+        instructorId: string;
+        instructorName: string;
+        instructorAvatar?: string;
+        licenseCategory: string;
+        rating?: number;
+        priceAInstructor?: number | null;
+        priceAStudent?: number | null;
+        priceBInstructor?: number | null;
+        priceBStudent?: number | null;
+    };
     SelectDateTime: {
         instructorId: string;
         instructorName: string;
         instructorAvatar?: string;
-        hourlyRate: number;
+        selectedPrice: number;
         licenseCategory?: string;
         rating?: number;
+        lessonCategory: string;
+        vehicleOwnership: string;
     };
     ConfirmBooking: {
         instructorId: string;
         instructorName: string;
         instructorAvatar?: string;
-        hourlyRate: number;
+        selectedPrice: number;
         licenseCategory?: string;
         selectedDate: string;
         selectedSlot: TimeSlot;
         durationMinutes: number;
         rating?: number;
+        lessonCategory: string;
+        vehicleOwnership: string;
     };
     BookingSuccess: {
         schedulingId: string;
@@ -49,9 +65,11 @@ export type SearchStackParamList = {
         scheduledDatetime: string;
         instructorId: string;
         instructorAvatar?: string;
-        hourlyRate: number;
+        selectedPrice: number;
         licenseCategory?: string;
         rating?: number;
+        lessonCategory: string;
+        vehicleOwnership: string;
     };
 };
 
@@ -73,6 +91,10 @@ export function SearchStackNavigator() {
                 component={InstructorProfileScreen}
             />
             {/* Fluxo de agendamento */}
+            <Stack.Screen
+                name="LessonOptions"
+                component={LessonOptionsScreen}
+            />
             <Stack.Screen
                 name="SelectDateTime"
                 component={SelectDateTimeScreen}

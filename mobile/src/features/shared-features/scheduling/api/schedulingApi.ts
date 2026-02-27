@@ -42,6 +42,8 @@ export interface CreateBookingRequest {
     instructor_id: string;
     scheduled_datetime: string; // ISO 8601 format
     duration_minutes: number;
+    lesson_category: string;
+    vehicle_ownership: string;
 }
 
 export interface BookingResponse {

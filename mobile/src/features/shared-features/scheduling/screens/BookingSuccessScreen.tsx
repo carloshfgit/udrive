@@ -18,6 +18,7 @@ import { CheckCircle, Calendar, ArrowRight, ShoppingCart } from 'lucide-react-na
 
 import { SchedulingStackParamList } from './SelectDateTimeScreen';
 import { CART_ITEMS_QUERY_KEY } from '../hooks/usePayment';
+import { useInstructorProfile } from '../../../student-app/instructor-view/hooks/useInstructorProfile';
 
 type BookingSuccessRouteProp = RouteProp<SchedulingStackParamList, 'BookingSuccess'>;
 type BookingSuccessNavigationProp = NativeStackNavigationProp<SchedulingStackParamList, 'BookingSuccess'>;
@@ -43,12 +44,15 @@ export function BookingSuccessScreen() {
         scheduledDatetime,
         instructorId,
         instructorAvatar,
-        hourlyRate,
+        selectedPrice,
         licenseCategory,
-        rating
+        rating,
+        lessonCategory,
+        vehicleOwnership,
     } = route.params;
 
     const queryClient = useQueryClient();
+    const { data: instructorData } = useInstructorProfile(instructorId);
 
     const formattedDateTime = formatDateTimeBR(scheduledDatetime);
 
@@ -68,13 +72,16 @@ export function BookingSuccessScreen() {
 
     // Agendar mais uma aula com o mesmo instrutor
     const handleScheduleAnother = () => {
-        navigation.navigate('SelectDateTime', {
+        navigation.navigate('LessonOptions', {
             instructorId,
             instructorName,
             instructorAvatar,
-            hourlyRate,
-            licenseCategory,
-            rating,
+            licenseCategory: licenseCategory || instructorData?.license_category || '',
+            rating: rating || instructorData?.rating,
+            priceAInstructor: instructorData?.price_cat_a_instructor_vehicle,
+            priceAStudent: instructorData?.price_cat_a_student_vehicle,
+            priceBInstructor: instructorData?.price_cat_b_instructor_vehicle,
+            priceBStudent: instructorData?.price_cat_b_student_vehicle,
         });
     };
 

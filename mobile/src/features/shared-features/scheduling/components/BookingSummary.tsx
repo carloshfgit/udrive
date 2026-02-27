@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { View, Text } from 'react-native';
-import { Calendar, Clock, DollarSign, User } from 'lucide-react-native';
+import { Calendar, Clock, DollarSign, User, Car, Bike } from 'lucide-react-native';
 
 import { Avatar } from '../../../../shared/components';
 import { formatPrice } from '../../../../shared';
@@ -20,6 +20,8 @@ interface BookingSummaryProps {
     durationMinutes: number;
     price: number;
     licenseCategory?: string;
+    lessonCategory?: string;
+    vehicleOwnership?: string;
 }
 
 // Formatadores
@@ -43,6 +45,8 @@ export function BookingSummary({
     durationMinutes,
     price,
     licenseCategory,
+    lessonCategory,
+    vehicleOwnership,
 }: BookingSummaryProps) {
     const formattedDate = formatDate(date);
     const formattedPrice = formatPrice(price);
@@ -62,13 +66,29 @@ export function BookingSummary({
                     <Text className="text-base font-semibold text-gray-900">
                         {instructorName}
                     </Text>
-                    {licenseCategory && (
-                        <View className="flex-row items-center mt-1">
-                            <View className="bg-primary-50 px-2 py-0.5 rounded-full">
-                                <Text className="text-xs font-medium text-primary-700">
-                                    Categoria {licenseCategory}
-                                </Text>
-                            </View>
+                    {(lessonCategory || vehicleOwnership) && (
+                        <View className="flex-row items-center mt-1 gap-2">
+                            {lessonCategory && (
+                                <View className="bg-primary-50 px-2 py-0.5 rounded-full flex-row items-center">
+                                    {lessonCategory === 'A' ? (
+                                        <Bike size={12} color="#2563EB" />
+                                    ) : (
+                                        <Car size={12} color="#2563EB" />
+                                    )}
+                                    <Text className="text-xs font-medium text-primary-700 ml-1">
+                                        Cat. {lessonCategory}
+                                    </Text>
+                                </View>
+                            )}
+                            {vehicleOwnership && (
+                                <View className="bg-emerald-50 px-2 py-0.5 rounded-full">
+                                    <Text className="text-xs font-medium text-emerald-700">
+                                        {vehicleOwnership === 'instructor'
+                                            ? 'Veículo do instrutor'
+                                            : 'Meu veículo'}
+                                    </Text>
+                                </View>
+                            )}
                         </View>
                     )}
                 </View>
