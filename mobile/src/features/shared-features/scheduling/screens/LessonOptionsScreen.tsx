@@ -179,6 +179,18 @@ export function LessonOptionsScreen() {
                             </Text>
                         )}
                     </View>
+
+                    {/* Valor da Aula - Exibido no topo para fácil visualização */}
+                    {selectedPrice !== null && (
+                        <View className="items-end bg-success-50 px-3 py-1.5 rounded-lg border border-success-100">
+                            <Text className="text-[10px] text-success-600 font-bold uppercase tracking-wider">
+                                Valor
+                            </Text>
+                            <Text className="text-lg font-black text-success-700">
+                                {formatPrice(selectedPrice)}
+                            </Text>
+                        </View>
+                    )}
                 </View>
 
                 {/* Seção: Categoria */}
@@ -199,8 +211,8 @@ export function LessonOptionsScreen() {
                                     key={cat}
                                     onPress={() => setSelectedCategory(cat)}
                                     className={`flex-row items-center p-4 rounded-xl border-2 ${isSelected
-                                            ? 'border-primary-500 bg-primary-50'
-                                            : 'border-neutral-200 bg-white'
+                                        ? 'border-primary-500 bg-primary-50'
+                                        : 'border-neutral-200 bg-white'
                                         }`}
                                     accessibilityLabel={`Selecionar ${categoryLabels[cat].label}`}
                                 >
@@ -252,8 +264,8 @@ export function LessonOptionsScreen() {
                                         key={vehicle}
                                         onPress={() => setSelectedVehicle(vehicle)}
                                         className={`flex-row items-center p-4 rounded-xl border-2 ${isSelected
-                                                ? 'border-primary-500 bg-primary-50'
-                                                : 'border-neutral-200 bg-white'
+                                            ? 'border-primary-500 bg-primary-50'
+                                            : 'border-neutral-200 bg-white'
                                             }`}
                                         accessibilityLabel={`Selecionar ${vehicleLabels[vehicle].label}`}
                                     >
@@ -287,24 +299,7 @@ export function LessonOptionsScreen() {
                     </View>
                 )}
 
-                {/* Card de Preço */}
-                {selectedPrice !== null && (
-                    <View className="px-6 pt-6">
-                        <View className="bg-success-50 border border-success-200 rounded-xl p-4 flex-row items-center">
-                            <View className="bg-success-100 w-12 h-12 rounded-full items-center justify-center">
-                                <Text className="text-success-700 font-black text-lg">R$</Text>
-                            </View>
-                            <View className="flex-1 ml-3">
-                                <Text className="text-sm text-success-700 font-medium">
-                                    Valor da Aula
-                                </Text>
-                                <Text className="text-2xl font-black text-success-800">
-                                    {formatPrice(selectedPrice)}
-                                </Text>
-                            </View>
-                        </View>
-                    </View>
-                )}
+
 
                 {/* Espaço para o botão fixo */}
                 <View className="h-24" />
@@ -316,8 +311,8 @@ export function LessonOptionsScreen() {
                     onPress={handleContinue}
                     disabled={!canContinue}
                     className={`flex-row items-center justify-center py-4 rounded-xl ${canContinue
-                            ? 'bg-primary-600 active:bg-primary-700'
-                            : 'bg-neutral-200'
+                        ? 'bg-primary-600 active:bg-primary-700'
+                        : 'bg-neutral-200'
                         }`}
                     accessibilityLabel="Avançar para seleção de data e horário"
                 >
