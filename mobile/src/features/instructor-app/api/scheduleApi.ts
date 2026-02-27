@@ -155,6 +155,8 @@ export interface SchedulingDatesResponse {
     dates: string[];  // Array de datas no formato 'YYYY-MM-DD'
     year: number;
     month: number;
+    has_prev: boolean;
+    has_next: boolean;
 }
 
 /**

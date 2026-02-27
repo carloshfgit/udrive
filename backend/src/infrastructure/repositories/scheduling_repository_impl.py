@@ -448,28 +448,20 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
         instructor_id: UUID,
         year: int,
         month: int,
-    ) -> Sequence["date"]:
-        """Retorna lista de datas únicas com agendamentos no mês."""
+    ) -> dict:
+        """Retorna lista de datas únicas com agendamentos no mês e indicadores de meses adjacentes."""
         from calendar import monthrange
         from datetime import datetime, timezone
 
         # Definir limites do mês no timezone local (Brasília)
-        # Dia 1 00:00:00 BRT
         first_day_local = datetime(year, month, 1, 0, 0, 0, tzinfo=DEFAULT_TIMEZONE)
-        
         last_day_num = monthrange(year, month)[1]
-        # Último dia 23:59:59 BRT
         last_day_local = datetime(year, month, last_day_num, 23, 59, 59, tzinfo=DEFAULT_TIMEZONE)
 
-        # Converter limites para UTC para o filtro WHERE (performance)
+        # Converter limites para UTC
         first_day_utc = first_day_local.astimezone(timezone.utc)
         last_day_utc = last_day_local.astimezone(timezone.utc)
 
-        # Para extrair a data correta, precisamos converter o timestamp do banco (UTC)
-        # para o timezone local (BRT) ANTES de extrair a data.
-        # Postgres: timezone('America/Sao_Paulo', scheduled_datetime)
-        
-        # O campo é timestamptz. timezone('Zone', timestamptz) retorna timestamp (naive) naquele timezone.
         local_ts = func.timezone(DEFAULT_TIMEZONE.key, SchedulingModel.scheduled_datetime)
         
         stmt = (
@@ -485,7 +477,33 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
         )
 
         result = await self._session.execute(stmt)
-        return [row[0] for row in result.all()]
+        dates = [row[0] for row in result.all()]
+
+        # Verificar se existem aulas em meses anteriores
+        stmt_prev = select(func.count(SchedulingModel.id)).where(
+            SchedulingModel.instructor_id == instructor_id,
+            SchedulingModel.scheduled_datetime < first_day_utc,
+            SchedulingModel.status.notin_([SchedulingStatus.CANCELLED, SchedulingStatus.COMPLETED]),
+        )
+        result_prev = await self._session.execute(stmt_prev)
+        has_prev = (result_prev.scalar() or 0) > 0
+
+        # Verificar se existem aulas em meses posteriores
+        stmt_next = select(func.count(SchedulingModel.id)).where(
+            SchedulingModel.instructor_id == instructor_id,
+            SchedulingModel.scheduled_datetime > last_day_utc,
+            SchedulingModel.status.notin_([SchedulingStatus.CANCELLED, SchedulingStatus.COMPLETED]),
+        )
+        result_next = await self._session.execute(stmt_next)
+        has_next = (result_next.scalar() or 0) > 0
+
+        return {
+            "dates": [d.isoformat() for d in dates],
+            "year": year,
+            "month": month,
+            "has_prev": has_prev,
+            "has_next": has_next,
+        }
 
     async def get_overdue_confirmed(
         self, hours_threshold: int = 24

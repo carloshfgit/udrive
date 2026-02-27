@@ -317,6 +317,9 @@ export default function InstructorScheduleScreen() {
                         accessibilityLabel="Mês anterior"
                     >
                         <ChevronLeft size={24} color="#111318" />
+                        {schedulingDates?.has_prev && (
+                            <View className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 border border-white" />
+                        )}
                     </TouchableOpacity>
                     <Text className="text-lg font-semibold text-gray-900">
                         {MONTH_NAMES[currentMonth]} {currentYear}
@@ -327,6 +330,9 @@ export default function InstructorScheduleScreen() {
                         accessibilityLabel="Próximo mês"
                     >
                         <ChevronRight size={24} color="#111318" />
+                        {schedulingDates?.has_next && (
+                            <View className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 border border-white" />
+                        )}
                     </TouchableOpacity>
                 </View>
 

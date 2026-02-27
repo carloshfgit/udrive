@@ -258,7 +258,7 @@ class ISchedulingRepository(ABC):
         instructor_id: UUID,
         year: int,
         month: int,
-    ) -> list["date"]:
+    ) -> dict:
         """
         Retorna lista de datas únicas com agendamentos no mês.
 

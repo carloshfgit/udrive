@@ -136,16 +136,11 @@ async def get_scheduling_dates(
     month: int = Query(..., ge=1, le=12, description="Mês (1-12)"),
 ) -> dict:
     """Lista datas com agendamentos no mês."""
-    dates = await scheduling_repo.get_scheduling_dates_for_month(
+    return await scheduling_repo.get_scheduling_dates_for_month(
         instructor_id=current_user.id,
         year=year,
         month=month,
     )
-    return {
-        "dates": [d.isoformat() for d in dates],
-        "year": year,
-        "month": month,
-    }
 
 
 @router.get(
