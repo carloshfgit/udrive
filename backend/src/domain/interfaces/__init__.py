@@ -6,6 +6,8 @@ Implementações concretas ficam na camada Infrastructure.
 """
 
 from .auth_service import IAuthService
+from .notification_repository import INotificationRepository
+from .push_notification_service import IPushNotificationService
 from .availability_repository import IAvailabilityRepository
 from .instructor_repository import IInstructorRepository
 from .location_service import ILocationService
@@ -29,5 +31,7 @@ __all__ = [
     "IPaymentRepository",
     "ITransactionRepository",
     "IPaymentGateway",
+    "INotificationRepository",
+    "IPushNotificationService",
 ]
 

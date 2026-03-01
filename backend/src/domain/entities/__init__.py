@@ -5,6 +5,8 @@ Entidades puras de domínio sem dependências externas.
 """
 
 from .availability import Availability
+from .notification import Notification, NotificationActionType, NotificationType
+from .push_token import PushToken
 from .review import Review
 from .instructor_profile import InstructorProfile
 from .location import Location
@@ -35,5 +37,9 @@ __all__ = [
     "Transaction",
     "TransactionType",
     "Review",
+    "Notification",
+    "NotificationType",
+    "NotificationActionType",
+    "PushToken",
 ]
 

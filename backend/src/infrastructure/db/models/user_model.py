@@ -184,6 +184,19 @@ class UserModel(Base):
         cascade="all, delete-orphan",
         passive_deletes=True,
     )
+    notifications = relationship(
+        "NotificationModel",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        order_by="NotificationModel.created_at.desc()",
+    )
+    push_tokens = relationship(
+        "PushTokenModel",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
 
     # Índices compostos
     __table_args__ = (

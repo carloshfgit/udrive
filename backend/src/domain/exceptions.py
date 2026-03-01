@@ -386,6 +386,21 @@ class WebhookProcessingException(DomainException):
         super().__init__(message, "WEBHOOK_PROCESSING_ERROR")
 
 
+# === Notification Exceptions ===
+
+
+class NotificationNotFoundException(DomainException):
+    """Exceção lançada quando uma notificação não é encontrada."""
+
+    def __init__(self, identifier: str | None = None) -> None:
+        message = (
+            f"Notificação não encontrada: {identifier}"
+            if identifier
+            else "Notificação não encontrada"
+        )
+        super().__init__(message, "NOTIFICATION_NOT_FOUND")
+
+
 # === Chat Exceptions ===
 
 

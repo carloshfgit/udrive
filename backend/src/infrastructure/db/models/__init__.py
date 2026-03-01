@@ -5,6 +5,8 @@ Modelos SQLAlchemy para persistência de dados.
 """
 
 from .availability_model import AvailabilityModel
+from .notification_model import NotificationModel
+from .push_token_model import PushTokenModel
 from .instructor_profile_model import InstructorProfileModel
 from .message_model import MessageModel
 from .payment_model import PaymentModel
@@ -26,5 +28,7 @@ __all__ = [
     "TransactionModel",
     "MessageModel",
     "PaymentModel",
+    "NotificationModel",
+    "PushTokenModel",
 ]
 

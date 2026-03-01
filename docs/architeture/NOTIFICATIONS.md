@@ -59,11 +59,11 @@ O sistema de notificações opera em três canais complementares:
 
 | Tipo | Evento Gatilho | Deep Link (destino no app) |
 |------|----------------|----------------------------|
-| `NEW_SCHEDULING` | Aluno cria agendamento | Tela de detalhes do agendamento |
+| `NEW_SCHEDULING` | Aluno cria agendamento | Tela de agenda na data exata |
 | `RESCHEDULE_REQUESTED` | Aluno solicita reagendamento | Tela de detalhes do reagendamento |
-| `RESCHEDULE_RESPONDED` | Aluno responde reagendamento | Tela de detalhes do agendamento |
+| `RESCHEDULE_RESPONDED` | Aluno responde reagendamento | Tela de agenda na data exata |
 | `NEW_CHAT_MESSAGE` | Aluno envia mensagem | Tela do chat com o aluno |
-| `LESSON_REMINDER` | 30min antes da aula | Tela de detalhes do agendamento |
+| `LESSON_REMINDER` | 30min antes da aula | Tela de agenda na data exata |
 
 ### Aluno
 
