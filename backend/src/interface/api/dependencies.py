@@ -301,3 +301,29 @@ def get_get_instructor_lessons_for_student_use_case(
     return GetInstructorLessonsForStudentUseCase(scheduling_repo)
 
 
+# =============================================================================
+# Notification Dependencies
+# =============================================================================
+
+from src.application.services.notification_service import NotificationService
+from src.infrastructure.repositories.notification_repository_impl import (
+    NotificationRepositoryImpl,
+)
+from src.infrastructure.services.push_notification_service import (
+    ExpoPushNotificationService,
+)
+from src.interface.websockets.connection_manager import manager as ws_manager
+
+
+def get_notification_service(
+    session: DBSession,
+) -> NotificationService:
+    """Fornece o NotificationService com todos os colaboradores injetados."""
+    return NotificationService(
+        notification_repository=NotificationRepositoryImpl(session),
+        push_service=ExpoPushNotificationService(session),
+        ws_manager=ws_manager,
+    )
+
+
+NotificationServiceDep = Annotated[NotificationService, Depends(get_notification_service)]

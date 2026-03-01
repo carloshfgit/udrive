@@ -86,3 +86,40 @@ class UnreadCountDTO:
     """DTO de resposta para contagem de notificações não lidas."""
 
     count: int
+
+
+# === Pydantic schemas (response_model dos endpoints REST) ===
+
+from pydantic import BaseModel  # noqa: E402
+
+
+class NotificationSchema(BaseModel):
+    """Schema Pydantic para serialização de notificação nos endpoints REST."""
+
+    id: UUID
+    type: str
+    title: str
+    body: str
+    action_type: str | None
+    action_id: UUID | None
+    is_read: bool
+    created_at: datetime
+    read_at: datetime | None
+
+    model_config = {"from_attributes": True}
+
+
+class NotificationListDTO(BaseModel):
+    """Schema Pydantic para lista paginada de notificações."""
+
+    notifications: list[NotificationSchema]
+    unread_count: int
+    total: int
+
+    model_config = {"from_attributes": True}
+
+
+class UnreadCountSchema(BaseModel):
+    """Schema Pydantic para contagem de não lidas."""
+
+    count: int

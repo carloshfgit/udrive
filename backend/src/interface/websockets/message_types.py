@@ -73,6 +73,17 @@ SCHEDULING_EVENT_TYPES = {
 
 
 # =============================================================================
+# Server → Client — Notifications
+# =============================================================================
+
+class NotificationEventType:
+    """Tipos de eventos de notificação enviados pelo servidor."""
+
+    NOTIFICATION = "NOTIFICATION"           # Nova notificação recebida
+    UNREAD_COUNT_UPDATE = "UNREAD_COUNT"    # Atualização do badge do sininho
+
+
+# =============================================================================
 # Error Codes
 # =============================================================================
 

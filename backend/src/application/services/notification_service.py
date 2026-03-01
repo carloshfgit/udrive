@@ -40,6 +40,10 @@ class NotificationService:
     push_service: IPushNotificationService
     ws_manager: ConnectionManager
 
+    # =========================================================================
+    # Envio de notificações
+    # =========================================================================
+
     async def notify(
         self,
         user_id: UUID,
@@ -110,6 +114,129 @@ class NotificationService:
             )
 
         return saved
+
+    # =========================================================================
+    # Leitura de notificações (para endpoints REST)
+    # =========================================================================
+
+    async def get_notifications(
+        self,
+        user_id: UUID,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> list[Notification]:
+        """
+        Retorna notificações do usuário paginadas, mais recentes primeiro.
+
+        Args:
+            user_id: UUID do usuário.
+            limit: Quantidade máxima a retornar.
+            offset: Posição inicial para paginação.
+
+        Returns:
+            Lista de notificações ordenada por data desc.
+        """
+        return await self.notification_repository.get_by_user(
+            user_id=user_id,
+            limit=limit,
+            offset=offset,
+        )
+
+    async def get_unread_count(self, user_id: UUID) -> int:
+        """
+        Retorna a contagem de notificações não lidas do usuário.
+
+        Args:
+            user_id: UUID do usuário.
+
+        Returns:
+            Quantidade de notificações não lidas.
+        """
+        return await self.notification_repository.count_unread(user_id)
+
+    # =========================================================================
+    # Ações sobre notificações
+    # =========================================================================
+
+    async def mark_as_read(self, notification_id: UUID, user_id: UUID) -> bool:
+        """
+        Marca uma notificação específica como lida.
+
+        Args:
+            notification_id: UUID da notificação.
+            user_id: UUID do proprietário (proteção contra acesso não autorizado).
+
+        Returns:
+            True se atualizado com sucesso, False se não encontrado/já lido.
+        """
+        return await self.notification_repository.mark_as_read(
+            notification_id=notification_id,
+            user_id=user_id,
+        )
+
+    async def mark_all_as_read(self, user_id: UUID) -> int:
+        """
+        Marca todas as notificações não lidas do usuário como lidas.
+
+        Args:
+            user_id: UUID do usuário.
+
+        Returns:
+            Quantidade de notificações atualizadas.
+        """
+        return await self.notification_repository.mark_all_as_read(user_id)
+
+    # =========================================================================
+    # Gerenciamento de Push Tokens
+    # =========================================================================
+
+    async def register_push_token(
+        self,
+        user_id: UUID,
+        token: str,
+        device_id: str | None = None,
+        platform: str | None = None,
+    ) -> None:
+        """
+        Registra ou reativa um Expo Push Token do dispositivo.
+
+        Deve ser chamado ao fazer login ou quando o token é renovado.
+
+        Args:
+            user_id: UUID do usuário dono do dispositivo.
+            token: Expo Push Token.
+            device_id: Identificador do dispositivo (opcional).
+            platform: Plataforma ('ios' | 'android').
+        """
+        await self.push_service.register_token(
+            user_id=user_id,
+            token=token,
+            device_id=device_id,
+            platform=platform,
+        )
+        logger.info(
+            "push_token_registered",
+            user_id=str(user_id),
+            platform=platform,
+        )
+
+    async def unregister_push_token(self, user_id: UUID, token: str) -> bool:
+        """
+        Remove um Expo Push Token (chamado no logout ou desinstalação).
+
+        Args:
+            user_id: UUID do proprietário do token.
+            token: Expo Push Token a remover.
+
+        Returns:
+            True se removido com sucesso, False se não encontrado.
+        """
+        try:
+            await self.push_service.unregister_token(token=token, user_id=user_id)
+            logger.info("push_token_unregistered", user_id=str(user_id))
+            return True
+        except Exception:
+            return False
 
 
 def _to_response_dto(notification: Notification) -> NotificationResponseDTO:
