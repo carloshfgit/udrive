@@ -26,11 +26,18 @@ from src.application.use_cases.scheduling import (
     RespondRescheduleUseCase,
     StartSchedulingUseCase,
 )
+from src.application.use_cases.scheduling.scheduling_notification_decorators import (
+    NotifyOnCancelScheduling,
+    NotifyOnConfirmScheduling,
+    NotifyOnRequestReschedule,
+    NotifyOnRespondReschedule,
+)
 from src.domain.exceptions import DomainException
 from src.domain.entities.scheduling_status import SchedulingStatus
 from src.interface.api.dependencies import (
     AvailabilityRepo,
     CurrentInstructor,
+    NotificationServiceDep,
     SchedulingRepo,
     UserRepo,
 )
@@ -182,6 +189,7 @@ async def confirm_scheduling(
     current_user: CurrentInstructor,
     scheduling_repo: SchedulingRepo,
     user_repo: UserRepo,
+    notification_svc: NotificationServiceDep,
 ) -> SchedulingResponse:
     """Confirma um agendamento pendente."""
     # Verificar permissão
@@ -198,7 +206,10 @@ async def confirm_scheduling(
             detail="Apenas o instrutor pode confirmar",
         )
 
-    use_case = ConfirmSchedulingUseCase(scheduling_repo, user_repo)
+    use_case = NotifyOnConfirmScheduling(
+        _wrapped=ConfirmSchedulingUseCase(scheduling_repo, user_repo),
+        _notification_service=notification_svc,
+    )
     dto = ConfirmSchedulingDTO(
         scheduling_id=scheduling_id,
         instructor_id=current_user.id,
@@ -229,12 +240,16 @@ async def respond_reschedule(
     scheduling_repo: SchedulingRepo,
     user_repo: UserRepo,
     availability_repo: AvailabilityRepo,
+    notification_svc: NotificationServiceDep,
 ) -> SchedulingResponse:
     """Aceita ou recusa uma solicitação de reagendamento."""
-    use_case = RespondRescheduleUseCase(
-        scheduling_repository=scheduling_repo,
-        user_repository=user_repo,
-        availability_repository=availability_repo,
+    use_case = NotifyOnRespondReschedule(
+        _wrapped=RespondRescheduleUseCase(
+            scheduling_repository=scheduling_repo,
+            user_repository=user_repo,
+            availability_repository=availability_repo,
+        ),
+        _notification_service=notification_svc,
     )
 
     dto = RespondRescheduleDTO(
@@ -275,12 +290,16 @@ async def request_reschedule(
     scheduling_repo: SchedulingRepo,
     user_repo: UserRepo,
     availability_repo: AvailabilityRepo,
+    notification_svc: NotificationServiceDep,
 ) -> SchedulingResponse:
     """Solicita reagendamento de aula."""
-    use_case = RequestRescheduleUseCase(
-        scheduling_repository=scheduling_repo,
-        user_repository=user_repo,
-        availability_repository=availability_repo,
+    use_case = NotifyOnRequestReschedule(
+        _wrapped=RequestRescheduleUseCase(
+            scheduling_repository=scheduling_repo,
+            user_repository=user_repo,
+            availability_repository=availability_repo,
+        ),
+        _notification_service=notification_svc,
     )
 
     dto = RequestRescheduleDTO(
@@ -407,6 +426,7 @@ async def cancel_scheduling(
     current_user: CurrentInstructor,
     scheduling_repo: SchedulingRepo,
     user_repo: UserRepo,
+    notification_svc: NotificationServiceDep,
     reason: str | None = Query(None, description="Motivo do cancelamento"),
 ) -> CancellationResultResponse:
     """Cancela um agendamento."""
@@ -425,7 +445,10 @@ async def cancel_scheduling(
         )
 
     try:
-        use_case = CancelSchedulingUseCase(scheduling_repo, user_repo)
+        use_case = NotifyOnCancelScheduling(
+            _wrapped=CancelSchedulingUseCase(scheduling_repo, user_repo),
+            _notification_service=notification_svc,
+        )
         dto = CancelSchedulingDTO(
             scheduling_id=scheduling_id,
             cancelled_by=current_user.id,

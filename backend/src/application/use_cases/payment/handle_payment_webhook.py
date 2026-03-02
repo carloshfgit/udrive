@@ -10,9 +10,11 @@ todos os payments de um mesmo checkout.
 """
 
 import structlog
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
 
 from src.application.dtos.payment_dtos import WebhookNotificationDTO
+from src.domain.entities.notification import NotificationActionType, NotificationType
 from src.domain.entities.payment_status import PaymentStatus
 from src.domain.entities.transaction import Transaction
 from src.domain.exceptions import WebhookProcessingException
@@ -22,6 +24,9 @@ from src.domain.interfaces.payment_repository import IPaymentRepository
 from src.domain.interfaces.scheduling_repository import ISchedulingRepository
 from src.domain.interfaces.transaction_repository import ITransactionRepository
 from src.infrastructure.services.token_encryption import decrypt_token
+
+if TYPE_CHECKING:
+    from src.application.services.notification_service import NotificationService
 
 logger = structlog.get_logger()
 
@@ -65,6 +70,7 @@ class HandlePaymentWebhookUseCase:
     transaction_repository: ITransactionRepository
     instructor_repository: IInstructorRepository
     payment_gateway: IPaymentGateway
+    notification_service: "NotificationService | None" = field(default=None)
 
     async def execute(self, dto: WebhookNotificationDTO) -> None:
         """
@@ -327,6 +333,23 @@ class HandlePaymentWebhookUseCase:
                     scheduling_id=scheduling.id,
                 )
 
+            # Notificar aluno sobre pagamento aprovado
+            if self.notification_service is not None:
+                try:
+                    await self.notification_service.notify(
+                        user_id=payment.student_id,
+                        notification_type=NotificationType.PAYMENT_STATUS_CHANGED,
+                        title="Pagamento aprovado! ✅",
+                        body="Seu pagamento foi confirmado. Sua aula está agendada!",
+                        action_type=NotificationActionType.SCHEDULING,
+                        action_id=payment.scheduling_id,
+                    )
+                except Exception:
+                    logger.exception(
+                        "notify_payment_approved_failed",
+                        payment_id=str(payment.id),
+                    )
+
     async def _handle_rejected(self, payments: list) -> None:
         """Trata pagamento rejeitado: marca FAILED para todos."""
         for payment in payments:
@@ -335,6 +358,23 @@ class HandlePaymentWebhookUseCase:
             payment.mark_failed()
             await self.payment_repository.update(payment)
             logger.info("payment_marked_failed", payment_id=payment.id)
+
+            # Notificar aluno sobre pagamento recusado
+            if self.notification_service is not None:
+                try:
+                    await self.notification_service.notify(
+                        user_id=payment.student_id,
+                        notification_type=NotificationType.PAYMENT_STATUS_CHANGED,
+                        title="Pagamento não aprovado ❌",
+                        body="Seu pagamento foi recusado. Tente novamente com outro método de pagamento.",
+                        action_type=NotificationActionType.SCHEDULING,
+                        action_id=payment.scheduling_id,
+                    )
+                except Exception:
+                    logger.exception(
+                        "notify_payment_rejected_failed",
+                        payment_id=str(payment.id),
+                    )
 
     async def _handle_refunded(self, payments: list) -> None:
         """Trata reembolso: marca REFUNDED se possível para todos."""

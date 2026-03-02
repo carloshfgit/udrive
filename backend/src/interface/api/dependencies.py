@@ -252,6 +252,31 @@ CurrentInstructor = Annotated[User, Depends(require_instructor)]
 # Use Case Dependencies
 # =============================================================================
 
+# Notification Dependencies (definidas antes para uso nas factory functions abaixo)
+from src.application.services.notification_service import NotificationService
+from src.infrastructure.repositories.notification_repository_impl import (
+    NotificationRepositoryImpl,
+)
+from src.infrastructure.services.push_notification_service import (
+    ExpoPushNotificationService,
+)
+from src.interface.websockets.connection_manager import manager as ws_manager
+
+
+def get_notification_service(
+    session: DBSession,
+) -> NotificationService:
+    """Fornece o NotificationService com todos os colaboradores injetados."""
+    return NotificationService(
+        notification_repository=NotificationRepositoryImpl(session),
+        push_service=ExpoPushNotificationService(session),
+        ws_manager=ws_manager,
+    )
+
+
+NotificationServiceDep = Annotated[NotificationService, Depends(get_notification_service)]
+
+
 from src.application.use_cases.chat.send_message_use_case import SendMessageUseCase
 from src.application.use_cases.chat.get_instructor_conversations_use_case import (
     GetInstructorConversationsUseCase,
@@ -267,12 +292,20 @@ from src.application.use_cases.chat.get_instructor_lessons_for_student_use_case 
 )
 
 
+from src.application.use_cases.chat.chat_notification_decorators import NotifyOnSendMessage
+
+
 def get_send_message_use_case(
     message_repo: MessageRepo,
     scheduling_repo: SchedulingRepo,
     user_repo: UserRepo,
-) -> SendMessageUseCase:
-    return SendMessageUseCase(message_repo, scheduling_repo, user_repo)
+    notification_svc: NotificationServiceDep,
+) -> NotifyOnSendMessage:
+    wrapped = SendMessageUseCase(message_repo, scheduling_repo, user_repo)
+    return NotifyOnSendMessage(
+        _wrapped=wrapped,
+        _notification_service=notification_svc,
+    )
 
 
 def get_get_instructor_conversations_use_case(
@@ -301,29 +334,3 @@ def get_get_instructor_lessons_for_student_use_case(
     return GetInstructorLessonsForStudentUseCase(scheduling_repo)
 
 
-# =============================================================================
-# Notification Dependencies
-# =============================================================================
-
-from src.application.services.notification_service import NotificationService
-from src.infrastructure.repositories.notification_repository_impl import (
-    NotificationRepositoryImpl,
-)
-from src.infrastructure.services.push_notification_service import (
-    ExpoPushNotificationService,
-)
-from src.interface.websockets.connection_manager import manager as ws_manager
-
-
-def get_notification_service(
-    session: DBSession,
-) -> NotificationService:
-    """Fornece o NotificationService com todos os colaboradores injetados."""
-    return NotificationService(
-        notification_repository=NotificationRepositoryImpl(session),
-        push_service=ExpoPushNotificationService(session),
-        ws_manager=ws_manager,
-    )
-
-
-NotificationServiceDep = Annotated[NotificationService, Depends(get_notification_service)]
