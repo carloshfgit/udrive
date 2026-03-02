@@ -16,6 +16,8 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.ch_costa.udrive",
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -61,6 +63,12 @@
           "color": "#FF6B35"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "090e4f9d-06c2-4097-b3f9-2e3f3ad5e0e7"
+      }
+    },
+    "owner": "ch_costa"
   }
 }

@@ -40,7 +40,7 @@ const STEPS: TutorialStep[] = [
     },
     {
         id: '4',
-        title: 'Olho na Agenda!',
+        title: 'Ative as Notificações!',
         description: 'Fique atento às notificações de novos agendamentos.',
         icon: <CheckSquare size={24} color="#F59E0B" />,
         color: 'bg-amber-50',
