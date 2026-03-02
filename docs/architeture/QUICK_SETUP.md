@@ -49,7 +49,11 @@ O aplicativo mobile deve ser executado localmente fora do Docker para facilitar 
 
 3. **Inicie o servidor de desenvolvimento**:
    ```bash
-   npx expo start -c
+   npx expo start --dev-client
+   ```
+   ou
+   ```bash
+   npx expo start --dev-client --tunnel -c
    ```
    
    - Pressione `a` para abrir no emulador Android.
