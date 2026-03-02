@@ -16,6 +16,8 @@ import { Platform } from 'react-native';
 import { useAuthStore } from '@lib/index';
 import { api, SHARED_API } from '@lib/axios';
 import { useNotificationNavigation } from './useNotificationNavigation';
+import { useNotificationStore } from '../../features/shared-features/notifications/stores/notificationStore';
+import { useQueryClient } from '@tanstack/react-query';
 
 // Configuração global: como a notificação é exibida quando o app está em foreground
 Notifications.setNotificationHandler({
@@ -23,6 +25,8 @@ Notifications.setNotificationHandler({
         shouldShowAlert: true,
         shouldPlaySound: true,
         shouldSetBadge: true,
+        shouldShowBanner: true,
+        shouldShowList: true,
     }),
 });
 
@@ -36,8 +40,10 @@ Notifications.setNotificationHandler({
 export function usePushNotifications() {
     const { user } = useAuthStore();
     const { handleNotificationPress } = useNotificationNavigation();
-    const notificationListener = useRef<Notifications.EventSubscription>();
-    const responseListener = useRef<Notifications.EventSubscription>();
+    const incrementUnread = useNotificationStore((s) => s.incrementUnread);
+    const queryClient = useQueryClient();
+    const notificationListener = useRef<Notifications.EventSubscription>(undefined);
+    const responseListener = useRef<Notifications.EventSubscription>(undefined);
 
     useEffect(() => {
         if (!user) return;
@@ -48,6 +54,10 @@ export function usePushNotifications() {
         notificationListener.current =
             Notifications.addNotificationReceivedListener((notification) => {
                 console.log('[Push] Notificação recebida em foreground:', notification.request.content.title);
+                // Incrementar badge e invalidar cache
+                incrementUnread();
+                queryClient.invalidateQueries({ queryKey: ['notifications'] });
+                queryClient.invalidateQueries({ queryKey: ['notifications-unread-count'] });
             });
 
         // Listener: usuário clicou na notificação (foreground ou background)

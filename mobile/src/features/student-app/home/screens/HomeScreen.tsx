@@ -7,6 +7,7 @@ import { QuickStepsTutorial } from '../components/QuickStepsTutorial';
 import { NextClassCard } from '../components/NextClassCard';
 import { LessonProgressBar } from '../components/LessonProgressBar';
 import { LoadingState } from '../../../../shared/components/LoadingState';
+import { useUnreadCount } from '../../../shared-features/notifications/hooks/useUnreadCount';
 
 export function HomeScreen() {
     const navigation = useNavigation<any>();
@@ -17,6 +18,7 @@ export function HomeScreen() {
         isLoading,
         refetch
     } = useHomeData();
+    const { unreadCount } = useUnreadCount();
 
     useFocusEffect(
         useCallback(() => {
@@ -40,7 +42,8 @@ export function HomeScreen() {
         <SafeAreaView className="flex-1 bg-white">
             <WelcomeHeader
                 name={profile?.full_name}
-                notificationCount={0}
+                notificationCount={unreadCount}
+                onPressNotifications={() => navigation.navigate('Notifications' as never)}
             />
 
             <ScrollView

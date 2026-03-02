@@ -18,11 +18,13 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Calendar } from 'lucide-react-native';
 import { RescheduleModal } from '../../student-app/scheduling/components/RescheduleModal';
+import { useUnreadCount } from '../../shared-features/notifications/hooks/useUnreadCount';
 
 
 export function InstructorHomeScreen() {
     const { user } = useAuthStore();
     const navigation = useNavigation<any>();
+    const { unreadCount } = useUnreadCount();
 
     // Hooks de dados da Home
     const {
@@ -75,6 +77,8 @@ export function InstructorHomeScreen() {
             <InstructorWelcomeHeader
                 name={user?.full_name}
                 avatarUrl={user?.avatarUrl}
+                notificationCount={unreadCount}
+                onPressNotifications={() => navigation.navigate('Notifications' as never)}
             />
 
             <ScrollView

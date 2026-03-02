@@ -140,6 +140,26 @@ export function useWebSocket() {
                     queryClient.invalidateQueries({ queryKey: ['student-history'] });
                     break;
                 }
+
+                // --- Notification Events ---
+
+                case 'NOTIFICATION': {
+                    // Nova notificação recebida via WebSocket (usuário online)
+                    const payload = message.data as Record<string, any>;
+                    if (payload?.unread_count !== undefined) {
+                        // Usar a contagem exata do backend
+                        const { useNotificationStore } = require('../../features/shared-features/notifications/stores/notificationStore');
+                        useNotificationStore.getState().setUnreadCount(payload.unread_count);
+                    } else {
+                        // Fallback: incrementar
+                        const { useNotificationStore } = require('../../features/shared-features/notifications/stores/notificationStore');
+                        useNotificationStore.getState().incrementUnread();
+                    }
+                    // Invalidar lista de notificações para que apareça ao abrir a tela
+                    queryClient.invalidateQueries({ queryKey: ['notifications'] });
+                    queryClient.invalidateQueries({ queryKey: ['notifications-unread-count'] });
+                    break;
+                }
             }
 
             // Notificar listeners customizados (ex: hook de notificações)

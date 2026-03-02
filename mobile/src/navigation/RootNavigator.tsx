@@ -16,6 +16,7 @@ import { usePushNotifications } from '../shared/hooks/usePushNotifications';
 import { StudentTabNavigator } from '../features/student-app/navigation/StudentTabNavigator';
 import { InstructorTabNavigator } from '../features/instructor-app/navigation/InstructorTabNavigator';
 import { PaymentResultScreen } from '../screens/PaymentResultScreen';
+import { NotificationsScreen } from '../features/shared-features/notifications/screens/NotificationsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -42,6 +43,14 @@ export function RootNavigator() {
             <Stack.Screen
                 name="PaymentResult"
                 component={PaymentResultScreen}
+                options={{
+                    presentation: 'modal',
+                    animation: 'slide_from_bottom',
+                }}
+            />
+            <Stack.Screen
+                name="Notifications"
+                component={NotificationsScreen}
                 options={{
                     presentation: 'modal',
                     animation: 'slide_from_bottom',
