@@ -4,6 +4,7 @@ MercadoPagoGateway Implementation
 Implementação agnóstica do gateway usando as APIs do Mercado Pago.
 """
 
+import hashlib
 from decimal import Decimal
 from typing import Any
 import httpx
@@ -159,10 +160,22 @@ class MercadoPagoGateway(IPaymentGateway):
     ) -> RefundResult:
         """
         Processa reembolso.
+
+        Utiliza X-Idempotency-Key para evitar duplo-estorno em caso de retry.
+        O header X-Render-In-Process-Refunds garante que o MP retorne status
+        'in_process' (preparação para Pix no futuro).
         """
         url = f"{self.base_url}/v1/payments/{payment_id}/refunds"
+
+        # Idempotência: hash(payment_id + amount) garante que retry não duplica estorno
+        idempotency_seed = f"refund-{payment_id}-{amount or 'full'}"
+        idempotency_key = hashlib.sha256(idempotency_seed.encode()).hexdigest()
+
         headers = {
             "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json",
+            "X-Idempotency-Key": idempotency_key,
+            "X-Render-In-Process-Refunds": "true",
         }
         
         payload = {}
@@ -171,7 +184,18 @@ class MercadoPagoGateway(IPaymentGateway):
 
         async with httpx.AsyncClient() as client:
             response = await client.post(url, json=payload, headers=headers)
-            response.raise_for_status()
+            try:
+                response.raise_for_status()
+            except httpx.HTTPStatusError as e:
+                logger.error(
+                    "mp_refund_error",
+                    status_code=response.status_code,
+                    response_body=response.text,
+                    payment_id=payment_id,
+                    amount=str(amount),
+                    url=str(response.url),
+                )
+                raise e
             data = response.json()
 
             return RefundResult(
