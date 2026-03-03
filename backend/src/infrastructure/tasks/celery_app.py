@@ -41,6 +41,7 @@ celery_app.conf.update(
 celery_app.conf.include = [
     "src.infrastructure.tasks.notification_tasks",
     "src.infrastructure.tasks.cart_tasks",
+    "src.infrastructure.tasks.webhook_tasks",
 ]
 
 # Configurar o Celery Beat para rodar as tarefas periodicamente

@@ -48,6 +48,7 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
             select(SchedulingModel)
             .where(SchedulingModel.id == scheduling_id)
             .options(
+                joinedload(SchedulingModel.payment),
                 joinedload(SchedulingModel.student).load_only(UserModel.id, UserModel.full_name),
                 joinedload(SchedulingModel.instructor).options(
                     load_only(UserModel.id, UserModel.full_name),
@@ -137,7 +138,15 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
             select(SchedulingModel)
             .outerjoin(SchedulingModel.payment)
             .where(SchedulingModel.student_id == student_id)
-            .order_by(order)
+        )
+
+        if status is None:
+            from datetime import datetime, timezone
+            now = datetime.now(timezone.utc)
+            stmt = stmt.where(SchedulingModel.scheduled_datetime >= now)
+
+        stmt = (
+            stmt.order_by(order)
             .limit(limit)
             .offset(offset)
             .options(
@@ -188,6 +197,11 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
 
         stmt = select(func.count()).select_from(SchedulingModel).where(SchedulingModel.student_id == student_id)
 
+        if status is None:
+            from datetime import datetime, timezone
+            now = datetime.now(timezone.utc)
+            stmt = stmt.where(SchedulingModel.scheduled_datetime >= now)
+
         if payment_status_filter:
             stmt = stmt.outerjoin(PaymentModel, PaymentModel.scheduling_id == SchedulingModel.id)
 
@@ -227,6 +241,7 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
             .limit(limit)
             .offset(offset)
             .options(
+                joinedload(SchedulingModel.payment),
                 joinedload(SchedulingModel.student).load_only(UserModel.id, UserModel.full_name),
                 joinedload(SchedulingModel.instructor).options(
                     load_only(UserModel.id, UserModel.full_name),
@@ -262,6 +277,7 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
             .order_by(SchedulingModel.scheduled_datetime.asc())
             .limit(1)
             .options(
+                joinedload(SchedulingModel.payment),
                 joinedload(SchedulingModel.student).load_only(UserModel.id, UserModel.full_name),
                 joinedload(SchedulingModel.instructor).options(
                     load_only(UserModel.id, UserModel.full_name),
@@ -296,6 +312,7 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
             .order_by(SchedulingModel.scheduled_datetime.asc())
             .limit(1)
             .options(
+                joinedload(SchedulingModel.payment),
                 joinedload(SchedulingModel.student).load_only(UserModel.id, UserModel.full_name),
                 joinedload(SchedulingModel.instructor).options(
                     load_only(UserModel.id, UserModel.full_name),
@@ -393,6 +410,7 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
             .limit(limit)
             .offset(offset)
             .options(
+                joinedload(SchedulingModel.payment),
                 joinedload(SchedulingModel.student).load_only(UserModel.id, UserModel.full_name),
                 joinedload(SchedulingModel.instructor).options(
                     load_only(UserModel.id, UserModel.full_name),
@@ -431,6 +449,7 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
             )
             .order_by(SchedulingModel.scheduled_datetime.asc())
             .options(
+                joinedload(SchedulingModel.payment),
                 joinedload(SchedulingModel.student).load_only(UserModel.id, UserModel.full_name),
                 joinedload(SchedulingModel.instructor).options(
                     load_only(UserModel.id, UserModel.full_name),
@@ -530,6 +549,7 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
                 end_expr <= cutoff,
             )
             .options(
+                joinedload(SchedulingModel.payment),
                 joinedload(SchedulingModel.student).load_only(
                     UserModel.id, UserModel.full_name
                 ),
@@ -591,6 +611,7 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
             stmt = stmt.where(SchedulingModel.student_id == student_id)
 
         stmt = stmt.options(
+            joinedload(SchedulingModel.payment),
             joinedload(SchedulingModel.student).load_only(
                 UserModel.id, UserModel.full_name
             ),

@@ -5,14 +5,16 @@ Endpoints para receber notificações de webhooks de gateways de pagamento.
 """
 
 import structlog
+from dataclasses import asdict
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.dtos.payment_dtos import WebhookNotificationDTO
 from src.application.use_cases.payment import HandlePaymentWebhookUseCase
 from src.infrastructure.config import Settings
 from src.infrastructure.db.database import get_db, AsyncSessionLocal
+from src.infrastructure.tasks.webhook_tasks import process_mercadopago_webhook
 from src.infrastructure.external.mercadopago_gateway import MercadoPagoGateway
 from src.infrastructure.repositories.instructor_repository_impl import (
     InstructorRepositoryImpl,
@@ -33,35 +35,6 @@ router = APIRouter(prefix="/webhooks", tags=["Webhooks"])
 
 
 
-async def process_webhook_background(dto: WebhookNotificationDTO, settings: Settings) -> None:
-    """Processa o webhook em background abrindo sua própria sessão no banco de dados."""
-    async with AsyncSessionLocal() as session:
-        try:
-            from src.application.services.notification_service import NotificationService
-            from src.infrastructure.repositories.notification_repository_impl import NotificationRepositoryImpl
-            from src.infrastructure.services.push_notification_service import ExpoPushNotificationService
-            from src.interface.websockets.connection_manager import manager as ws_manager
-
-            notification_service = NotificationService(
-                notification_repository=NotificationRepositoryImpl(session),
-                push_service=ExpoPushNotificationService(session),
-                ws_manager=ws_manager,
-            )
-
-            use_case = HandlePaymentWebhookUseCase(
-                payment_repository=PaymentRepositoryImpl(session),
-                scheduling_repository=SchedulingRepositoryImpl(session),
-                transaction_repository=TransactionRepositoryImpl(session),
-                instructor_repository=InstructorRepositoryImpl(session),
-                payment_gateway=MercadoPagoGateway(settings),
-                notification_service=notification_service,
-            )
-            await use_case.execute(dto)
-            # Commit das alterações do webhook
-            await session.commit()
-        except Exception as e:
-            logger.error("webhook_processing_error", error=str(e))
-            await session.rollback()
 
 
 @router.post(
@@ -72,7 +45,6 @@ async def process_webhook_background(dto: WebhookNotificationDTO, settings: Sett
 )
 async def mercadopago_webhook(
     request: Request,
-    background_tasks: BackgroundTasks,
 ) -> dict:
     """
     Recebe e processa notificações do Mercado Pago.
@@ -136,7 +108,7 @@ async def mercadopago_webhook(
         user_id=user_id if user_id else None,
     )
 
-    # 4. Agendar a execução em background e retornar 200 pro Mercado Pago
-    background_tasks.add_task(process_webhook_background, dto, settings)
+    # 4. Agendar a execução no Celery e retornar 200 pro Mercado Pago
+    process_mercadopago_webhook.delay(asdict(dto))
 
     return {"status": "ok"}

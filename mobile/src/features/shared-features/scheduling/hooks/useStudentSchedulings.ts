@@ -11,7 +11,7 @@ interface UseStudentSchedulingsOptions {
 export function useStudentSchedulings({
     status,
     page = 1,
-    limit = 10,
+    limit = 40,
     enabled = true,
 }: UseStudentSchedulingsOptions = {}) {
     return useQuery({
