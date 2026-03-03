@@ -13,6 +13,8 @@ interface NotificationData {
     type: string;
     action_type: 'SCHEDULING' | 'CHAT' | 'REVIEW' | 'PAYMENT';
     action_id: string;
+    title?: string;
+    body?: string;
 }
 
 /**
@@ -32,6 +34,7 @@ export function useNotificationNavigation() {
         console.log('[Notification] Navegando para:', data.action_type, data.action_id);
 
         const isInstructor = user?.user_type === 'instructor';
+        const studentActionType = data.action_type === 'SCHEDULING' || data.action_type === 'PAYMENT';
 
         switch (data.action_type) {
             case 'SCHEDULING':
@@ -73,14 +76,41 @@ export function useNotificationNavigation() {
                         });
                     }
                 } else {
-                    // Para o aluno, vamos direto para os detalhes
-                    navigation.navigate('Main', {
-                        screen: 'Scheduling',
-                        params: {
-                            screen: 'LessonDetails',
-                            params: { schedulingId: data.action_id },
-                        }
-                    });
+                    // Check if it's a payment issue notification
+                    const titleLow = data.title?.toLowerCase() || '';
+                    const bodyLow = data.body?.toLowerCase() || '';
+                    const typeMatch = data.type === 'PAYMENT_STATUS_CHANGED' || data.action_type === 'PAYMENT';
+
+                    const hasKeywords =
+                        titleLow.includes('recusado') ||
+                        titleLow.includes('não aprovado') ||
+                        titleLow.includes('pendente') ||
+                        bodyLow.includes('recusado') ||
+                        bodyLow.includes('não aprovado') ||
+                        bodyLow.includes('pendente');
+
+                    const isPaymentIssue = typeMatch && hasKeywords;
+
+                    console.log('[Notification] Logic check:', { type: data.type, action_type: data.action_type, isPaymentIssue, hasKeywords });
+
+                    if (isPaymentIssue) {
+                        console.log('[Notification] Redirecionando para o Carrinho');
+                        navigation.navigate('Main', {
+                            screen: 'Scheduling',
+                            params: {
+                                screen: 'Cart'
+                            }
+                        });
+                    } else {
+                        // Para o aluno e outras notificações, vamos direto para os detalhes
+                        navigation.navigate('Main', {
+                            screen: 'Scheduling',
+                            params: {
+                                screen: 'LessonDetails',
+                                params: { schedulingId: data.action_id },
+                            }
+                        });
+                    }
                 }
                 break;
 

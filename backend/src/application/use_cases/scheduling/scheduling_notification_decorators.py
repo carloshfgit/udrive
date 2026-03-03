@@ -271,12 +271,14 @@ class NotifyOnRespondReschedule:
     _notification_service: NotificationService
 
     async def execute(self, dto: RespondRescheduleDTO) -> SchedulingResponseDTO:
+        # Recupera o agendamento ANTES do use case limpar o campo `rescheduled_by`
+        scheduling = await self._wrapped.scheduling_repository.get_by_id(dto.scheduling_id)
+        requester_id = scheduling.rescheduled_by if scheduling else None
+
         result = await self._wrapped.execute(dto)
 
         try:
             # Notifica quem fez a solicitação original
-            # rescheduled_by é quem pediu o reagendamento
-            requester_id = result.rescheduled_by
             if requester_id is not None:
                 action_verb = "aceito" if dto.accepted else "recusado"
                 await self._notification_service.notify(

@@ -60,16 +60,20 @@ export function usePushNotifications() {
                 queryClient.invalidateQueries({ queryKey: ['notifications-unread-count'] });
             });
 
-        // Listener: usuário clicou na notificação (foreground ou background)
         responseListener.current =
             Notifications.addNotificationResponseReceivedListener((response) => {
-                const data = response.notification.request.content.data as {
+                const content = response.notification.request.content;
+                const data = content.data as {
                     type?: string;
                     action_type?: string;
                     action_id?: string;
                 };
                 if (data.action_type && data.action_id) {
-                    handleNotificationPress(data as any);
+                    handleNotificationPress({
+                        ...data,
+                        title: content.title,
+                        body: content.body
+                    } as any);
                 }
             });
 

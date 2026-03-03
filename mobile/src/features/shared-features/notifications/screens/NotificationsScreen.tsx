@@ -46,6 +46,8 @@ export function NotificationsScreen() {
                 type: notification.type,
                 action_type: notification.action_type,
                 action_id: notification.action_id,
+                title: notification.title,
+                body: notification.body,
             });
         }
     }
