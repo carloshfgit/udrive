@@ -40,6 +40,22 @@ export function useNotificationNavigation() {
                     try {
                         // Para o instrutor, precisamos da data para abrir o calendário no dia correto
                         const booking = await getInstructorBooking(data.action_id);
+
+                        // Se for uma notificação de reagendamento e ainda estiver pendente, vai para a tela de detalhes do reagendamento
+                        if (
+                            (data.type === 'RESCHEDULE_REQUESTED' || data.type === 'RESCHEDULE_RESPONDED') &&
+                            booking.status.toLowerCase() === 'reschedule_requested'
+                        ) {
+                            navigation.navigate('Main', {
+                                screen: 'InstructorSchedule',
+                                params: {
+                                    screen: 'RescheduleDetails',
+                                    params: { scheduling: booking }
+                                }
+                            });
+                            return;
+                        }
+
                         const dateOnly = booking.scheduled_datetime.split('T')[0];
 
                         navigation.navigate('Main', {
