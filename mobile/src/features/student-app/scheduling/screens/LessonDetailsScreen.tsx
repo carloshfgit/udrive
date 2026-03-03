@@ -11,6 +11,7 @@ import { EmptyState } from '../../../../shared/components/EmptyState';
 import { useLessonDetails } from '../../../shared-features/scheduling/hooks/useLessonDetails';
 import { RescheduleModal } from '../components/RescheduleModal';
 import { LessonEvaluationModal } from '../components/LessonEvaluationModal';
+import { CancelLessonModal } from '../../../shared-features/scheduling/components';
 
 export function LessonDetailsScreen() {
     const route = useRoute<any>();
@@ -36,6 +37,7 @@ export function LessonDetailsScreen() {
 
     const [isRescheduleVisible, setIsRescheduleVisible] = useState(false);
     const [isEvaluationVisible, setIsEvaluationVisible] = useState(false);
+    const [isCancelVisible, setIsCancelVisible] = useState(false);
 
 
 
@@ -101,33 +103,21 @@ export function LessonDetailsScreen() {
     };
 
     const handleCancel = () => {
-        // Here we'd show the refund rules based on time
-        const now = new Date().getTime();
-        const lessonTime = scheduledDate.getTime();
-        const diffHours = (lessonTime - now) / 3600000;
+        setIsCancelVisible(true);
+    };
 
-        let message = "Deseja realmente cancelar este agendamento?";
-        if (diffHours < 24) {
-            message += "\n\nAtenção: Faltam menos de 24h para a aula. Não há direito a reembolso (0%).";
-        } else if (diffHours < 48) {
-            message += "\n\nAtenção: Faltam entre 24h e 48h para a aula. Haverá retenção de 50% como taxa de reserva.";
-        } else {
-            message += "\n\nCancelamento gratuito disponível (reembolso integral de 100%).";
-        }
-
-        Alert.alert("Confirmar Cancelamento", message, [
-            { text: "Manter Aula", style: "cancel" },
-            {
-                text: "Confirmar Cancelamento",
-                style: "destructive",
-                onPress: () => cancelLesson(undefined, {
-                    onError: (error: any) => {
-                        const errorMessage = error.response?.data?.detail || error.message || 'Não foi possível cancelar a aula.';
-                        Alert.alert("Erro", errorMessage);
-                    }
-                })
+    const handleConfirmCancel = () => {
+        cancelLesson(undefined, {
+            onSuccess: () => {
+                setIsCancelVisible(false);
+                Alert.alert("Cancelado", "A aula foi cancelada com sucesso.");
+            },
+            onError: (error: any) => {
+                setIsCancelVisible(false);
+                const errorMessage = error.response?.data?.detail || error.message || 'Não foi possível cancelar a aula.';
+                Alert.alert("Erro", errorMessage);
             }
-        ]);
+        });
     };
 
     const handleFinish = () => {
@@ -461,6 +451,15 @@ export function LessonDetailsScreen() {
                     refetch();
                     Alert.alert("Sucesso", "Obrigado por sua avaliação!");
                 }}
+            />
+
+            <CancelLessonModal
+                isVisible={isCancelVisible}
+                onClose={() => setIsCancelVisible(false)}
+                onConfirm={handleConfirmCancel}
+                isSubmitting={isCancelling}
+                scheduledDatetime={lesson.scheduled_datetime}
+                price={lesson.price}
             />
         </SafeAreaView>
     );
