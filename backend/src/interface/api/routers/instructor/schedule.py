@@ -40,6 +40,7 @@ from src.interface.api.dependencies import (
     NotificationServiceDep,
     SchedulingRepo,
     UserRepo,
+    PaymentRepo,
 )
 from src.interface.api.schemas.scheduling_schemas import (
     CancellationResultResponse,
@@ -426,6 +427,7 @@ async def cancel_scheduling(
     current_user: CurrentInstructor,
     scheduling_repo: SchedulingRepo,
     user_repo: UserRepo,
+    payment_repo: PaymentRepo,
     notification_svc: NotificationServiceDep,
     reason: str | None = Query(None, description="Motivo do cancelamento"),
 ) -> CancellationResultResponse:
@@ -478,6 +480,20 @@ async def cancel_scheduling(
                     await dispatcher.emit_scheduling_cancelled(scheduling_dto, current_user.id)
             except Exception as e:
                 logger.error("event_dispatch_error", dispatch_event="scheduling_cancelled", error=str(e))
+
+        # Disparar reembolso assíncrono se houver percentual de reembolso
+        if result.refund_percentage > 0:
+            try:
+                payment = await payment_repo.get_by_scheduling_id(scheduling_id)
+                if payment and payment.can_refund():
+                    from src.infrastructure.tasks.refund_tasks import process_refund_task
+                    process_refund_task.delay(
+                        payment_id=str(payment.id),
+                        refund_percentage=int(result.refund_percentage),
+                        reason=reason,
+                    )
+            except Exception as e:
+                logger.error("refund_task_dispatch_error", error=str(e), scheduling_id=str(scheduling_id))
 
         return CancellationResultResponse(
             scheduling_id=result.scheduling_id,

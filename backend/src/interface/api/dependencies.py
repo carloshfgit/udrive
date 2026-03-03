@@ -29,6 +29,7 @@ from src.domain.interfaces.availability_repository import IAvailabilityRepositor
 from src.domain.interfaces.student_repository import IStudentRepository
 from src.domain.interfaces.token_repository import ITokenRepository
 from src.domain.interfaces.user_repository import IUserRepository
+from src.domain.interfaces.payment_repository import IPaymentRepository
 from src.infrastructure.db.database import get_db
 from src.infrastructure.repositories.instructor_repository_impl import (
     InstructorRepositoryImpl,
@@ -50,6 +51,7 @@ from src.infrastructure.repositories.student_repository_impl import (
 )
 from src.infrastructure.repositories.token_repository_impl import TokenRepositoryImpl
 from src.infrastructure.repositories.user_repository_impl import UserRepositoryImpl
+from src.infrastructure.repositories.payment_repository_impl import PaymentRepositoryImpl
 from src.infrastructure.services.auth_service_impl import AuthServiceImpl
 from src.infrastructure.services.location_service_impl import LocationServiceImpl
 from src.infrastructure.external.redis_cache import RedisCacheService, cache_service
@@ -90,6 +92,11 @@ def get_student_repository(session: DBSession) -> IStudentRepository:
 def get_scheduling_repository(session: DBSession) -> ISchedulingRepository:
     """Fornece uma instância do repositório de agendamentos."""
     return SchedulingRepositoryImpl(session)
+
+
+def get_payment_repository(session: DBSession) -> IPaymentRepository:
+    """Fornece uma instância do repositório de pagamentos."""
+    return PaymentRepositoryImpl(session)
 
 
 def get_availability_repository(session: DBSession) -> IAvailabilityRepository:
@@ -236,6 +243,7 @@ TokenRepo = Annotated[ITokenRepository, Depends(get_token_repository)]
 InstructorRepo = Annotated[IInstructorRepository, Depends(get_instructor_repository)]
 StudentRepo = Annotated[IStudentRepository, Depends(get_student_repository)]
 SchedulingRepo = Annotated[ISchedulingRepository, Depends(get_scheduling_repository)]
+PaymentRepo = Annotated[IPaymentRepository, Depends(get_payment_repository)]
 AvailabilityRepo = Annotated[IAvailabilityRepository, Depends(get_availability_repository)]
 ReviewRepo = Annotated[IReviewRepository, Depends(get_review_repository)]
 AuthService = Annotated[IAuthService, Depends(get_auth_service)]
