@@ -78,6 +78,16 @@ export async function getScheduleByDate(date: string): Promise<SchedulingListRes
 }
 
 /**
+ * Busca os detalhes de um agendamento específico.
+ */
+export async function getScheduling(schedulingId: string): Promise<Scheduling> {
+    const response = await api.get<Scheduling>(
+        `${INSTRUCTOR_API}/schedule/${schedulingId}`
+    );
+    return response.data;
+}
+
+/**
  * Busca todos os agendamentos do instrutor com paginação.
  */
 export async function getInstructorSchedule(params?: {

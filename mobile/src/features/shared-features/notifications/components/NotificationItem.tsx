@@ -38,7 +38,7 @@ function getNotificationMeta(type: NotificationType) {
         case 'LESSON_REMINDER':
             return { icon: Bell, color: '#7C3AED', bgColor: '#F5F3FF' };
         case 'PAYMENT_STATUS_CHANGED':
-            return { icon: CreditCard, color: '#DC2626', bgColor: '#FEF2F2' };
+            return { icon: CreditCard, color: '#2563EB', bgColor: '#EFF6FF' };
         case 'REVIEW_REQUEST':
             return { icon: Star, color: '#F59E0B', bgColor: '#FFFBEB' };
         default:

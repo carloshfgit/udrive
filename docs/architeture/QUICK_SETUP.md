@@ -49,7 +49,7 @@ O aplicativo mobile deve ser executado localmente fora do Docker para facilitar 
 
 3. **Inicie o servidor de desenvolvimento**:
    ```bash
-   npx expo start --dev-client
+   npx expo start --dev-client -c
    ```
    ou
    ```bash
