@@ -31,6 +31,9 @@ class Scheduling:
         cancelled_at: Data/hora do cancelamento (se aplicável).
         completed_at: Data/hora da conclusão (se aplicável).
         rescheduled_datetime: Nova data/hora sugerida para reagendamento.
+        original_scheduled_datetime: Data/hora original preservada quando
+            reagendamento ocorre dentro da janela de multa (< 48h).
+            Usada como referência para cálculo de reembolso.
     """
 
     student_id: UUID
@@ -47,6 +50,7 @@ class Scheduling:
     student_confirmed_at: datetime | None = None
     rescheduled_datetime: datetime | None = None
     rescheduled_by: UUID | None = None
+    original_scheduled_datetime: datetime | None = None
     id: UUID = field(default_factory=uuid4)
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime | None = None
@@ -81,17 +85,24 @@ class Scheduling:
             - entre 24h e 48h: 50% reembolso (retenção de 50% como taxa)
             - < 24h: 0% sem direito a reembolso
 
+        Trava de Reagendamento:
+            Se a aula foi reagendada dentro da janela de multa (< 48h da data
+            original), usa a data original para cálculo. Isso impede o ciclo de
+            reagendar para o futuro e cancelar com 100%.
+
         Returns:
             Percentual de reembolso (0-100).
         """
         now = datetime.now(timezone.utc)
-        if self.scheduled_datetime.tzinfo is None:
-            # Se for naive, assume UTC (convenção do projeto)
-            lesson_datetime = self.scheduled_datetime.replace(tzinfo=timezone.utc)
-        else:
-            lesson_datetime = self.scheduled_datetime
 
-        time_until_lesson = lesson_datetime - now
+        # Usa data original se existir (trava de reagendamento)
+        reference = self.original_scheduled_datetime or self.scheduled_datetime
+
+        if reference.tzinfo is None:
+            # Se for naive, assume UTC (convenção do projeto)
+            reference = reference.replace(tzinfo=timezone.utc)
+
+        time_until_lesson = reference - now
         hours_until_lesson = time_until_lesson.total_seconds() / 3600
 
         if hours_until_lesson >= 48:
@@ -99,6 +110,24 @@ class Scheduling:
         elif hours_until_lesson >= 24:
             return 50
         return 0
+
+    def calculate_refund_percentage_for_canceller(self, cancelled_by: UUID) -> int:
+        """
+        Calcula percentual de reembolso considerando quem está cancelando.
+
+        Se o instrutor cancela, o aluno sempre recebe 100% de reembolso
+        (responsabilidade do instrutor). Se o aluno cancela, aplica as regras
+        padrão de antecedência.
+
+        Args:
+            cancelled_by: ID do usuário que está cancelando.
+
+        Returns:
+            Percentual de reembolso (0-100).
+        """
+        if cancelled_by == self.instructor_id:
+            return 100
+        return self.calculate_refund_percentage()
 
     def can_cancel(self) -> bool:
         """
@@ -263,17 +292,34 @@ class Scheduling:
         """
         Aceita o reagendamento sugerido.
 
+        Trava de Multa (PAYMENT_FLOW.md):
+            Se o reagendamento foi aceito dentro da janela de multa (< 48h do
+            horário original), preserva a data original para fins de cálculo
+            de reembolso em caso de cancelamento posterior.
+
         Raises:
             ValueError: Se não houver solicitação de reagendamento pendente.
         """
         if self.status != SchedulingStatus.RESCHEDULE_REQUESTED or not self.rescheduled_datetime:
             raise ValueError("Não há solicitação de reagendamento pendente para aceitar.")
 
+        now = datetime.now(timezone.utc)
+
+        # Verificar se está dentro da janela de multa (< 48h da data atual)
+        current_ref = self.original_scheduled_datetime or self.scheduled_datetime
+        if current_ref.tzinfo is None:
+            current_ref = current_ref.replace(tzinfo=timezone.utc)
+
+        hours_until = (current_ref - now).total_seconds() / 3600
+        if hours_until < 48 and self.original_scheduled_datetime is None:
+            # Preserva a data original para trava de reembolso
+            self.original_scheduled_datetime = self.scheduled_datetime
+
         self.scheduled_datetime = self.rescheduled_datetime
         self.rescheduled_datetime = None
         self.rescheduled_by = None
         self.status = SchedulingStatus.CONFIRMED
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = now
 
     def refuse_reschedule(self) -> None:
         """

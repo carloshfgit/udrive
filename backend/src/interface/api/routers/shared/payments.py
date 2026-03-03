@@ -4,7 +4,11 @@ Shared Payments Router
 Endpoints de pagamento compartilhados entre alunos e instrutores.
 """
 
-from fastapi import APIRouter, Depends, HTTPException
+import logging
+from uuid import UUID
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.dtos.payment_dtos import (
@@ -24,6 +28,7 @@ from src.domain.exceptions import (
     SchedulingNotFoundException,
     UserNotFoundException,
 )
+from src.infrastructure.config import Settings
 from src.infrastructure.db.database import get_db
 from src.infrastructure.external import MercadoPagoGateway
 from src.infrastructure.repositories.instructor_repository_impl import (
@@ -41,7 +46,19 @@ from src.infrastructure.repositories.transaction_repository_impl import (
 from src.infrastructure.repositories.user_repository_impl import UserRepositoryImpl
 from src.interface.api.dependencies import CurrentUser
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/payments", tags=["Shared - Payments"])
+
+
+# === Request Schemas ===
+
+
+class CancelSchedulingRequest(BaseModel):
+    """Schema de request para cancelamento de agendamento."""
+
+    scheduling_id: UUID
+    reason: str | None = None
 
 
 @router.get(
@@ -82,23 +99,46 @@ async def get_payment_history(
 @router.post(
     "/cancel",
     response_model=CancelSchedulingResultDTO,
+    status_code=status.HTTP_200_OK,
     summary="Cancelar agendamento",
-    description="Cancela agendamento e processa reembolso conforme regras.",
+    description="Cancela agendamento e processa reembolso conforme regras de antecedência.",
 )
 async def cancel_scheduling(
+    body: CancelSchedulingRequest,
     current_user: CurrentUser,
-    scheduling_id: str,
-    reason: str | None = None,
     db: AsyncSession = Depends(get_db),
 ) -> CancelSchedulingResultDTO:
-    """Cancela agendamento com reembolso automático."""
-    from uuid import UUID
+    """
+    Cancela agendamento com reembolso automático.
 
+    Regras de reembolso (PAYMENT_FLOW.md):
+        - >= 48h: 100% reembolso
+        - 24-48h: 50% reembolso
+        - < 24h: 0% sem reembolso
+        - Instrutor cancela: sempre 100%
+    """
+    # Validação de participante: só aluno ou instrutor da aula podem cancelar
     scheduling_repo = SchedulingRepositoryImpl(db)
+    scheduling = await scheduling_repo.get_by_id(body.scheduling_id)
+
+    if scheduling is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Agendamento {body.scheduling_id} não encontrado",
+        )
+
+    if current_user.id not in (scheduling.student_id, scheduling.instructor_id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Apenas o aluno ou o instrutor da aula podem cancelar",
+        )
+
+    # Montar dependências
+    settings = Settings()
     payment_repo = PaymentRepositoryImpl(db)
     transaction_repo = TransactionRepositoryImpl(db)
     instructor_repo = InstructorRepositoryImpl(db)
-    gateway = MercadoPagoGateway()
+    gateway = MercadoPagoGateway(settings)
 
     process_refund = ProcessRefundUseCase(
         payment_repository=payment_repo,
@@ -114,17 +154,25 @@ async def cancel_scheduling(
     )
 
     dto = CancelSchedulingDTO(
-        scheduling_id=UUID(scheduling_id),
+        scheduling_id=body.scheduling_id,
         cancelled_by=current_user.id,
-        reason=reason,
+        reason=body.reason,
     )
 
     try:
         return await use_case.execute(dto)
     except SchedulingNotFoundException as e:
-        raise HTTPException(status_code=404, detail=str(e)) from e
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
+        ) from e
     except CancellationException as e:
-        raise HTTPException(status_code=400, detail=str(e)) from e
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+        ) from e
     except RefundException as e:
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        logger.error("Falha no reembolso: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"Falha ao processar reembolso no gateway: {e}",
+        ) from e
 

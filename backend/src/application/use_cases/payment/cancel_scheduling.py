@@ -65,7 +65,9 @@ class CancelSchedulingUseCase:
             )
 
         # 3. Calcular percentual de reembolso
-        refund_percentage = scheduling.calculate_refund_percentage()
+        refund_percentage = scheduling.calculate_refund_percentage_for_canceller(
+            dto.cancelled_by
+        )
 
         # 4. Cancelar scheduling
         scheduling.cancel(cancelled_by=dto.cancelled_by, reason=dto.reason)

@@ -112,6 +112,11 @@ class SchedulingModel(Base):
         ForeignKey("users.id", ondelete="SET NULL"),
         nullable=True,
     )
+    original_scheduled_datetime: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        comment="Data original preservada para trava de reembolso em reagendamentos dentro da janela de multa",
+    )
 
     # Campos de precificação variável
     lesson_category: Mapped[LessonCategory | None] = mapped_column(
@@ -205,6 +210,7 @@ class SchedulingModel(Base):
             student_confirmed_at=self.student_confirmed_at,
             rescheduled_datetime=self.rescheduled_datetime,
             rescheduled_by=self.rescheduled_by,
+            original_scheduled_datetime=self.original_scheduled_datetime,
             created_at=self.created_at,
             updated_at=self.updated_at,
             student_name=self.student.full_name if "student" in self.__dict__ and self.student else None,
@@ -238,6 +244,7 @@ class SchedulingModel(Base):
             student_confirmed_at=scheduling.student_confirmed_at,
             rescheduled_datetime=scheduling.rescheduled_datetime,
             rescheduled_by=scheduling.rescheduled_by,
+            original_scheduled_datetime=scheduling.original_scheduled_datetime,
             created_at=scheduling.created_at,
             updated_at=scheduling.updated_at,
             lesson_category=scheduling.lesson_category,
