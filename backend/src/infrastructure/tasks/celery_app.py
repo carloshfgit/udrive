@@ -37,7 +37,16 @@ celery_app.conf.update(
 
 # Registrar tasks explicitamente
 # (autodiscover busca 'tasks.py' por padrão;
-#  usamos include para nosso 'notification_tasks.py')
+#  usamos include para nosso 'notification_tasks.py' e 'cart_tasks.py')
 celery_app.conf.include = [
     "src.infrastructure.tasks.notification_tasks",
+    "src.infrastructure.tasks.cart_tasks",
 ]
+
+# Configurar o Celery Beat para rodar as tarefas periodicamente
+celery_app.conf.beat_schedule = {
+    "cleanup-expired-carts-every-2-minutes": {
+        "task": "cart.cleanup_expired_items",
+        "schedule": 120.0,  # A cada 120 segundos (2 minutos)
+    },
+}

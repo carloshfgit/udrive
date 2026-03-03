@@ -16,7 +16,6 @@ from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
 CART_TIMEOUT_MINUTES = 12
-CLEANUP_INTERVAL_SECONDS = 120  # Roda a cada 2 minutos
 
 logger = structlog.get_logger(__name__)
 
@@ -88,28 +87,3 @@ async def cleanup_expired_cart_items(session_factory: async_sessionmaker) -> int
             logger.error("cart_cleanup_error", error=str(e))
 
     return cancelled_count
-
-
-async def cart_cleanup_loop(session_factory: async_sessionmaker) -> None:
-    """
-    Loop infinito que executa a limpeza do carrinho periodicamente.
-
-    Args:
-        session_factory: Factory de sessões do SQLAlchemy.
-    """
-    logger.info(
-        "cart_cleanup_loop_started",
-        interval_seconds=CLEANUP_INTERVAL_SECONDS,
-        timeout_minutes=CART_TIMEOUT_MINUTES,
-    )
-
-    while True:
-        try:
-            await cleanup_expired_cart_items(session_factory)
-        except asyncio.CancelledError:
-            logger.info("cart_cleanup_loop_cancelled")
-            break
-        except Exception as e:
-            logger.error("cart_cleanup_loop_error", error=str(e))
-
-        await asyncio.sleep(CLEANUP_INTERVAL_SECONDS)
