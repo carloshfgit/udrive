@@ -30,6 +30,7 @@ from src.application.use_cases.scheduling.confirm_scheduling import ConfirmSched
 from src.application.use_cases.scheduling.create_scheduling import CreateSchedulingUseCase
 from src.application.use_cases.scheduling.request_reschedule_use_case import RequestRescheduleUseCase
 from src.application.use_cases.scheduling.respond_reschedule_use_case import RespondRescheduleUseCase
+from src.core.helpers.timezone_utils import DEFAULT_TIMEZONE
 from src.domain.entities.notification import NotificationActionType, NotificationType
 
 logger = structlog.get_logger()
@@ -50,7 +51,8 @@ class NotifyOnCreateScheduling:
         result = await self._wrapped.execute(dto)
 
         try:
-            scheduled_at = result.scheduled_datetime.strftime("%d/%m às %H:%Mh")
+            local_dt = result.scheduled_datetime.astimezone(DEFAULT_TIMEZONE)
+            scheduled_at = local_dt.strftime("%d/%m às %H:%Mh")
             await self._notification_service.notify(
                 user_id=result.instructor_id,
                 notification_type=NotificationType.NEW_SCHEDULING,
@@ -85,7 +87,8 @@ class NotifyOnConfirmScheduling:
         result = await self._wrapped.execute(dto)
 
         try:
-            scheduled_at = result.scheduled_datetime.strftime("%d/%m às %H:%Mh")
+            local_dt = result.scheduled_datetime.astimezone(DEFAULT_TIMEZONE)
+            scheduled_at = local_dt.strftime("%d/%m às %H:%Mh")
             await self._notification_service.notify(
                 user_id=result.student_id,
                 notification_type=NotificationType.SCHEDULING_STATUS_CHANGED,
@@ -233,9 +236,11 @@ class NotifyOnRequestReschedule:
                 else result.student_id
             )
             new_dt = result.rescheduled_datetime
-            date_str = (
-                new_dt.strftime("%d/%m às %H:%Mh") if new_dt else "nova data"
-            )
+            if new_dt:
+                local_new_dt = new_dt.astimezone(DEFAULT_TIMEZONE)
+                date_str = local_new_dt.strftime("%d/%m às %H:%Mh")
+            else:
+                date_str = "nova data"
             await self._notification_service.notify(
                 user_id=recipient_id,
                 notification_type=NotificationType.RESCHEDULE_REQUESTED,

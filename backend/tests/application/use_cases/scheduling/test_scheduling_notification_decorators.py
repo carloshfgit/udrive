@@ -81,6 +81,7 @@ class TestNotifyOnCreateScheduling:
         assert call_kwargs["notification_type"] == NotificationType.NEW_SCHEDULING
         assert call_kwargs["action_type"] == NotificationActionType.SCHEDULING
         assert call_kwargs["action_id"] == result.id
+        assert call_kwargs["body"] == "João Aluno agendou uma aula para 15/06 às 11:00h."
 
     @pytest.mark.asyncio
     async def test_does_not_raise_when_notify_fails(self):
@@ -133,6 +134,7 @@ class TestNotifyOnConfirmScheduling:
         call_kwargs = notification_svc.notify.call_args.kwargs
         assert call_kwargs["user_id"] == result.student_id
         assert call_kwargs["notification_type"] == NotificationType.SCHEDULING_STATUS_CHANGED
+        assert call_kwargs["body"] == "Carlos Instrutor confirmou sua aula para 15/06 às 11:00h."
 
     @pytest.mark.asyncio
     async def test_celery_failure_does_not_block_response(self):
@@ -286,6 +288,7 @@ class TestNotifyOnRequestReschedule:
         call_kwargs = notification_svc.notify.call_args.kwargs
         assert call_kwargs["user_id"] == instructor_id  # Notifica o instrutor
         assert call_kwargs["notification_type"] == NotificationType.RESCHEDULE_REQUESTED
+        assert call_kwargs["body"] == "Foi solicitado reagendamento da aula para 20/06 às 07:00h."
 
 
 # =============================================================================
