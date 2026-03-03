@@ -24,7 +24,7 @@ import { useUnreadCount } from '../../shared-features/notifications/hooks/useUnr
 export function InstructorHomeScreen() {
     const { user } = useAuthStore();
     const navigation = useNavigation<any>();
-    const { unreadCount } = useUnreadCount();
+    const { unreadCount, refetch: refetchUnreadCount } = useUnreadCount();
 
     // Hooks de dados da Home
     const {
@@ -37,7 +37,9 @@ export function InstructorHomeScreen() {
     useFocusEffect(
         useCallback(() => {
             refetch();
-        }, [refetch])
+            refetchUnreadCount();
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [])
     );
 
     // Hooks de mutação (reutilizados da agenda)

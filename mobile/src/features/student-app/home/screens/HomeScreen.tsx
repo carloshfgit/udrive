@@ -18,12 +18,14 @@ export function HomeScreen() {
         isLoading,
         refetch
     } = useHomeData();
-    const { unreadCount } = useUnreadCount();
+    const { unreadCount, refetch: refetchUnreadCount } = useUnreadCount();
 
     useFocusEffect(
         useCallback(() => {
             refetch();
-        }, [refetch])
+            refetchUnreadCount();
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [])
     );
 
     if (isLoading && !profile) {

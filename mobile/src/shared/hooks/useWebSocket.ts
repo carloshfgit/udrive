@@ -138,6 +138,10 @@ export function useWebSocket() {
                     queryClient.invalidateQueries({ queryKey: ['lesson-history'] });
                     queryClient.invalidateQueries({ queryKey: ['scheduling'] });
                     queryClient.invalidateQueries({ queryKey: ['student-history'] });
+
+                    // Também invalidar notificações, pois esses eventos geram notificação
+                    queryClient.invalidateQueries({ queryKey: ['notifications'] });
+                    queryClient.invalidateQueries({ queryKey: ['notifications-unread-count'] });
                     break;
                 }
 
