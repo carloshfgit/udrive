@@ -92,6 +92,17 @@ async def mark_all_as_read(
     return {"updated": count}
 
 
+@router.delete("/read", status_code=status.HTTP_200_OK)
+async def delete_read_notifications(
+    current_user: CurrentUser,
+    service: NotificationServiceDep,
+):
+    """Exclui todas as notificações já lidas do usuário."""
+    count = await service.delete_read_notifications(user_id=current_user.id)
+    return {"deleted": count}
+
+
+
 @router.patch("/{notification_id}/read", status_code=status.HTTP_200_OK)
 async def mark_as_read(
     notification_id: UUID,

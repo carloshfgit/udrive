@@ -89,3 +89,16 @@ class INotificationRepository(ABC):
             Quantidade de notificações atualizadas.
         """
         ...
+
+    @abstractmethod
+    async def delete_read_notifications(self, user_id: UUID) -> int:
+        """
+        Exclui todas as notificações já lidas do usuário.
+
+        Args:
+            user_id: ID do usuário.
+
+        Returns:
+            Quantidade de notificações excluídas.
+        """
+        ...

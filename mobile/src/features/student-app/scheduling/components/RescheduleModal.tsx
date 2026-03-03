@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import { View, Text, ActivityIndicator } from 'react-native';
+import { View, Text, ActivityIndicator, ScrollView } from 'react-native';
 import { BottomSheet } from '../../../../shared/components/BottomSheet';
 import { Button } from '../../../../shared/components/Button';
 import { CalendarPicker, TimeSlotPicker } from '../../../shared-features/scheduling/components';
@@ -73,61 +73,63 @@ export function RescheduleModal({
             onClose={onClose}
             title="Sugerir Novo Horário"
         >
-            <View className="pb-8">
-                <Text className="text-neutral-500 text-sm mb-6">
-                    Selecione uma nova data e horário. O instrutor precisará aprovar esta solicitação.
-                </Text>
-
-                {/* Calendário */}
-                <View className="mb-6">
-                    <Text className="text-base font-bold text-neutral-900 mb-3">
-                        Data
+            <ScrollView showsVerticalScrollIndicator={false}>
+                <View className="pb-8">
+                    <Text className="text-neutral-500 text-sm mb-6">
+                        Selecione uma nova data e horário. O instrutor precisará aprovar esta solicitação.
                     </Text>
-                    {loadingAvailability ? (
-                        <View className="h-40 items-center justify-center">
-                            <ActivityIndicator size="small" color="#2563EB" />
-                        </View>
-                    ) : (
-                        <CalendarPicker
-                            selectedDate={selectedDate}
-                            onDateSelect={handleDateSelect}
-                            availableDaysOfWeek={availableDaysOfWeek}
-                            minDate={new Date(Date.now() + 86400000)} // Começar de amanhã
-                        />
-                    )}
-                </View>
 
-                {/* Horários */}
-                {selectedDate && (
-                    <View className="mb-8">
+                    {/* Calendário */}
+                    <View className="mb-6">
                         <Text className="text-base font-bold text-neutral-900 mb-3">
-                            Horário
+                            Data
                         </Text>
-                        <TimeSlotPicker
-                            timeSlots={timeSlotsData?.time_slots || []}
-                            selectedSlot={selectedSlot}
-                            onSlotSelect={setSelectedSlot}
-                            isLoading={loadingSlots}
+                        {loadingAvailability ? (
+                            <View className="h-40 items-center justify-center">
+                                <ActivityIndicator size="small" color="#2563EB" />
+                            </View>
+                        ) : (
+                            <CalendarPicker
+                                selectedDate={selectedDate}
+                                onDateSelect={handleDateSelect}
+                                availableDaysOfWeek={availableDaysOfWeek}
+                                minDate={new Date(Date.now() + 86400000)} // Começar de amanhã
+                            />
+                        )}
+                    </View>
+
+                    {/* Horários */}
+                    {selectedDate && (
+                        <View className="mb-8">
+                            <Text className="text-base font-bold text-neutral-900 mb-3">
+                                Horário
+                            </Text>
+                            <TimeSlotPicker
+                                timeSlots={timeSlotsData?.time_slots || []}
+                                selectedSlot={selectedSlot}
+                                onSlotSelect={setSelectedSlot}
+                                isLoading={loadingSlots}
+                            />
+                        </View>
+                    )}
+
+                    <View className="flex-row gap-3">
+                        <Button
+                            title="Cancelar"
+                            variant="outline"
+                            className="flex-1"
+                            onPress={onClose}
+                        />
+                        <Button
+                            title="Solicitar"
+                            className="flex-1"
+                            onPress={handleConfirm}
+                            disabled={!canConfirm}
+                            loading={isSubmitting}
                         />
                     </View>
-                )}
-
-                <View className="flex-row gap-3">
-                    <Button
-                        title="Cancelar"
-                        variant="outline"
-                        className="flex-1"
-                        onPress={onClose}
-                    />
-                    <Button
-                        title="Solicitar"
-                        className="flex-1"
-                        onPress={handleConfirm}
-                        disabled={!canConfirm}
-                        loading={isSubmitting}
-                    />
                 </View>
-            </View>
+            </ScrollView>
         </BottomSheet>
     );
 }

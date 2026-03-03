@@ -138,3 +138,23 @@ class NotificationRepositoryImpl:
         result = await self._session.execute(stmt)
         await self._session.flush()
         return result.rowcount
+
+    async def delete_read_notifications(self, user_id: UUID) -> int:
+        """
+        Exclui todas as notificações já lidas do usuário.
+
+        Args:
+            user_id: UUID do usuário.
+
+        Returns:
+            Quantidade de notificações excluídas.
+        """
+        from sqlalchemy import delete
+        stmt = (
+            delete(NotificationModel)
+            .where(NotificationModel.user_id == user_id)
+            .where(NotificationModel.is_read == True)  # noqa: E712
+        )
+        result = await self._session.execute(stmt)
+        await self._session.flush()
+        return result.rowcount

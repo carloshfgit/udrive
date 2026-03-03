@@ -54,7 +54,7 @@ class NotifyOnCreateScheduling:
             await self._notification_service.notify(
                 user_id=result.instructor_id,
                 notification_type=NotificationType.NEW_SCHEDULING,
-                title="Nova aula agendada! 📅",
+                title="Nova aula agendada! 🎉",
                 body=f"{result.student_name} agendou uma aula para {scheduled_at}.",
                 action_type=NotificationActionType.SCHEDULING,
                 action_id=result.id,

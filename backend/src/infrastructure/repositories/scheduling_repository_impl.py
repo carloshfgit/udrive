@@ -589,12 +589,16 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
             .where(
                 SchedulingModel.status.in_([SchedulingStatus.PENDING, SchedulingStatus.CONFIRMED]),
                 or_(
-                    # Caso 1: Sem pagamento ou PENDING -> expira em 12min
+                    # Caso 1: Sem pagamento, PENDING, FAILED ou REFUNDED -> expira em 12min
                     and_(
                         SchedulingModel.created_at <= cutoff_pending,
                         or_(
                             PaymentModel.id.is_(None),
-                            PaymentModel.status == PaymentStatus.PENDING,
+                            PaymentModel.status.in_([
+                                PaymentStatus.PENDING, 
+                                PaymentStatus.FAILED, 
+                                PaymentStatus.REFUNDED
+                            ]),
                         ),
                     ),
                     # Caso 2: PROCESSING -> expira em 30min (proteção de checkout)

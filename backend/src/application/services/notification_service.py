@@ -186,6 +186,20 @@ class NotificationService:
         """
         return await self.notification_repository.mark_all_as_read(user_id)
 
+    async def delete_read_notifications(self, user_id: UUID) -> int:
+        """
+        Exclui todas as notificações já lidas do usuário.
+
+        Args:
+            user_id: UUID do usuário.
+
+        Returns:
+            Quantidade de notificações excluídas.
+        """
+        count = await self.notification_repository.delete_read_notifications(user_id)
+        logger.info("read_notifications_deleted", user_id=str(user_id), count=count)
+        return count
+
     # =========================================================================
     # Gerenciamento de Push Tokens
     # =========================================================================

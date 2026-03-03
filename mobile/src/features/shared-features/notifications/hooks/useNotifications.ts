@@ -10,11 +10,26 @@ import {
     getNotifications,
     markAsRead,
     markAllAsRead,
+    clearReadNotifications
 } from '../api/notificationsApi';
 import { useNotificationStore } from '../stores/notificationStore';
 import type { NotificationResponse } from '../types/notification.types';
 
 const PAGE_SIZE = 20;
+
+/**
+ * Mutation para limpar todas as notificações já lidas.
+ */
+export function useClearReadNotifications() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: clearReadNotifications,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['notifications'] });
+        },
+    });
+}
 
 /**
  * Hook para listar notificações com paginação infinita.

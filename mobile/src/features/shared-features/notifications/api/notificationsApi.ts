@@ -50,3 +50,10 @@ export async function markAsRead(notificationId: string): Promise<void> {
 export async function markAllAsRead(): Promise<void> {
     await api.patch(`${SHARED_API}/notifications/read-all`);
 }
+
+/**
+ * Exclui todas as notificações já lidas.
+ */
+export async function clearReadNotifications(): Promise<void> {
+    await api.delete(`${SHARED_API}/notifications/read`);
+}
