@@ -14,7 +14,7 @@ import { CheckCircle, XCircle, Clock } from 'lucide-react-native';
 import { CART_ITEMS_QUERY_KEY } from '../features/shared-features/scheduling/hooks/usePayment';
 
 type PaymentResultParams = {
-    PaymentResult: { status: 'success' | 'error' | 'pending' };
+    PaymentResult: { status: string };
 };
 
 const configs = {
@@ -49,8 +49,17 @@ export function PaymentResultScreen() {
     const route = useRoute<RouteProp<PaymentResultParams, 'PaymentResult'>>();
     const queryClient = useQueryClient();
 
-    const status = route.params?.status ?? 'pending';
-    const config = configs[status] ?? configs.pending;
+    const rawStatus = route.params?.status ?? 'pending';
+
+    // O Mercado Pago adiciona `?status=approved` (ou rejected, in_process) na URL de retorno.
+    // O React Navigation sobrescreve o parâmetro de rota `:status` (success/error/pending) 
+    // com o valor da query string (approved/rejected/in_process).
+    const normalizedStatus =
+        rawStatus === 'approved' || rawStatus === 'success' ? 'success' :
+            rawStatus === 'rejected' || rawStatus === 'error' || rawStatus === 'null' ? 'error' :
+                'pending';
+
+    const config = configs[normalizedStatus] ?? configs.pending;
     const IconComponent = config.icon;
 
     // Invalidar caches ao montar
