@@ -42,6 +42,7 @@ celery_app.conf.include = [
     "src.infrastructure.tasks.notification_tasks",
     "src.infrastructure.tasks.cart_tasks",
     "src.infrastructure.tasks.webhook_tasks",
+    "src.infrastructure.tasks.lesson_tasks",
 ]
 
 # Configurar o Celery Beat para rodar as tarefas periodicamente
@@ -49,5 +50,9 @@ celery_app.conf.beat_schedule = {
     "cleanup-expired-carts-every-2-minutes": {
         "task": "cart.cleanup_expired_items",
         "schedule": 120.0,  # A cada 120 segundos (2 minutos)
+    },
+    "auto-complete-overdue-lessons-every-30-minutes": {
+        "task": "lessons.auto_complete_overdue",
+        "schedule": 1800.0,  # A cada 30 minutos
     },
 }

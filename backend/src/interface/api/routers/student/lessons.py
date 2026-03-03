@@ -502,6 +502,42 @@ async def clear_student_cart(
 
 
 @router.post(
+    "/{scheduling_id}/dispute",
+    response_model=SchedulingResponse,
+    summary="Abrir disputa",
+    description="Abre uma disputa para uma aula confirmada que já passou do horário. Impede a auto-conclusão automática.",
+)
+async def open_dispute(
+    scheduling_id: UUID,
+    current_user: CurrentStudent,
+    scheduling_repo: SchedulingRepo,
+) -> SchedulingResponse:
+    """Abre uma disputa para uma aula já realizada."""
+    scheduling = await scheduling_repo.get_by_id(scheduling_id)
+    if scheduling is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Agendamento não encontrado",
+        )
+
+    if scheduling.student_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Acesso não autorizado a este agendamento",
+        )
+
+    try:
+        scheduling.open_dispute()
+        updated = await scheduling_repo.update(scheduling)
+        return SchedulingResponse.model_validate(updated)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+
+
+@router.post(
     "/{scheduling_id}/review",
     response_model=ReviewResponse,
     status_code=status.HTTP_201_CREATED,

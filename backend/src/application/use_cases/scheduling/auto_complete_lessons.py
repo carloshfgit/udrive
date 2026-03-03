@@ -5,12 +5,12 @@ Caso de uso para marcar aulas como concluídas automaticamente
 quando o aluno não confirma dentro de 24h após o término.
 """
 
-import logging
+import structlog
 from dataclasses import dataclass
 
 from src.domain.interfaces.scheduling_repository import ISchedulingRepository
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 @dataclass
@@ -18,13 +18,14 @@ class AutoCompleteLessonsUseCase:
     """
     Caso de uso para auto-completar aulas pendentes de confirmação.
 
-    Regra (PAYMENT_FLOW.md):
+    Regra:
         Se o aluno não confirmar a conclusão em 24h após o término
         da aula, o sistema marca automaticamente como concluída.
+        Aulas com status DISPUTED são ignoradas.
 
     Fluxo:
         1. Buscar agendamentos CONFIRMED cuja aula terminou há > 24h
-        2. Para cada um: student_confirm_completion() + complete()
+        2. Para cada um: auto_complete() (não exige started_at/student_confirmed_at)
         3. Persistir alterações
         4. Retornar contagem de aulas auto-completadas
     """
@@ -46,26 +47,29 @@ class AutoCompleteLessonsUseCase:
         )
 
         if not overdue_schedulings:
-            logger.info("Nenhuma aula pendente de auto-confirmação encontrada.")
+            logger.info("auto_complete_no_overdue_found")
             return 0
 
         completed_count = 0
         for scheduling in overdue_schedulings:
             try:
-                scheduling.student_confirm_completion()
-                scheduling.complete()
+                scheduling.auto_complete()
                 await self.scheduling_repository.update(scheduling)
                 completed_count += 1
                 logger.info(
-                    f"Aula {scheduling.id} auto-completada com sucesso."
+                    "auto_complete_lesson_success",
+                    scheduling_id=str(scheduling.id),
                 )
             except Exception as e:
                 logger.error(
-                    f"Erro ao auto-completar aula {scheduling.id}: {e}"
+                    "auto_complete_lesson_error",
+                    scheduling_id=str(scheduling.id),
+                    error=str(e),
                 )
-                # Continua processando as demais aulas
 
         logger.info(
-            f"Auto-complete finalizado: {completed_count}/{len(overdue_schedulings)} aulas processadas."
+            "auto_complete_finished",
+            completed=completed_count,
+            total=len(overdue_schedulings),
         )
         return completed_count

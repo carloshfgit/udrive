@@ -318,3 +318,49 @@ class Scheduling:
     def lesson_end_datetime(self) -> datetime:
         """Retorna data/hora de término da aula."""
         return self.scheduled_datetime + timedelta(minutes=self.duration_minutes)
+
+    def auto_complete(self) -> None:
+        """
+        Marca a aula como concluída automaticamente pelo sistema.
+
+        Diferente de complete(), não exige started_at nem student_confirmed_at,
+        pois esta é uma conclusão automática por timeout (24h após término).
+
+        Raises:
+            ValueError: Se o status não for CONFIRMED.
+        """
+        if self.status != SchedulingStatus.CONFIRMED:
+            raise ValueError(
+                f"Auto-complete só pode ser aplicado em aulas confirmadas. Status atual: {self.status}"
+            )
+
+        self.status = SchedulingStatus.COMPLETED
+        self.completed_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(timezone.utc)
+
+    def open_dispute(self) -> None:
+        """
+        Abre uma disputa para esta aula.
+
+        Impede que o sistema auto-complete a aula. Só pode ser aberta
+        para aulas com status CONFIRMED que já passaram do horário.
+
+        Raises:
+            ValueError: Se o status não for CONFIRMED ou a aula ainda não passou.
+        """
+        if self.status != SchedulingStatus.CONFIRMED:
+            raise ValueError(
+                f"Disputa só pode ser aberta em aulas confirmadas. Status atual: {self.status}"
+            )
+
+        now = datetime.now(timezone.utc)
+        if self.lesson_end_datetime > now:
+            raise ValueError("Disputa só pode ser aberta após o término da aula.")
+
+        self.status = SchedulingStatus.DISPUTED
+        self.updated_at = datetime.now(timezone.utc)
+
+    @property
+    def is_disputed(self) -> bool:
+        """Verifica se está em disputa."""
+        return self.status == SchedulingStatus.DISPUTED

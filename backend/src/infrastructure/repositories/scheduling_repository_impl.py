@@ -140,10 +140,10 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
             .where(SchedulingModel.student_id == student_id)
         )
 
-        if status is None:
-            from datetime import datetime, timezone
-            now = datetime.now(timezone.utc)
-            stmt = stmt.where(SchedulingModel.scheduled_datetime >= now)
+        # if status is None:
+        #     from datetime import datetime, timezone
+        #     now = datetime.now(timezone.utc)
+        #     stmt = stmt.where(SchedulingModel.scheduled_datetime >= now)
 
         stmt = (
             stmt.order_by(order)
@@ -197,10 +197,10 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
 
         stmt = select(func.count()).select_from(SchedulingModel).where(SchedulingModel.student_id == student_id)
 
-        if status is None:
-            from datetime import datetime, timezone
-            now = datetime.now(timezone.utc)
-            stmt = stmt.where(SchedulingModel.scheduled_datetime >= now)
+        # if status is None:
+        #     from datetime import datetime, timezone
+        #     now = datetime.now(timezone.utc)
+        #     stmt = stmt.where(SchedulingModel.scheduled_datetime >= now)
 
         if payment_status_filter:
             stmt = stmt.outerjoin(PaymentModel, PaymentModel.scheduling_id == SchedulingModel.id)
@@ -545,7 +545,6 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
             select(SchedulingModel)
             .where(
                 SchedulingModel.status == SchedulingStatus.CONFIRMED,
-                SchedulingModel.student_confirmed_at.is_(None),
                 end_expr <= cutoff,
             )
             .options(

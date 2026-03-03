@@ -15,6 +15,7 @@ class SchedulingStatus(str, Enum):
         PENDING -> CONFIRMED -> COMPLETED
         PENDING -> CANCELLED
         CONFIRMED -> CANCELLED
+        CONFIRMED -> DISPUTED (aluno abre disputa antes da auto-conclusão)
     """
 
     PENDING = "pending"
@@ -31,3 +32,6 @@ class SchedulingStatus(str, Enum):
 
     RESCHEDULE_REQUESTED = "reschedule_requested"
     """Reagendamento solicitado pelo aluno/instrutor, aguardando aprovação do instrutor/aluno."""
+
+    DISPUTED = "disputed"
+    """Aula em disputa pelo aluno. Impede auto-conclusão automática."""
