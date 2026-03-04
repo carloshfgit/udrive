@@ -370,7 +370,11 @@ export function InstructorAvailabilityScreen() {
                         💡 Configure sua disponibilidade
                     </Text>
                     <Text className="text-blue-700 text-sm mt-1">
-                        Defina os horários em que você está disponível para dar aulas. Alunos poderão agendar apenas nos horários configurados.
+                        {[
+                            '- Defina os horários em que você está disponível para dar aulas. Alunos poderão agendar apenas nos horários configurados.',
+                            '- Você pode adicionar quantas faixas horárias desejar para cada dia da semana. Basta clicar em adicionar e escolher uma nova faixa.',
+                            '- Você pode remover uma faixa horária clicando no botão de lixeira.',
+                        ].join('\n')}
                     </Text>
                 </View>
 
