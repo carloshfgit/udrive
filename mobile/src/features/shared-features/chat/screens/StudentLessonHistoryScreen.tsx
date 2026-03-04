@@ -1,11 +1,12 @@
 import React from 'react';
-import { View, FlatList, Text, SafeAreaView } from 'react-native';
+import { View, FlatList, Text, SafeAreaView, TouchableOpacity } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useAuthStore } from '@lib/store';
 import { Header } from '../../../../shared/components/Header';
 import { LoadingState } from '../../../../shared/components/LoadingState';
 import { EmptyState } from '../../../../shared/components/EmptyState';
 import { StudentLessonCard } from '../../scheduling/components/StudentLessonCard';
+import { ScheduleCard } from '../../../instructor-app/components/ScheduleCard';
 import { useLessonHistory } from '../hooks/useLessonHistory';
 
 export function StudentLessonHistoryScreen() {
@@ -69,26 +70,42 @@ export function StudentLessonHistoryScreen() {
 
             <FlatList
                 data={sortedLessons}
-                renderItem={({ item }) => (
-                    <StudentLessonCard
-                        scheduling={item}
-                        variant={isInstructor ? 'instructor' : 'student'}
-                        onPressDetails={() => {
-                            if (isInstructor) {
-                                // Instrutor: navega para a agenda do instrutor
-                                navigation.navigate('InstructorSchedule', {
-                                    screen: 'InstructorScheduleMain',
-                                    params: { initialDate: item.scheduled_datetime }
-                                });
-                            } else {
-                                // Aluno: navega para os detalhes da aula
+                renderItem={({ item }) => {
+                    if (isInstructor) {
+                        return (
+                            <TouchableOpacity
+                                activeOpacity={0.8}
+                                onPress={() => {
+                                    navigation.navigate('InstructorSchedule', {
+                                        screen: 'InstructorScheduleMain',
+                                        params: { initialDate: item.scheduled_datetime }
+                                    });
+                                }}
+                            >
+                                <View pointerEvents="none">
+                                    <ScheduleCard
+                                        scheduling={item as any}
+                                        onCancel={() => { }}
+                                        onReschedule={() => { }}
+                                        isCancelling={false}
+                                    />
+                                </View>
+                            </TouchableOpacity>
+                        );
+                    }
+
+                    return (
+                        <StudentLessonCard
+                            scheduling={item}
+                            variant="student"
+                            onPressDetails={() => {
                                 navigation.navigate('LessonDetails', {
                                     schedulingId: item.id
                                 });
-                            }
-                        }}
-                    />
-                )}
+                            }}
+                        />
+                    );
+                }}
                 keyExtractor={(item) => item.id}
                 contentContainerStyle={{ padding: 16 }}
                 ListEmptyComponent={
