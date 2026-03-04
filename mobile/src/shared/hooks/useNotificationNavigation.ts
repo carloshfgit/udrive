@@ -8,6 +8,7 @@
 import { useNavigation, CommonActions } from '@react-navigation/native';
 import { useAuthStore } from '../../lib/store';
 import { getScheduling as getInstructorBooking } from '../../features/instructor-app/api/scheduleApi';
+import { getConversations, getStudentConversations } from '../../features/shared-features/chat/api/chatApi';
 
 interface NotificationData {
     type: string;
@@ -115,12 +116,37 @@ export function useNotificationNavigation() {
                 break;
 
             case 'CHAT':
+                let otherUserName = 'Usuário';
+
+                // Tentativa 1: Extrair do título da notificação ("Nova mensagem de Nome 💬")
+                if (data.title) {
+                    const match = data.title.match(/mensagem de (.*?)(?: 💬|$)/);
+                    if (match && match[1]) {
+                        otherUserName = match[1];
+                    }
+                }
+
+                // Tentativa 2: Buscar da lista de conversas ativas
+                try {
+                    if (isInstructor) {
+                        const convs = await getConversations();
+                        const conv = convs.find(c => c.student_id === data.action_id);
+                        if (conv) otherUserName = conv.student_name;
+                    } else {
+                        const convs = await getStudentConversations();
+                        const conv = convs.find(c => c.instructor_id === data.action_id);
+                        if (conv) otherUserName = conv.instructor_name;
+                    }
+                } catch (e) {
+                    console.warn('[Notification] Falha ao buscar nome do usuário, usando fallback:', e);
+                }
+
                 if (isInstructor) {
                     navigation.navigate('Main', {
                         screen: 'InstructorChat',
                         params: {
                             screen: 'ChatRoom',
-                            params: { otherUserId: data.action_id },
+                            params: { otherUserId: data.action_id, otherUserName },
                         }
                     });
                 } else {
@@ -128,7 +154,7 @@ export function useNotificationNavigation() {
                         screen: 'Scheduling',
                         params: {
                             screen: 'ChatRoom',
-                            params: { otherUserId: data.action_id },
+                            params: { otherUserId: data.action_id, otherUserName },
                         }
                     });
                 }

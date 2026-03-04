@@ -200,9 +200,20 @@ Implementada detecção ativa de conexão morta:
 2. Antes de enviar um novo `ping` (a cada 30s), o sistema verifica se o `pong` do ciclo anterior foi recebido.
 3. Caso não tenha sido recebido, a conexão é forçada a fechar (`ws.close()`), o que dispara o ciclo de reconexão automática e ativa o fallback de polling temporário.
 
+### 6.4 Correção de Marcação de Leitura Indesejada (Front end)
+**Onde**: `mobile/src/features/shared-features/chat/hooks/useMessages.ts`
+
+**Problema**: Mensagens eram marcadas como lidas automaticamente assim que chegavam via WebSocket, mesmo que o usuário não estivesse na tela de chat (desde que a tela permanecesse montada na pilha de navegação).
+
+**Solução**:
+- Integrado o hook `useIsFocused()` do React Navigation.
+- O efeito automático de `mark_as_read` agora possui um guarda adicional: `if (!isFocused) return;`.
+- Agora as mensagens são marcadas como lidas **apenas** quando a tela de chat está visível e focada pelo usuário.
+
 ---
 
 ## Conclusão Final
 
-Com a implementação destas correções, as mensagens estão sendo entregues em tempo real mesmo em cenários de múltiplos dispositivos simultâneos. A estabilidade da conexão melhorou significativamente com a detecção de timeouts, reduzindo o tempo de "silêncio" quando ocorrem quedas de rede não detectadas pelo sistema operacional.
+Com a implementação destas correções, o sistema de chat atingiu o comportamento esperado: mensagens chegam instantaneamente em múltiplos dispositivos, a conexão é resiliente a quedas silenciosas e a marcação de leitura respeita a presença real do usuário na tela.
+
 
