@@ -9,6 +9,7 @@ from uuid import UUID
 
 from src.domain.entities.payment import Payment
 from src.domain.entities.payment_status import PaymentStatus
+from src.domain.entities.scheduling_status import SchedulingStatus
 
 
 class IPaymentRepository(ABC):
@@ -101,6 +102,7 @@ class IPaymentRepository(ABC):
         self,
         student_id: UUID,
         status: PaymentStatus | None = None,
+        scheduling_status: SchedulingStatus | None = None,
         limit: int = 50,
         offset: int = 0,
     ) -> list[Payment]:
@@ -110,6 +112,7 @@ class IPaymentRepository(ABC):
         Args:
             student_id: ID do aluno.
             status: Filtro por status (opcional).
+            scheduling_status: Filtro pelo status do agendamento vinculado (opcional).
             limit: Número máximo de resultados.
             offset: Deslocamento para paginação.
 
@@ -123,6 +126,7 @@ class IPaymentRepository(ABC):
         self,
         instructor_id: UUID,
         status: PaymentStatus | None = None,
+        scheduling_status: SchedulingStatus | None = None,
         limit: int = 50,
         offset: int = 0,
     ) -> list[Payment]:
@@ -132,6 +136,7 @@ class IPaymentRepository(ABC):
         Args:
             instructor_id: ID do instrutor.
             status: Filtro por status (opcional).
+            scheduling_status: Filtro pelo status do agendamento vinculado (opcional).
             limit: Número máximo de resultados.
             offset: Deslocamento para paginação.
 

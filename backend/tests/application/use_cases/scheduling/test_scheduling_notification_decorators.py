@@ -311,6 +311,10 @@ class TestNotifyOnRespondReschedule:
         wrapped = AsyncMock()
         wrapped.execute.return_value = result
 
+        scheduling_repo = AsyncMock()
+        scheduling_repo.get_by_id.return_value = MagicMock(rescheduled_by=student_id)
+        wrapped.scheduling_repository = scheduling_repo
+
         notification_svc = AsyncMock()
 
         dto = RespondRescheduleDTO(

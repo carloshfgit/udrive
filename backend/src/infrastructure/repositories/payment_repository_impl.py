@@ -10,8 +10,11 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.domain.entities.payment import Payment
+from src.domain.entities.payment_status import PaymentStatus
+from src.domain.entities.scheduling_status import SchedulingStatus
 from src.domain.interfaces.payment_repository import IPaymentRepository
 from src.infrastructure.db.models.payment_model import PaymentModel
+from src.infrastructure.db.models.scheduling_model import SchedulingModel
 
 
 class PaymentRepositoryImpl(IPaymentRepository):
@@ -71,28 +74,48 @@ class PaymentRepositoryImpl(IPaymentRepository):
         return [model.to_entity() for model in result.scalars()]
 
     async def list_by_student(
-        self, student_id: UUID, limit: int = 50, offset: int = 0
+        self,
+        student_id: UUID,
+        status: PaymentStatus | None = None,
+        scheduling_status: SchedulingStatus | None = None,
+        limit: int = 50,
+        offset: int = 0,
     ) -> list[Payment]:
-        query = (
-            select(PaymentModel)
-            .where(PaymentModel.student_id == student_id)
-            .order_by(PaymentModel.created_at.desc())
-            .limit(limit)
-            .offset(offset)
-        )
+        query = select(PaymentModel).where(PaymentModel.student_id == student_id)
+        
+        if status:
+            query = query.where(PaymentModel.status == status)
+            
+        if scheduling_status:
+            query = query.join(PaymentModel.scheduling).where(
+                SchedulingModel.status == scheduling_status
+            )
+            
+        query = query.order_by(PaymentModel.created_at.desc()).limit(limit).offset(offset)
+        
         result = await self.session.execute(query)
         return [model.to_entity() for model in result.scalars()]
 
     async def list_by_instructor(
-        self, instructor_id: UUID, limit: int = 50, offset: int = 0
+        self,
+        instructor_id: UUID,
+        status: PaymentStatus | None = None,
+        scheduling_status: SchedulingStatus | None = None,
+        limit: int = 50,
+        offset: int = 0,
     ) -> list[Payment]:
-        query = (
-            select(PaymentModel)
-            .where(PaymentModel.instructor_id == instructor_id)
-            .order_by(PaymentModel.created_at.desc())
-            .limit(limit)
-            .offset(offset)
-        )
+        query = select(PaymentModel).where(PaymentModel.instructor_id == instructor_id)
+        
+        if status:
+            query = query.where(PaymentModel.status == status)
+            
+        if scheduling_status:
+            query = query.join(PaymentModel.scheduling).where(
+                SchedulingModel.status == scheduling_status
+            )
+            
+        query = query.order_by(PaymentModel.created_at.desc()).limit(limit).offset(offset)
+        
         result = await self.session.execute(query)
         return [model.to_entity() for model in result.scalars()]
 

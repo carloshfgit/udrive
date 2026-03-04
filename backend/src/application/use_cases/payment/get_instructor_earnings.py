@@ -10,6 +10,7 @@ from decimal import Decimal
 
 from src.application.dtos.payment_dtos import InstructorEarningsDTO
 from src.domain.entities.payment_status import PaymentStatus
+from src.domain.entities.scheduling_status import SchedulingStatus
 from src.domain.exceptions import InstructorNotFoundException
 from src.domain.interfaces.instructor_repository import IInstructorRepository
 from src.domain.interfaces.payment_repository import IPaymentRepository
@@ -51,8 +52,12 @@ class GetInstructorEarningsUseCase:
 
         # 2. Buscar todos os pagamentos (pode ser otimizado com query de agregação no futuro)
         # Por enquanto buscamos lista e somamos na memória (MVP)
+        # Filtrar estritamente apenas quando a própria aula também foi completada
         payments = await self.payment_repository.list_by_instructor(
-            instructor_id, limit=1000  # Limite alto para pegar histórico recente
+            instructor_id,
+            status=PaymentStatus.COMPLETED,
+            scheduling_status=SchedulingStatus.COMPLETED,
+            limit=1000,  # Limite alto para pegar histórico recente
         )
 
         now = datetime.now(tz=timezone.utc)
@@ -61,21 +66,19 @@ class GetInstructorEarningsUseCase:
 
         total_earnings = Decimal("0.00")
         monthly_earnings = Decimal("0.00")
-        completed_lessons = 0
+        completed_lessons = len(payments)
 
         for payment in payments:
-            if payment.status == PaymentStatus.COMPLETED:
-                total_earnings += payment.instructor_amount
-                completed_lessons += 1
+            total_earnings += payment.instructor_amount
 
-                # Verificar se o pagamento é do mês corrente
-                created = payment.created_at
-                if created is not None:
-                    # Normalizar para UTC caso seja offset-naive
-                    if created.tzinfo is None:
-                        created = created.replace(tzinfo=timezone.utc)
-                    if created.year == current_year and created.month == current_month:
-                        monthly_earnings += payment.instructor_amount
+            # Verificar se o pagamento é do mês corrente
+            created = payment.created_at
+            if created is not None:
+                # Normalizar para UTC caso seja offset-naive
+                if created.tzinfo is None:
+                    created = created.replace(tzinfo=timezone.utc)
+                if created.year == current_year and created.month == current_month:
+                    monthly_earnings += payment.instructor_amount
 
         base_lesson_price = None
         if profile.price_cat_b_instructor_vehicle is not None:
