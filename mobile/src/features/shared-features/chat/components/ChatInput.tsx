@@ -99,7 +99,8 @@ const styles = StyleSheet.create({
         borderTopWidth: 1,
         borderTopColor: colors.border.light,
         paddingHorizontal: spacing.md,
-        paddingVertical: spacing.sm,
+        paddingTop: spacing.sm,
+        paddingBottom: spacing.sm + 28,
     },
     warningContainer: {
         flexDirection: 'row',
