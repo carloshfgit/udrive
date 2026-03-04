@@ -333,30 +333,22 @@ async def websocket_chat_endpoint(websocket: WebSocket) -> None:
     await manager.connect(user_id, websocket)
 
     # 4. Subscrever no canal Redis PubSub do usuário
+    _pubsub_callback = None  # Referência ao callback para unsubscribe posterior
+
     if pubsub:
         async def on_pubsub_message(payload_data: dict) -> None:
-            """Callback para mensagens do PubSub (incluindo instâncias remotas)."""
+            """Callback para mensagens do PubSub (incluindo instâncias remotas).
+            
+            O RedisPubSubService._listen() já faz json.loads() antes de chamar
+            este callback, então payload_data já é um dict parseado.
+            Basta encaminhar diretamente ao ConnectionManager.
+            """
             try:
-                # O payload do PubSub pode vir como string (conforme lib de redis) ou dict
-                if isinstance(payload_data, dict) and "data" in payload_data:
-                    message_str = payload_data["data"]
-                    if isinstance(message_str, bytes):
-                        message_str = message_str.decode("utf-8")
-                    
-                    if isinstance(message_str, str):
-                        try:
-                            parsed_data = json.loads(message_str)
-                            await manager.send_to_user(user_id, parsed_data)
-                        except json.JSONDecodeError:
-                            # Tentar enviar direto caso venha já como dict serializado internamente
-                            await manager.send_to_user(user_id, payload_data)
-                    else:
-                        await manager.send_to_user(user_id, message_str)
-                else:
-                    await manager.send_to_user(user_id, payload_data)
+                await manager.send_to_user(user_id, payload_data)
             except Exception as e:
                 logger.error("pubsub_message_error", user_id=str(user_id), error=str(e))
 
+        _pubsub_callback = on_pubsub_message
         await pubsub.subscribe(f"user:{user_id}", on_pubsub_message)
 
     try:
@@ -407,5 +399,5 @@ async def websocket_chat_endpoint(websocket: WebSocket) -> None:
     finally:
         # 6. Limpar recursos
         await manager.disconnect(user_id, websocket)
-        if pubsub:
-            await pubsub.unsubscribe(f"user:{user_id}")
+        if pubsub and _pubsub_callback:
+            await pubsub.unsubscribe(f"user:{user_id}", _pubsub_callback)

@@ -32,7 +32,7 @@ class RedisPubSubService:
         self._client: redis.Redis | None = None
         self._pubsub: redis.client.PubSub | None = None
         self._listener_task: asyncio.Task | None = None
-        self._callbacks: dict[str, Callable[[dict], Coroutine[Any, Any, None]]] = {}
+        self._callbacks: dict[str, list[Callable[[dict], Coroutine[Any, Any, None]]]] = {}
         self._running = False
 
     async def connect(self) -> None:
@@ -104,6 +104,7 @@ class RedisPubSubService:
         """
         Subscreve em um canal Redis com um callback assíncrono.
 
+        Suporta múltiplos callbacks por canal (multi-device).
         O callback é chamado toda vez que uma mensagem chega no canal.
 
         Args:
@@ -113,25 +114,61 @@ class RedisPubSubService:
         if self._client is None:
             await self.connect()
 
-        self._callbacks[channel] = callback
-        await self._pubsub.subscribe(channel)
+        if channel not in self._callbacks:
+            self._callbacks[channel] = []
+            # Só subscreve no Redis na primeira vez para este canal
+            await self._pubsub.subscribe(channel)
+
+        self._callbacks[channel].append(callback)
 
         # Iniciar listener na primeira subscrição
         if self._listener_task is None or self._listener_task.done():
             self._listener_task = asyncio.create_task(self._listen())
 
-        logger.info("redis_pubsub_subscribed", channel=channel)
+        logger.info(
+            "redis_pubsub_subscribed",
+            channel=channel,
+            total_callbacks=len(self._callbacks[channel]),
+        )
 
-    async def unsubscribe(self, channel: str) -> None:
+    async def unsubscribe(
+        self,
+        channel: str,
+        callback: Callable[[dict], Coroutine[Any, Any, None]] | None = None,
+    ) -> None:
         """
         Remove subscrição de um canal Redis.
 
+        Se callback é fornecido, remove apenas esse callback específico.
+        Se o canal ficar sem callbacks, desinscreve do Redis.
+        Se callback é None, remove todos os callbacks do canal.
+
         Args:
             channel: Nome do canal.
+            callback: Callback específico a remover (opcional).
         """
+        if channel in self._callbacks:
+            if callback is not None:
+                # Remove apenas o callback específico
+                try:
+                    self._callbacks[channel].remove(callback)
+                except ValueError:
+                    pass  # Callback já foi removido
+
+                # Se ainda há callbacks, não desinscreve do Redis
+                if self._callbacks[channel]:
+                    logger.info(
+                        "redis_pubsub_callback_removed",
+                        channel=channel,
+                        remaining_callbacks=len(self._callbacks[channel]),
+                    )
+                    return
+
+            # Remove o canal inteiro
+            del self._callbacks[channel]
+
         if self._pubsub:
             await self._pubsub.unsubscribe(channel)
-        self._callbacks.pop(channel, None)
 
         logger.info("redis_pubsub_unsubscribed", channel=channel)
 
@@ -155,23 +192,28 @@ class RedisPubSubService:
 
                 if message and message["type"] == "message":
                     channel = message["channel"]
-                    callback = self._callbacks.get(channel)
+                    callbacks = self._callbacks.get(channel, [])
 
-                    if callback:
+                    if callbacks:
                         try:
                             data = json.loads(message["data"])
-                            await callback(data)
                         except json.JSONDecodeError:
                             logger.warning(
                                 "redis_pubsub_invalid_json",
                                 channel=channel,
                             )
-                        except Exception as e:
-                            logger.error(
-                                "redis_pubsub_callback_error",
-                                channel=channel,
-                                error=str(e),
-                            )
+                            continue
+
+                        # Chamar todos os callbacks registrados para este canal
+                        for cb in list(callbacks):  # list() para iterar sobre cópia
+                            try:
+                                await cb(data)
+                            except Exception as e:
+                                logger.error(
+                                    "redis_pubsub_callback_error",
+                                    channel=channel,
+                                    error=str(e),
+                                )
                 else:
                     # Sem mensagem, sleep curto para não busy-loop
                     await asyncio.sleep(0.01)
