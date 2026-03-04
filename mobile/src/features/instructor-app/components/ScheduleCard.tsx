@@ -20,6 +20,7 @@ import {
     Car,
     Award,
     Bike,
+    AlertCircle,
 } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Card } from '../../../shared/components';
@@ -95,6 +96,7 @@ export function ScheduleCard({
     const navigation = useNavigation<any>();
     const { user } = useAuth();
     const isSelfRequested = scheduling.rescheduled_by === user?.id;
+    const isPaymentPending = scheduling.status === 'pending';
 
     return (
         <Card variant="outlined" className="mb-4 overflow-hidden border-gray-100">
@@ -135,18 +137,20 @@ export function ScheduleCard({
                                 {scheduling.student_name || 'Aluno'}
                             </Text>
                         </View>
-                        <TouchableOpacity
-                            onPress={() => navigation.navigate('InstructorChat', {
-                                screen: 'ChatRoom',
-                                params: {
-                                    otherUserId: scheduling.student_id,
-                                    otherUserName: scheduling.student_name || 'Aluno'
-                                }
-                            })}
-                            className="bg-white p-2.5 rounded-xl border border-gray-100 shadow-sm active:bg-gray-50"
-                        >
-                            <MessageSquare size={18} color="#2563EB" />
-                        </TouchableOpacity>
+                        {!isPaymentPending && (
+                            <TouchableOpacity
+                                onPress={() => navigation.navigate('InstructorChat', {
+                                    screen: 'ChatRoom',
+                                    params: {
+                                        otherUserId: scheduling.student_id,
+                                        otherUserName: scheduling.student_name || 'Aluno'
+                                    }
+                                })}
+                                className="bg-white p-2.5 rounded-xl border border-gray-100 shadow-sm active:bg-gray-50"
+                            >
+                                <MessageSquare size={18} color="#2563EB" />
+                            </TouchableOpacity>
+                        )}
                     </View>
 
                     {/* Detalhes Adicionais */}
@@ -182,34 +186,44 @@ export function ScheduleCard({
                         </View>
                     )}
 
-                    {scheduling.status === 'reschedule_requested' && (
-                        <TouchableOpacity
-                            onPress={() => navigation.navigate('InstructorSchedule', {
-                                screen: 'RescheduleDetails',
-                                params: { scheduling }
-                            })}
-                            className="flex-row items-center justify-center py-3.5 rounded-2xl bg-amber-500 active:bg-amber-600 shadow-sm"
-                        >
-                            <Clock size={18} color="#ffffff" />
-                            <Text className="text-white font-bold ml-2">
-                                {isSelfRequested ? 'Minha Sugestão' : 'Ver Solicitação'}
+                    {/* Botões de Ação ou Aviso */}
+                    {isPaymentPending ? (
+                        <View className="flex-row items-center justify-center py-3 rounded-2xl bg-yellow-50 border border-yellow-200 mt-2">
+                            <AlertCircle size={18} color="#EAB308" />
+                            <Text className="text-yellow-600 font-bold ml-2 text-center text-sm">
+                                Aguardando pagamento do aluno
                             </Text>
-                        </TouchableOpacity>
-                    )}
+                        </View>
+                    ) : (
+                        <>
+                            {scheduling.status === 'reschedule_requested' && (
+                                <TouchableOpacity
+                                    onPress={() => navigation.navigate('InstructorSchedule', {
+                                        screen: 'RescheduleDetails',
+                                        params: { scheduling }
+                                    })}
+                                    className="flex-row items-center justify-center py-3.5 rounded-2xl bg-amber-500 active:bg-amber-600 shadow-sm"
+                                >
+                                    <Clock size={18} color="#ffffff" />
+                                    <Text className="text-white font-bold ml-2">
+                                        {isSelfRequested ? 'Minha Sugestão' : 'Ver Solicitação'}
+                                    </Text>
+                                </TouchableOpacity>
+                            )}
 
-
-
-                    {/* Botão de Reagendar - para pending e confirmed */}
-                    {(scheduling.status === 'pending' || scheduling.status === 'confirmed') && (
-                        <TouchableOpacity
-                            onPress={() => onReschedule(scheduling)}
-                            className="flex-row items-center justify-center py-3 rounded-2xl mt-1 bg-white active:bg-gray-50 border border-gray-100"
-                        >
-                            <Clock size={18} color="#6B7280" />
-                            <Text className="text-gray-600 font-semibold ml-2">
-                                Reagendar
-                            </Text>
-                        </TouchableOpacity>
+                            {/* Botão de Reagendar - para pending e confirmed */}
+                            {(scheduling.status === 'pending' || scheduling.status === 'confirmed') && (
+                                <TouchableOpacity
+                                    onPress={() => onReschedule(scheduling)}
+                                    className="flex-row items-center justify-center py-3 rounded-2xl mt-1 bg-white active:bg-gray-50 border border-gray-100"
+                                >
+                                    <Clock size={18} color="#6B7280" />
+                                    <Text className="text-gray-600 font-semibold ml-2">
+                                        Reagendar
+                                    </Text>
+                                </TouchableOpacity>
+                            )}
+                        </>
                     )}
                 </View>
             </View>

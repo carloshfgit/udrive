@@ -31,6 +31,7 @@ export interface Scheduling {
     rescheduled_by?: string | null;
     lesson_category?: string;
     vehicle_ownership?: string;
+    payment_status?: string | null;
 }
 
 export interface SchedulingListResponse {
