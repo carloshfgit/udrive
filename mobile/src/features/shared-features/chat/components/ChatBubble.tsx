@@ -88,11 +88,11 @@ const styles = StyleSheet.create({
         borderRadius: radius.xl,
     },
     bubbleMine: {
-        backgroundColor: colors.primary[500],
+        backgroundColor: colors.primary[100],
         borderBottomRightRadius: radius.sm,
     },
     bubbleOther: {
-        backgroundColor: colors.neutral[100],
+        backgroundColor: colors.primary[500],
         borderBottomLeftRadius: radius.sm,
     },
     content: {
@@ -101,10 +101,10 @@ const styles = StyleSheet.create({
         fontFamily: typography.fontFamily.sans,
     },
     contentMine: {
-        color: colors.text.inverse,
+        color: colors.text.primary,
     },
     contentOther: {
-        color: colors.text.primary,
+        color: colors.text.inverse,
     },
     footer: {
         flexDirection: 'row',
@@ -118,19 +118,19 @@ const styles = StyleSheet.create({
         fontFamily: typography.fontFamily.sans,
     },
     timeMine: {
-        color: 'rgba(255, 255, 255, 0.7)',
+        color: 'rgba(0, 0, 0, 0.7)',
     },
     timeOther: {
-        color: colors.neutral[400],
+        color: colors.neutral[200],
     },
     readIndicator: {
         fontSize: typography.sizes.xs - 1,
         fontFamily: typography.fontFamily.semibold,
     },
     readIndicatorRead: {
-        color: '#90caf9',
+        color: '#5bd13bff',
     },
     readIndicatorUnread: {
-        color: 'rgba(255, 255, 255, 0.5)',
+        color: 'rgba(108, 108, 108, 0.5)',
     },
 });
