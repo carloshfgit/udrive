@@ -1,5 +1,6 @@
 import { useEffect, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useIsFocused } from '@react-navigation/native';
 import { getMessages, sendMessage, SendMessageRequest } from '../api/chatApi';
 import { wsService } from '../../../../lib/websocket';
 import { useWebSocketStore } from '../../../../lib/websocketStore';
@@ -7,6 +8,7 @@ import { useWebSocketStore } from '../../../../lib/websocketStore';
 export function useMessages(otherUserId: string) {
     const queryClient = useQueryClient();
     const isConnected = useWebSocketStore((s) => s.isConnected);
+    const isFocused = useIsFocused();
 
     // Query inicial para carregar histórico — polling apenas como fallback
     const query = useQuery({
@@ -43,9 +45,9 @@ export function useMessages(otherUserId: string) {
         [isConnected, otherUserId, sendMutationRest]
     );
 
-    // Marcar mensagens como lidas automaticamente quando o chat está aberto
+    // Marcar mensagens como lidas automaticamente quando o chat está aberto E focado
     useEffect(() => {
-        if (!isConnected || !query.data || query.data.length === 0) return;
+        if (!isFocused || !isConnected || !query.data || query.data.length === 0) return;
 
         // Filtrar mensagens não lidas enviadas pelo outro usuário
         const unreadIds = query.data
@@ -62,7 +64,7 @@ export function useMessages(otherUserId: string) {
             // Otimismo: invalidar queries locais para limpar o estado de não lidas visualmente
             queryClient.invalidateQueries({ queryKey: ['chat-unread-count'] });
         }
-    }, [query.data, isConnected, otherUserId, queryClient]);
+    }, [query.data, isConnected, isFocused, otherUserId, queryClient]);
 
     // Invalida a lista de conversas e contagem global quando as mensagens são carregadas com sucesso
     // Isso garante que os indicadores de não lidas sejam atualizados após abrir o chat
