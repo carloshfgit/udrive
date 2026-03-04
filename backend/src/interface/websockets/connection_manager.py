@@ -99,11 +99,12 @@ class ConnectionManager:
         for ws in connections:
             try:
                 await ws.send_json(data)
-            except Exception:
+            except Exception as e:
                 dead_connections.append(ws)
                 logger.warning(
                     "websocket_send_failed",
                     user_id=str(user_id),
+                    error=str(e),
                 )
 
         # Limpar conexões mortas

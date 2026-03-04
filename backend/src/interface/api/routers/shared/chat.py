@@ -48,9 +48,39 @@ async def send_message(
     """
     Envia uma nova mensagem para outro usuário.
     Valida agendamento ativo e filtra conteúdo impróprio.
+    O decorator trata a notificação offline (Push), 
+    então precisamos disparar também o real-time (PubSub/WS).
     """
-    return await use_case.execute(current_user.id, dto)
+    result = await use_case.execute(current_user.id, dto)
+    
+    # Montar payload do chat idêntico ao WS nativo
+    message_data = {
+        "id": str(result.id),
+        "sender_id": str(result.sender_id),
+        "receiver_id": str(result.receiver_id),
+        "content": result.content,
+        "timestamp": result.timestamp.isoformat(),
+        "is_read": result.is_read,
+    }
 
+    # Despachar evento para o destinatário via PubSub ou manager
+    from src.interface.websockets.chat_handler import get_pubsub_service
+    from src.interface.websockets.connection_manager import manager
+    from src.interface.websockets.message_types import ServerChatMessageType
+
+    pubsub = get_pubsub_service()
+    if pubsub:
+        await pubsub.publish(
+            f"user:{result.receiver_id}",
+            {"type": ServerChatMessageType.NEW_MESSAGE, "data": message_data},
+        )
+    else:
+        await manager.send_to_user(result.receiver_id, {
+            "type": ServerChatMessageType.NEW_MESSAGE,
+            "data": message_data,
+        })
+        
+    return result
 
 @router.get("/conversations", response_model=list[ConversationResponseDTO])
 async def list_conversations(

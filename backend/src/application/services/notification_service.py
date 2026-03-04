@@ -87,13 +87,16 @@ class NotificationService:
 
         # 2. Enviar via WebSocket se o usuário estiver online
         if self.ws_manager.is_online(user_id):
+            from src.application.dtos.notification_dtos import NotificationSchema
             unread_count = await self.notification_repository.count_unread(user_id)
+            notification_dto = _to_response_dto(saved)
+            notification_dict = NotificationSchema.model_validate(notification_dto).model_dump(mode="json")
             await self.ws_manager.send_to_user(
                 user_id,
                 {
                     "type": "NOTIFICATION",
                     "payload": {
-                        "notification": _to_response_dto(saved).__dict__,
+                        "notification": notification_dict,
                         "unread_count": unread_count,
                     },
                 },

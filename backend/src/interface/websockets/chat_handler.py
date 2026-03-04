@@ -93,16 +93,33 @@ async def handle_send_message(websocket: WebSocket, user_id: UUID, data: dict) -
     # Criar sessão DB para esta operação
     async with AsyncSessionLocal() as session:
         try:
+            from src.application.services.notification_service import NotificationService
+            from src.application.use_cases.chat.chat_notification_decorators import NotifyOnSendMessage
+            from src.infrastructure.repositories.notification_repository_impl import NotificationRepositoryImpl
+            from src.infrastructure.services.push_notification_service import ExpoPushNotificationService
+            
             # Instanciar repositórios
             message_repo = MessageRepositoryImpl(session)
             scheduling_repo = SchedulingRepositoryImpl(session)
             user_repo = UserRepositoryImpl(session)
+            notification_repo = NotificationRepositoryImpl(session)
+            push_service = ExpoPushNotificationService(session)
+
+            notification_service = NotificationService(
+                notification_repository=notification_repo,
+                push_service=push_service,
+                ws_manager=manager,
+            )
 
             # Executar use case
-            use_case = SendMessageUseCase(
+            base_use_case = SendMessageUseCase(
                 message_repository=message_repo,
                 scheduling_repository=scheduling_repo,
                 user_repository=user_repo,
+            )
+            use_case = NotifyOnSendMessage(
+                _wrapped=base_use_case,
+                _notification_service=notification_service,
             )
             dto = SendMessageDTO(receiver_id=receiver_id, content=content)
             result = await use_case.execute(sender_id=user_id, dto=dto)
@@ -125,13 +142,19 @@ async def handle_send_message(websocket: WebSocket, user_id: UUID, data: dict) -
                 "data": message_data,
             })
 
-            # Publicar no Redis PubSub para o receiver
+            # 1. PubSub para instâncias remotas (e locais também)
             pubsub = get_pubsub_service()
             if pubsub:
                 await pubsub.publish(
                     f"user:{receiver_id}",
                     {"type": ServerChatMessageType.NEW_MESSAGE, "data": message_data},
                 )
+            else:
+                # 2. Entrega direta via ConnectionManager se não houver PubSub
+                await manager.send_to_user(receiver_id, {
+                    "type": ServerChatMessageType.NEW_MESSAGE,
+                    "data": message_data,
+                })
 
             logger.info(
                 "ws_message_sent",
@@ -195,21 +218,24 @@ async def handle_mark_as_read(websocket: WebSocket, user_id: UUID, data: dict) -
             await message_repo.mark_as_read(message_ids)
             await session.commit()
 
-            # Buscar o sender_id da primeira mensagem para notificá-lo
+            # Notificar o sender original que suas mensagens foram lidas
             sender_id = data.get("sender_id")
             if sender_id:
+                read_data = {
+                    "type": ServerChatMessageType.MESSAGES_READ,
+                    "data": {
+                        "message_ids": [str(mid) for mid in message_ids],
+                        "read_by": str(user_id),
+                    },
+                }
+
+                # 1. PubSub para instâncias remotas e locais
                 pubsub = get_pubsub_service()
                 if pubsub:
-                    await pubsub.publish(
-                        f"user:{sender_id}",
-                        {
-                            "type": ServerChatMessageType.MESSAGES_READ,
-                            "data": {
-                                "message_ids": [str(mid) for mid in message_ids],
-                                "read_by": str(user_id),
-                            },
-                        },
-                    )
+                    await pubsub.publish(f"user:{sender_id}", read_data)
+                else:
+                    # 2. Entrega direta via ConnectionManager
+                    await manager.send_to_user(UUID(sender_id), read_data)
 
             # Enviar contagem atualizada de não lidas ao leitor
             unread_count = await message_repo.count_total_unread(user_id)
@@ -255,15 +281,19 @@ async def handle_typing(user_id: UUID, data: dict) -> None:
     except (ValueError, TypeError):
         return
 
+    typing_data = {
+        "type": ServerChatMessageType.TYPING_INDICATOR,
+        "data": {"user_id": str(user_id)},
+    }
+
+    # 1. PubSub para instâncias remotas e locais
     pubsub = get_pubsub_service()
     if pubsub:
-        await pubsub.publish(
-            f"user:{receiver_id}",
-            {
-                "type": ServerChatMessageType.TYPING_INDICATOR,
-                "data": {"user_id": str(user_id)},
-            },
-        )
+        await pubsub.publish(f"user:{receiver_id}", typing_data)
+    else:
+        # 2. Entrega direta via ConnectionManager
+        await manager.send_to_user(receiver_id, typing_data)
+
 
 
 # =============================================================================
@@ -304,9 +334,28 @@ async def websocket_chat_endpoint(websocket: WebSocket) -> None:
 
     # 4. Subscrever no canal Redis PubSub do usuário
     if pubsub:
-        async def on_pubsub_message(data: dict) -> None:
-            """Callback: encaminha mensagem do Redis para o WebSocket."""
-            await manager.send_to_user(user_id, data)
+        async def on_pubsub_message(payload_data: dict) -> None:
+            """Callback para mensagens do PubSub (incluindo instâncias remotas)."""
+            try:
+                # O payload do PubSub pode vir como string (conforme lib de redis) ou dict
+                if isinstance(payload_data, dict) and "data" in payload_data:
+                    message_str = payload_data["data"]
+                    if isinstance(message_str, bytes):
+                        message_str = message_str.decode("utf-8")
+                    
+                    if isinstance(message_str, str):
+                        try:
+                            parsed_data = json.loads(message_str)
+                            await manager.send_to_user(user_id, parsed_data)
+                        except json.JSONDecodeError:
+                            # Tentar enviar direto caso venha já como dict serializado internamente
+                            await manager.send_to_user(user_id, payload_data)
+                    else:
+                        await manager.send_to_user(user_id, message_str)
+                else:
+                    await manager.send_to_user(user_id, payload_data)
+            except Exception as e:
+                logger.error("pubsub_message_error", user_id=str(user_id), error=str(e))
 
         await pubsub.subscribe(f"user:{user_id}", on_pubsub_message)
 

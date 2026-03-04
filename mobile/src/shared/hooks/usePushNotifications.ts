@@ -22,7 +22,6 @@ import { useQueryClient } from '@tanstack/react-query';
 // Configuração global: como a notificação é exibida quando o app está em foreground
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
-        shouldShowAlert: true,
         shouldPlaySound: true,
         shouldSetBadge: true,
         shouldShowBanner: true,
