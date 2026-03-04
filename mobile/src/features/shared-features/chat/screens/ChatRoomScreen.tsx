@@ -1,251 +1,175 @@
-import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+/**
+ * ChatRoomScreen
+ *
+ * Tela de conversa individual entre dois usuários.
+ * Comportamento de teclado estilo WhatsApp — header fixo,
+ * mensagens e input acompanham o teclado.
+ */
+
+import React, { useCallback, useRef } from 'react';
 import {
     View,
-    Text,
     FlatList,
-    TextInput,
-    TouchableOpacity,
+    SafeAreaView,
     KeyboardAvoidingView,
     Platform,
-    ActivityIndicator,
-    Alert,
-    Keyboard,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Send } from 'lucide-react-native';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { BookOpen } from 'lucide-react-native';
+import { useAuthStore } from '@lib/store';
 import { Header } from '../../../../shared/components/Header';
+import { LoadingState } from '../../../../shared/components/LoadingState';
+import { EmptyState } from '../../../../shared/components/EmptyState';
+import { ChatBubble } from '../components/ChatBubble';
+import { ChatInput } from '../components/ChatInput';
 import { useMessages } from '../hooks/useMessages';
 import { MessageResponse } from '../api/chatApi';
-import { wsService } from '../../../../lib/websocket';
-import { useWebSocketStore } from '../../../../lib/websocketStore';
-import type { WSMessage } from '../../../../lib/websocket';
-
-// Altura estimada do Header + Banner para cálculo do offset do teclado
-// Ajuste este valor se o seu Header for maior ou menor
-const HEADER_OFFSET = 60 + 40; // ~60px Header + ~40px Banner
+import { colors, spacing, typography } from '../../../../shared/theme';
 
 export function ChatRoomScreen() {
     const route = useRoute<any>();
     const navigation = useNavigation<any>();
+    const { user } = useAuthStore();
+    const flatListRef = useRef<FlatList>(null);
+
     const { otherUserId, otherUserName } = route.params;
-
-    const [messageText, setMessageText] = useState('');
-    const [isTyping, setIsTyping] = useState(false);
-
-    // Hooks
     const { messages, sendMessage, isSending, isLoading } = useMessages(otherUserId);
-    const isConnected = useWebSocketStore((s) => s.isConnected);
-    const insets = useSafeAreaInsets();
 
-    // Refs
-    const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-    // Inverter mensagens para usar na FlatList inverted (UX padrão de chats)
-    const reversedMessages = useMemo(() => {
-        return [...messages].reverse();
+    // Mensagens invertidas para FlatList invertida (mais recentes no topo)
+    const sortedMessages = React.useMemo(() => {
+        if (!messages) return [];
+        return [...messages].sort(
+            (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        );
     }, [messages]);
 
-    // Listener para typing
-    useEffect(() => {
-        const unsubscribe = wsService.onMessage((message: WSMessage) => {
-            if (
-                message.type === 'typing_indicator' &&
-                (message.data as Record<string, string>)?.user_id === otherUserId
-            ) {
-                setIsTyping(true);
-                if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-                typingTimeoutRef.current = setTimeout(() => setIsTyping(false), 3000);
-            }
-        });
-
-        return () => {
-            unsubscribe();
-            if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-        };
-    }, [otherUserId]);
-
-    const handleTextChange = useCallback(
-        (text: string) => {
-            setMessageText(text);
-            if (isConnected && text.trim()) {
-                wsService.send({ type: 'typing', receiver_id: otherUserId });
-            }
-        },
-        [isConnected, otherUserId]
-    );
-
-    const handleSend = async () => {
-        if (!messageText.trim() || isSending) return;
-
-        const content = messageText.trim();
-        setMessageText(''); // Limpa input imediatamente para UX ágil
-
-        try {
+    const handleSend = useCallback(
+        async (content: string) => {
             await sendMessage(content);
-        } catch (error: any) {
-            setMessageText(content); // Restaura texto em erro
-            const detail = error.response?.data?.detail || 'Não foi possível enviar a mensagem.';
-            Alert.alert('Erro', detail);
-        }
-    };
-
-    const renderMessage = ({ item }: { item: MessageResponse }) => {
-        const isMine = item.sender_id !== otherUserId;
-
-        return (
-            <View className={`mb-4 flex-row ${isMine ? 'justify-end' : 'justify-start'}`}>
-                <View
-                    className={`max-w-[80%] px-4 py-2 rounded-2xl ${isMine ? 'bg-blue-600 rounded-tr-none' : 'bg-neutral-100 rounded-tl-none'
-                        }`}
-                >
-                    <Text className={`text-sm ${isMine ? 'text-white' : 'text-neutral-900'}`}>
-                        {item.content}
-                    </Text>
-                    <Text
-                        className={`text-[10px] mt-1 text-right ${isMine ? 'text-blue-100' : 'text-neutral-500'
-                            }`}
-                    >
-                        {format(new Date(item.timestamp), 'HH:mm', { locale: ptBR })}
-                    </Text>
-                </View>
-            </View>
-        );
-    };
-
-    const renderHeaderRight = () => (
-        <TouchableOpacity
-            onPress={() =>
-                navigation.navigate('StudentLessonHistory', {
-                    studentId: otherUserId,
-                    studentName: otherUserName
-                })
-            }
-            className="bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100 items-center justify-center mr-1"
-        >
-            <Text className="text-blue-600 text-[10px] font-bold uppercase tracking-wider">
-                Ver Aulas
-            </Text>
-        </TouchableOpacity>
+        },
+        [sendMessage]
     );
 
-    const TypingIndicator = () => (
-        <View className="mb-4 ml-4">
-            <View className="bg-neutral-100 rounded-2xl rounded-tl-none px-4 py-3 self-start">
-                <View className="flex-row items-center gap-1">
-                    <View className="w-1.5 h-1.5 rounded-full bg-neutral-400 animate-pulse" />
-                    <View className="w-1.5 h-1.5 rounded-full bg-neutral-400 animate-pulse delay-75" />
-                    <View className="w-1.5 h-1.5 rounded-full bg-neutral-400 animate-pulse delay-150" />
-                </View>
-            </View>
-        </View>
+    const handleViewLessons = useCallback(() => {
+        navigation.navigate('StudentLessonHistory', {
+            studentId: otherUserId,
+            studentName: otherUserName,
+        });
+    }, [navigation, otherUserId, otherUserName]);
+
+    const renderMessage = useCallback(
+        ({ item }: { item: MessageResponse }) => (
+            <ChatBubble
+                content={item.content}
+                timestamp={item.timestamp}
+                isMine={item.sender_id === user?.id}
+                isRead={item.is_read}
+            />
+        ),
+        [user?.id]
     );
+
+    const keyExtractor = useCallback((item: MessageResponse) => item.id, []);
 
     return (
-        <View className="flex-1 bg-white">
-            {/* Header FORA do KeyboardAvoidingView para que fique sempre fixo no topo.
-                No Android com 'resize', o view pai continua com o mesmo tamanho da janela, 
-                e o KeyboardAvoidingView abaixo dele será espremido. */}
-            <View style={{ paddingTop: insets.top }} className="bg-white z-10 shadow-sm">
-                <Header
-                    title={otherUserName}
-                    onBack={() => navigation.goBack()}
-                    rightElement={renderHeaderRight()}
+        <SafeAreaView style={styles.container}>
+            {/* Header fixo — fora do KeyboardAvoidingView */}
+            <Header
+                title={otherUserName}
+                onBack={() => navigation.goBack()}
+                rightElement={
+                    <TouchableOpacity
+                        onPress={handleViewLessons}
+                        style={styles.lessonsButton}
+                        accessibilityLabel="Ver aulas"
+                        accessibilityRole="button"
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    >
+                        <BookOpen size={20} color={colors.primary[500]} />
+                        <Text style={styles.lessonsButtonText}>Aulas</Text>
+                    </TouchableOpacity>
+                }
+            />
+
+            {/* Área que acompanha o teclado */}
+            <KeyboardAvoidingView
+                style={styles.keyboardView}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+            >
+                {/* Lista de mensagens */}
+                <FlatList
+                    ref={flatListRef}
+                    data={sortedMessages}
+                    renderItem={renderMessage}
+                    keyExtractor={keyExtractor}
+                    inverted
+                    style={styles.messagesList}
+                    contentContainerStyle={styles.messagesContent}
+                    showsVerticalScrollIndicator={false}
+                    ListEmptyComponent={
+                        isLoading ? (
+                            <View style={styles.loadingContainer}>
+                                <LoadingState.Card />
+                                <LoadingState.Card />
+                            </View>
+                        ) : (
+                            <View style={styles.emptyContainer}>
+                                <EmptyState
+                                    title="Nenhuma mensagem"
+                                    message="Envie uma mensagem para iniciar a conversa."
+                                />
+                            </View>
+                        )
+                    }
                 />
 
-                <View className="bg-blue-50 px-4 py-2 border-b border-blue-100 flex-row items-center">
-                    <Text className="text-blue-700 text-xs font-medium">
-                        💡 Para ver as aulas agendadas clique em "Ver Aulas" no topo
-                    </Text>
-                </View>
-            </View>
-
-            <KeyboardAvoidingView
-                style={{ flex: 1 }}
-                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-                keyboardVerticalOffset={Platform.OS === 'ios' ? HEADER_OFFSET + insets.top : 0}
-            >
-                <View className="flex-1">
-                    {isLoading ? (
-                        <View className="flex-1 justify-center items-center">
-                            <ActivityIndicator color="#2563EB" size="large" />
-                        </View>
-                    ) : (
-                        <FlatList
-                            data={reversedMessages}
-                            renderItem={renderMessage}
-                            keyExtractor={(item) => item.id}
-
-                            // UX: Lista invertida mantém o scroll ancorado no fundo
-                            inverted
-                            showsVerticalScrollIndicator={false}
-                            contentContainerStyle={{
-                                paddingHorizontal: 16,
-                                paddingVertical: 16,
-                                flexGrow: 1,
-                            }}
-
-                            // Em modo inverted, o Footer é o topo visual
-                            ListFooterComponent={
-                                <View className="py-6 items-center">
-                                    <Text className="text-neutral-300 text-xs">
-                                        Início da conversa com {otherUserName}
-                                    </Text>
-                                </View>
-                            }
-
-                            // Header é a parte inferior visual (acima do input)
-                            ListHeaderComponent={isTyping ? <TypingIndicator /> : null}
-
-                            // Permite fechar teclado arrastando a lista
-                            keyboardDismissMode="interactive"
-                            keyboardShouldPersistTaps="handled"
-                        />
-                    )}
-
-                    {/* Área de Input */}
-                    <View
-                        className="p-4 border-t border-neutral-100 flex-row items-end bg-white"
-                        style={{
-                            // Garante padding extra em iPhones sem botão home quando teclado fechado
-                            paddingBottom: Platform.OS === 'ios' ? Math.max(insets.bottom, 16) : 16
-                        }}
-                    >
-                        <View className="flex-1 bg-neutral-100 rounded-3xl px-4 mr-2 border border-transparent focus:border-blue-200">
-                            <TextInput
-                                placeholder="Mensagem..."
-                                placeholderTextColor="#A3A3A3"
-                                value={messageText}
-                                onChangeText={handleTextChange}
-                                multiline
-                                className="text-neutral-900 text-sm py-3 max-h-32 min-h-[44px]"
-                                textAlignVertical="center"
-                                scrollEnabled={true}
-                            />
-                        </View>
-
-                        <TouchableOpacity
-                            onPress={handleSend}
-                            disabled={!messageText.trim() || isSending}
-                            className={`w-12 h-12 rounded-full items-center justify-center shadow-sm ${!messageText.trim() || isSending ? 'bg-neutral-200' : 'bg-blue-600'
-                                }`}
-                            activeOpacity={0.7}
-                        >
-                            {isSending ? (
-                                <ActivityIndicator size="small" color="#FFFFFF" />
-                            ) : (
-                                <Send
-                                    size={20}
-                                    color={!messageText.trim() ? '#A3A3A3' : '#FFFFFF'}
-                                    style={{ marginLeft: 2 }}
-                                />
-                            )}
-                        </TouchableOpacity>
-                    </View>
-                </View>
+                {/* Input de mensagem */}
+                <ChatInput onSend={handleSend} isSending={isSending} />
             </KeyboardAvoidingView>
-        </View>
+        </SafeAreaView>
     );
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: colors.background.light,
+    },
+    keyboardView: {
+        flex: 1,
+    },
+    messagesList: {
+        flex: 1,
+    },
+    messagesContent: {
+        paddingVertical: spacing.sm,
+        flexGrow: 1,
+    },
+    loadingContainer: {
+        padding: spacing.md,
+        // Invertido: conteúdo do empty fica "de cabeça para baixo" em FlatList invertida
+        transform: [{ scaleY: -1 }],
+    },
+    emptyContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        transform: [{ scaleY: -1 }],
+    },
+    lessonsButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+    },
+    lessonsButtonText: {
+        fontSize: typography.sizes.xs,
+        fontFamily: typography.fontFamily.semibold,
+        color: colors.primary[500],
+    },
+});
