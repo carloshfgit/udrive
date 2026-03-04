@@ -18,7 +18,7 @@ import {
     TouchableOpacity,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import { BookOpen } from 'lucide-react-native';
+import { BookOpen, MapPin } from 'lucide-react-native';
 import { useAuthStore } from '@lib/store';
 import { Header } from '../../../../shared/components/Header';
 import { LoadingState } from '../../../../shared/components/LoadingState';
@@ -100,6 +100,14 @@ export function ChatRoomScreen() {
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
             >
+                {/* Aviso de Aulas */}
+                <View style={[styles.infoContainer, styles.topInfoBorder]}>
+                    <BookOpen size={16} color={colors.primary[500]} />
+                    <Text style={styles.infoText}>
+                        Clique em "Aulas" para ver a lista completa.
+                    </Text>
+                </View>
+
                 {/* Lista de mensagens */}
                 <FlatList
                     ref={flatListRef}
@@ -126,6 +134,14 @@ export function ChatRoomScreen() {
                         )
                     }
                 />
+
+                {/* Aviso de Localização */}
+                <View style={styles.infoContainer}>
+                    <MapPin size={16} color={colors.primary[500]} />
+                    <Text style={styles.infoText}>
+                        Clique no ícone para enviar sua localização.
+                    </Text>
+                </View>
 
                 {/* Input de mensagem */}
                 <ChatInput onSend={handleSend} isSending={isSending} />
@@ -171,5 +187,24 @@ const styles = StyleSheet.create({
         fontSize: typography.sizes.xs,
         fontFamily: typography.fontFamily.semibold,
         color: colors.primary[500],
+    },
+    infoContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: colors.primary[50],
+        paddingHorizontal: spacing.md,
+        paddingVertical: spacing.sm,
+        borderTopWidth: 1,
+        borderTopColor: colors.border.light,
+        gap: 8,
+    },
+    topInfoBorder: {
+        borderTopWidth: 0,
+    },
+    infoText: {
+        fontSize: typography.sizes.xs,
+        fontFamily: typography.fontFamily.medium,
+        color: colors.primary[600],
     },
 });

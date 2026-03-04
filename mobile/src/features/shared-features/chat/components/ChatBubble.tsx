@@ -9,6 +9,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import * as WebBrowser from 'expo-web-browser';
 import { colors, radius, spacing, typography } from '../../../../shared/theme';
 
 interface ChatBubbleProps {
@@ -18,8 +19,18 @@ interface ChatBubbleProps {
     isRead: boolean;
 }
 
-export function ChatBubble({ content, timestamp, isMine, isRead }: ChatBubbleProps) {
+export const ChatBubble = ({ content, timestamp, isMine, isRead }: ChatBubbleProps) => {
     const formattedTime = format(new Date(timestamp), 'HH:mm', { locale: ptBR });
+
+    const handlePress = async () => {
+        const urlRegex = /(https?:\/\/[^\s]+)/g;
+        const match = content.match(urlRegex);
+        if (match) {
+            await WebBrowser.openBrowserAsync(match[0]);
+        }
+    };
+
+    const isLink = /(https?:\/\/[^\s]+)/g.test(content);
 
     return (
         <View
@@ -38,7 +49,9 @@ export function ChatBubble({ content, timestamp, isMine, isRead }: ChatBubblePro
                     style={[
                         styles.content,
                         isMine ? styles.contentMine : styles.contentOther,
+                        isLink && styles.linkText,
                     ]}
+                    onPress={isLink ? handlePress : undefined}
                 >
                     {content}
                 </Text>
@@ -105,6 +118,9 @@ const styles = StyleSheet.create({
     },
     contentOther: {
         color: colors.text.inverse,
+    },
+    linkText: {
+        textDecorationLine: 'underline',
     },
     footer: {
         flexDirection: 'row',

@@ -13,8 +13,10 @@ import {
     Text,
     StyleSheet,
     ActivityIndicator,
+    Alert,
 } from 'react-native';
-import { Send } from 'lucide-react-native';
+import { Send, MapPin } from 'lucide-react-native';
+import * as Location from 'expo-location';
 import { colors, radius, spacing, typography } from '../../../../shared/theme';
 import { checkProhibitedContent } from '../utils/messageFilter';
 
@@ -26,6 +28,7 @@ interface ChatInputProps {
 export function ChatInput({ onSend, isSending = false }: ChatInputProps) {
     const [text, setText] = useState('');
     const [warning, setWarning] = useState('');
+    const [isGettingLocation, setIsGettingLocation] = useState(false);
 
     const handleSend = useCallback(async () => {
         const trimmed = text.trim();
@@ -42,6 +45,37 @@ export function ChatInput({ onSend, isSending = false }: ChatInputProps) {
         setText('');
         await onSend(trimmed);
     }, [text, isSending, onSend]);
+
+    const handleSendLocation = useCallback(async () => {
+        if (isSending || isGettingLocation) return;
+
+        try {
+            setIsGettingLocation(true);
+            const { status } = await Location.requestForegroundPermissionsAsync();
+
+            if (status !== 'granted') {
+                Alert.alert(
+                    'Permissão Negada',
+                    'Precisamos de permissão para acessar sua localização e enviar o link.'
+                );
+                return;
+            }
+
+            const location = await Location.getCurrentPositionAsync({
+                accuracy: Location.Accuracy.Balanced,
+            });
+
+            const { latitude, longitude } = location.coords;
+            const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
+
+            await onSend(googleMapsUrl);
+        } catch (error) {
+            console.error('Erro ao obter localização:', error);
+            Alert.alert('Erro', 'Não foi possível obter sua localização atual.');
+        } finally {
+            setIsGettingLocation(false);
+        }
+    }, [isSending, isGettingLocation, onSend]);
 
     const handleChangeText = useCallback((value: string) => {
         setText(value);
@@ -62,6 +96,19 @@ export function ChatInput({ onSend, isSending = false }: ChatInputProps) {
             )}
 
             <View style={styles.inputRow}>
+                <TouchableOpacity
+                    style={styles.attachmentButton}
+                    onPress={handleSendLocation}
+                    disabled={isSending || isGettingLocation}
+                    activeOpacity={0.7}
+                >
+                    {isGettingLocation ? (
+                        <ActivityIndicator size="small" color={colors.primary[500]} />
+                    ) : (
+                        <MapPin size={22} color={colors.primary[500]} />
+                    )}
+                </TouchableOpacity>
+
                 <TextInput
                     style={styles.input}
                     value={text}
@@ -144,6 +191,14 @@ const styles = StyleSheet.create({
         color: colors.text.primary,
         maxHeight: 100,
         minHeight: 42,
+    },
+    attachmentButton: {
+        width: 42,
+        height: 42,
+        borderRadius: radius.full,
+        backgroundColor: colors.neutral[100],
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     sendButton: {
         width: 42,
