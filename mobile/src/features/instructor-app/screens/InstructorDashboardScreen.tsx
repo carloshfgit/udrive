@@ -140,11 +140,15 @@ export function InstructorDashboardScreen() {
     const totalEarnings = earnings?.total_earnings ?? 0;
     const monthlyEarnings = earnings?.monthly_earnings ?? 0;
     const completedLessons = earnings?.completed_lessons ?? 0;
+    const baseLessonPrice = earnings?.base_lesson_price ?? 0;
     const rating = reviews?.rating ?? 0;
     const totalReviews = reviews?.total_reviews ?? 0;
 
+    const missingAmount = Math.max(0, monthlyGoal - monthlyEarnings);
+    const missingLessons = baseLessonPrice > 0 ? Math.ceil(missingAmount / baseLessonPrice) : 0;
+
     return (
-        <SafeAreaView className="flex-1 bg-neutral-50">
+        <SafeAreaView className="flex-1 bg-primary-50">
             {/* Header Rico */}
             <View className="px-5 pt-8 pb-8 bg-white rounded-b-[40px] shadow-md shadow-neutral-100 z-10">
                 <View className="flex-row justify-between items-center">
@@ -153,7 +157,7 @@ export function InstructorDashboardScreen() {
                             {format(new Date(), "EEEE, d 'de' MMMM", { locale: ptBR })}
                         </Text>
                         <Text className="text-3xl font-black text-neutral-900 mt-1">
-                            Olá, {user?.full_name.split(' ')[0] || 'Instrutor'} <Text className="text-primary-500">.</Text>
+                            Olá, {user?.full_name.split(' ')[0] || 'Instrutor'}
                         </Text>
                     </View>
                     <Avatar
@@ -294,8 +298,13 @@ export function InstructorDashboardScreen() {
                                 <View className="items-end">
                                     <Text className="text-[10px] text-neutral-500 uppercase font-black tracking-widest mb-1">Faltam</Text>
                                     <Text className="text-xl font-black text-white">
-                                        {formatCurrency(Math.max(0, monthlyGoal - monthlyEarnings))}
+                                        {formatCurrency(missingAmount)}
                                     </Text>
+                                    {missingLessons > 0 && (
+                                        <Text className="text-[9px] text-neutral-400 font-bold mt-1">
+                                            Aprox. {missingLessons} {missingLessons === 1 ? 'aula' : 'aulas'}
+                                        </Text>
+                                    )}
                                 </View>
                             </View>
                         </View>

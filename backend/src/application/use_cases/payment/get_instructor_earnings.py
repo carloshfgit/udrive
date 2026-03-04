@@ -77,11 +77,22 @@ class GetInstructorEarningsUseCase:
                     if created.year == current_year and created.month == current_month:
                         monthly_earnings += payment.instructor_amount
 
+        base_lesson_price = None
+        if profile.price_cat_b_instructor_vehicle is not None:
+            base_lesson_price = profile.price_cat_b_instructor_vehicle
+        elif profile.price_cat_b_student_vehicle is not None:
+            base_lesson_price = profile.price_cat_b_student_vehicle
+        elif profile.price_cat_a_instructor_vehicle is not None:
+            base_lesson_price = profile.price_cat_a_instructor_vehicle
+        elif profile.price_cat_a_student_vehicle is not None:
+            base_lesson_price = profile.price_cat_a_student_vehicle
+
         return InstructorEarningsDTO(
             instructor_id=instructor_id,
             total_earnings=total_earnings,
             monthly_earnings=monthly_earnings,
             completed_lessons=completed_lessons,
+            base_lesson_price=base_lesson_price,
             period_start=now.replace(day=1, hour=0, minute=0, second=0, microsecond=0),
             period_end=now,
         )

@@ -177,6 +177,7 @@ class InstructorEarningsDTO:
     total_earnings: Decimal
     monthly_earnings: Decimal
     completed_lessons: int
+    base_lesson_price: Decimal | None = None
     period_start: datetime | None = None
     period_end: datetime | None = None
 

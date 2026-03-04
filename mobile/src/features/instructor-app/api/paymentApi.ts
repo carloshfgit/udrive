@@ -18,6 +18,7 @@ export interface InstructorEarnings {
     total_earnings: number;
     monthly_earnings: number;
     completed_lessons: number;
+    base_lesson_price: number | null;
     period_start: string | null;
     period_end: string | null;
 }
