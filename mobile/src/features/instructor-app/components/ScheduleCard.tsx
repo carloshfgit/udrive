@@ -137,7 +137,7 @@ export function ScheduleCard({
                                 {scheduling.student_name || 'Aluno'}
                             </Text>
                         </View>
-                        {!isPaymentPending && (
+                        {(!isPaymentPending && scheduling.status !== 'cancelled') && (
                             <TouchableOpacity
                                 onPress={() => navigation.navigate('InstructorChat', {
                                     screen: 'ChatRoom',
