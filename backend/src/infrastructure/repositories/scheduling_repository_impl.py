@@ -252,7 +252,7 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
         )
 
         if status:
-            if isinstance(status, (list, tuple, Sequence)):
+            if isinstance(status, (list, tuple, set)):
                 stmt = stmt.where(SchedulingModel.status.in_(status))
             else:
                 stmt = stmt.where(SchedulingModel.status == status)
@@ -339,7 +339,7 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
         stmt = select(func.count()).select_from(SchedulingModel).where(SchedulingModel.instructor_id == instructor_id)
 
         if status:
-            if isinstance(status, (list, tuple, Sequence)):
+            if isinstance(status, (list, tuple, set)):
                 stmt = stmt.where(SchedulingModel.status.in_(status))
             else:
                 stmt = stmt.where(SchedulingModel.status == status)

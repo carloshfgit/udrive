@@ -175,7 +175,7 @@ class InstructorEarningsDTO:
 
     instructor_id: UUID
     total_earnings: Decimal
-    pending_earnings: Decimal
+    monthly_earnings: Decimal
     completed_lessons: int
     period_start: datetime | None = None
     period_end: datetime | None = None

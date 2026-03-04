@@ -7,3 +7,4 @@
 export * from './useInstructorProfile';
 export * from './useInstructorSchedule';
 export * from './useInstructorAvailability';
+export * from './useInstructorDashboard';

@@ -5,7 +5,7 @@ Caso de uso para obter os ganhos financeiros do instrutor.
 """
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 
 from src.application.dtos.payment_dtos import InstructorEarningsDTO
@@ -23,8 +23,8 @@ class GetInstructorEarningsUseCase:
     Fluxo:
         1. Verificar se instrutor existe
         2. Buscar pagamentos do instrutor
-        3. Calcular total de ganhos (pagamentos completados)
-        4. Calcular ganhos pendentes (pagamentos processando ou pendentes)
+        3. Calcular total de ganhos (todos os pagamentos completados)
+        4. Calcular ganhos do mês corrente (pagamentos completados no mês atual)
         5. Contar aulas concluídas
     """
 
@@ -55,21 +55,33 @@ class GetInstructorEarningsUseCase:
             instructor_id, limit=1000  # Limite alto para pegar histórico recente
         )
 
+        now = datetime.now(tz=timezone.utc)
+        current_year = now.year
+        current_month = now.month
+
         total_earnings = Decimal("0.00")
-        pending_earnings = Decimal("0.00")
+        monthly_earnings = Decimal("0.00")
         completed_lessons = 0
 
         for payment in payments:
             if payment.status == PaymentStatus.COMPLETED:
                 total_earnings += payment.instructor_amount
                 completed_lessons += 1
-            elif payment.status in [PaymentStatus.PENDING, PaymentStatus.PROCESSING]:
-                pending_earnings += payment.instructor_amount
+
+                # Verificar se o pagamento é do mês corrente
+                created = payment.created_at
+                if created is not None:
+                    # Normalizar para UTC caso seja offset-naive
+                    if created.tzinfo is None:
+                        created = created.replace(tzinfo=timezone.utc)
+                    if created.year == current_year and created.month == current_month:
+                        monthly_earnings += payment.instructor_amount
 
         return InstructorEarningsDTO(
             instructor_id=instructor_id,
             total_earnings=total_earnings,
-            pending_earnings=pending_earnings,
+            monthly_earnings=monthly_earnings,
             completed_lessons=completed_lessons,
-            period_end=datetime.utcnow(),
+            period_start=now.replace(day=1, hour=0, minute=0, second=0, microsecond=0),
+            period_end=now,
         )

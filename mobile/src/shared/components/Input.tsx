@@ -25,8 +25,9 @@ interface InputProps extends TextInputProps {
     error?: string;
     /** Estilo do container */
     containerStyle?: ViewStyle;
-    className?: string; // Container className
+    containerClassName?: string;
     inputClassName?: string; // TextInput className
+    innerContainerClassName?: string; // Wrapper View className
 }
 
 export function Input({
@@ -35,7 +36,8 @@ export function Input({
     rightIcon,
     error,
     containerStyle,
-    className = '',
+    containerClassName = '',
+    innerContainerClassName = '',
     inputClassName = '',
     style,
     ...props
@@ -43,7 +45,7 @@ export function Input({
     const hasError = Boolean(error);
 
     return (
-        <View className={`w-full ${className}`} style={containerStyle}>
+        <View className={`w-full ${containerClassName}`} style={containerStyle}>
             {label && (
                 <Text className="text-sm font-semibold text-neutral-900 mb-2">
                     {label}
@@ -52,8 +54,11 @@ export function Input({
 
             <View
                 className={`
-                    flex-row items-center bg-white border rounded-xl h-14 shadow-sm
-                    ${hasError ? 'border-error-500' : 'border-neutral-200'}
+                    flex-row items-center rounded-xl h-14 shadow-sm
+                    ${!innerContainerClassName.includes('bg-') ? 'bg-white' : ''}
+                    ${!innerContainerClassName.includes('border-') ? (hasError ? 'border-error-500' : 'border-neutral-200') : ''}
+                    ${hasError && !innerContainerClassName.includes('border-error') ? 'border' : 'border'}
+                    ${innerContainerClassName}
                 `}
             >
                 {leftIcon && (
