@@ -536,14 +536,21 @@ async def open_dispute(
     current_user: CurrentStudent,
     scheduling_repo: SchedulingRepo,
     dispute_repo: DisputeRepo,
+    notification_svc: NotificationServiceDep,
 ) -> DisputeResponse:
     """Abre uma disputa para uma aula já realizada."""
     from src.application.dtos.dispute_dtos import OpenDisputeDTO
     from src.application.use_cases.scheduling.open_dispute import OpenDisputeUseCase
+    from src.application.use_cases.scheduling.scheduling_notification_decorators import (
+        NotifyOnOpenDispute,
+    )
 
-    use_case = OpenDisputeUseCase(
-        scheduling_repository=scheduling_repo,
-        dispute_repository=dispute_repo,
+    use_case = NotifyOnOpenDispute(
+        _wrapped=OpenDisputeUseCase(
+            scheduling_repository=scheduling_repo,
+            dispute_repository=dispute_repo,
+        ),
+        _notification_service=notification_svc,
     )
 
     dto = OpenDisputeDTO(
@@ -557,6 +564,29 @@ async def open_dispute(
 
     try:
         result = await use_case.execute(dto)
+
+        # Emitir evento em tempo real para o instrutor
+        dispatcher = get_event_dispatcher()
+        if dispatcher:
+            try:
+                scheduling = await scheduling_repo.get_by_id(scheduling_id)
+                if scheduling:
+                    from src.application.dtos.scheduling_dtos import SchedulingResponseDTO
+                    scheduling_dto = SchedulingResponseDTO(
+                        id=scheduling.id,
+                        student_id=scheduling.student_id,
+                        instructor_id=scheduling.instructor_id,
+                        scheduled_datetime=scheduling.scheduled_datetime,
+                        duration_minutes=scheduling.duration_minutes,
+                        price=scheduling.price,
+                        status=scheduling.status.value if hasattr(scheduling.status, 'value') else str(scheduling.status),
+                        student_name=scheduling.student_name,
+                        instructor_name=scheduling.instructor_name,
+                    )
+                    await dispatcher.emit_dispute_opened(scheduling_dto, scheduling.instructor_id)
+            except Exception as e:
+                logger.error("event_dispatch_error", dispatch_event="dispute_opened", error=str(e))
+
         return DisputeResponse.model_validate(result.__dict__)
     except ValueError as e:
         raise HTTPException(

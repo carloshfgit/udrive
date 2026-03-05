@@ -296,3 +296,108 @@ class NotifyOnRespondReschedule:
             )
 
         return result
+
+
+@dataclass
+class NotifyOnOpenDispute:
+    """
+    Decorator de OpenDisputeUseCase.
+
+    Após abertura bem-sucedida, notifica o instrutor com DISPUTE_OPENED.
+    """
+
+    _wrapped: "OpenDisputeUseCase"
+    _notification_service: NotificationService
+
+    async def execute(self, dto: "OpenDisputeDTO") -> "DisputeResponseDTO":
+        from src.application.dtos.dispute_dtos import OpenDisputeDTO, DisputeResponseDTO
+        from src.application.use_cases.scheduling.open_dispute import OpenDisputeUseCase
+
+        result = await self._wrapped.execute(dto)
+
+        try:
+            # Buscar scheduling para obter instructor_id e dados para a mensagem
+            scheduling = await self._wrapped.scheduling_repository.get_by_id(
+                dto.scheduling_id
+            )
+            if scheduling is not None:
+                local_dt = scheduling.scheduled_datetime.astimezone(DEFAULT_TIMEZONE)
+                scheduled_at = local_dt.strftime("%d/%m às %H:%Mh")
+                student_name = scheduling.student_name or "Um aluno"
+                await self._notification_service.notify(
+                    user_id=scheduling.instructor_id,
+                    notification_type=NotificationType.DISPUTE_OPENED,
+                    title="Problema relatado em aula ⚠️",
+                    body=f"{student_name} relatou um problema na aula de {scheduled_at}.",
+                    action_type=NotificationActionType.SCHEDULING,
+                    action_id=scheduling.id,
+                )
+        except Exception:
+            logger.exception(
+                "notify_on_open_dispute_failed",
+                scheduling_id=str(dto.scheduling_id),
+            )
+
+        return result
+
+
+@dataclass
+class NotifyOnResolveDispute:
+    """
+    Decorator de ResolveDisputeUseCase.
+
+    Após resolução bem-sucedida, notifica aluno e instrutor com DISPUTE_RESOLVED.
+    """
+
+    _wrapped: "ResolveDisputeUseCase"
+    _notification_service: NotificationService
+
+    async def execute(self, dto: "ResolveDisputeDTO") -> "DisputeResponseDTO":
+        from src.application.dtos.dispute_dtos import ResolveDisputeDTO, DisputeResponseDTO
+        from src.application.use_cases.scheduling.resolve_dispute import ResolveDisputeUseCase
+        from src.domain.entities.dispute_enums import DisputeResolution
+
+        result = await self._wrapped.execute(dto)
+
+        try:
+            # Buscar scheduling para obter student_id e instructor_id
+            scheduling = await self._wrapped.scheduling_repository.get_by_id(
+                result.scheduling_id
+            )
+            if scheduling is not None:
+                # Montar mensagem de resolução
+                resolution_map = {
+                    DisputeResolution.FAVOR_INSTRUCTOR.value: "a favor do instrutor",
+                    DisputeResolution.FAVOR_STUDENT.value: "a favor do aluno (reembolso)",
+                    DisputeResolution.RESCHEDULED.value: "reagendamento mediado",
+                }
+                resolution_text = resolution_map.get(
+                    result.resolution or "", "resolução aplicada"
+                )
+
+                # Notificar aluno
+                await self._notification_service.notify(
+                    user_id=scheduling.student_id,
+                    notification_type=NotificationType.DISPUTE_RESOLVED,
+                    title="Disputa resolvida ✅",
+                    body=f"Sua disputa foi resolvida: {resolution_text}.",
+                    action_type=NotificationActionType.SCHEDULING,
+                    action_id=scheduling.id,
+                )
+
+                # Notificar instrutor
+                await self._notification_service.notify(
+                    user_id=scheduling.instructor_id,
+                    notification_type=NotificationType.DISPUTE_RESOLVED,
+                    title="Disputa resolvida ✅",
+                    body=f"A disputa sobre sua aula foi resolvida: {resolution_text}.",
+                    action_type=NotificationActionType.SCHEDULING,
+                    action_id=scheduling.id,
+                )
+        except Exception:
+            logger.exception(
+                "notify_on_resolve_dispute_failed",
+                dispute_id=str(dto.dispute_id),
+            )
+
+        return result

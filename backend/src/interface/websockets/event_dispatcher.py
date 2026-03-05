@@ -195,6 +195,35 @@ class SchedulingEventDispatcher:
             scheduling_id=str(dto.id),
         )
 
+    async def emit_dispute_opened(
+        self, dto: SchedulingResponseDTO, instructor_id: UUID
+    ) -> None:
+        """Notifica o INSTRUTOR que uma disputa foi aberta na aula."""
+        await self._safe_publish(
+            f"user:{instructor_id}",
+            {"type": SchedulingEventType.DISPUTE_OPENED, "data": self._serialize(dto)},
+        )
+        logger.info(
+            "scheduling_event_emitted",
+            event_type=SchedulingEventType.DISPUTE_OPENED,
+            target="instructor",
+            scheduling_id=str(dto.id),
+        )
+
+    async def emit_dispute_resolved(
+        self, dto: SchedulingResponseDTO, student_id: UUID, instructor_id: UUID
+    ) -> None:
+        """Notifica AMBAS as partes que a disputa foi resolvida."""
+        data = {"type": SchedulingEventType.DISPUTE_RESOLVED, "data": self._serialize(dto)}
+        await self._safe_publish(f"user:{student_id}", data)
+        await self._safe_publish(f"user:{instructor_id}", data)
+        logger.info(
+            "scheduling_event_emitted",
+            event_type=SchedulingEventType.DISPUTE_RESOLVED,
+            target="both",
+            scheduling_id=str(dto.id),
+        )
+
 
 # Instância global (inicializada no startup com pubsub_service)
 _event_dispatcher: SchedulingEventDispatcher | None = None

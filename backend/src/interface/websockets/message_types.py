@@ -58,6 +58,8 @@ class SchedulingEventType:
     SCHEDULING_COMPLETED = "scheduling_completed"
     RESCHEDULE_REQUESTED = "reschedule_requested"
     RESCHEDULE_RESPONDED = "reschedule_responded"
+    DISPUTE_OPENED = "dispute_opened"
+    DISPUTE_RESOLVED = "dispute_resolved"
 
 
 # Todos os tipos de scheduling (para validação/matching no mobile)
@@ -69,6 +71,8 @@ SCHEDULING_EVENT_TYPES = {
     SchedulingEventType.SCHEDULING_COMPLETED,
     SchedulingEventType.RESCHEDULE_REQUESTED,
     SchedulingEventType.RESCHEDULE_RESPONDED,
+    SchedulingEventType.DISPUTE_OPENED,
+    SchedulingEventType.DISPUTE_RESOLVED,
 }
 
 

@@ -38,7 +38,9 @@ erDiagram
 
     SCHEDULINGS ||--|| PAYMENTS : "gera"
     SCHEDULINGS ||--o| REVIEWS : "possui"
+    SCHEDULINGS ||--o| DISPUTES : "contestada"
     PAYMENTS ||--o{ TRANSACTIONS : "registra"
+    USERS ||--o{ DISPUTES : "abre/resolve"
 
     USERS {
         uuid id PK
@@ -102,6 +104,18 @@ erDiagram
         uuid instructor_id FK
         int rating
         string comment
+    }
+
+    DISPUTES {
+        uuid id PK
+        uuid scheduling_id FK
+        uuid opened_by FK
+        uuid resolved_by FK
+        string reason
+        string description
+        string status
+        string resolution
+        datetime resolved_at
     }
 ```
 
@@ -175,6 +189,7 @@ Registra as aulas agendadas.
         *   `applied_base_price`: Valor líquido do instrutor no momento da reserva.
         *   `applied_final_price`: Valor total pago pelo aluno (incluindo markup).
     *   `cancellation_reason`, `cancelled_by`, `rescheduled_datetime`: Controle do ciclo de vida da aula.
+*   **Relacionamentos**: Pai de `disputes` (1:0..1).
 *   **Índices**: Compostos para buscas rápidas por aluno/data e instrutor/data.
 
 #### `reviews`
@@ -218,6 +233,25 @@ Log imutável de movimentações financeiras para auditoria.
 *   **PK**: `id` (UUIDv4)
 *   **FKs**: `payment_id` -> `payments.id`, `user_id` -> `users.id`
 *   **Campos Chave**: `type` (Enum do tipo de transação), `amount`, `description`, `gateway_reference_id`.
+ 
+### 3.5. Suporte e Resolução de Conflitos
+ 
+#### `disputes`
+Armazena o detalhamento de problemas relatados em aulas e o desfecho da mediação.
+*   **PK**: `id` (UUIDv4)
+*   **FKs** (Cascade Delete):
+    *   `scheduling_id` -> `schedulings.id` (Unique - garante 1 disputa por aula).
+    *   `opened_by` -> `users.id` (Aluno que abriu).
+*   **FK** (Set Null):
+    *   `resolved_by` -> `users.id` (Admin que resolveu).
+*   **Campos Chave**:
+    *   `reason`: Motivo (`no_show`, `vehicle_problem`, `other`).
+    *   `description`: Relato detalhado do ocorrido.
+    *   `contact_phone`, `contact_email`: Dados capturados no momento da abertura.
+    *   `status`: Ciclo de vida (`open`, `under_review`, `resolved`).
+    *   `resolution`: Veredito (`refund_total`, `refund_partial`, `pay_instructor`, `reschedule`).
+    *   `resolution_notes`: Justificativa do suporte.
+    *   `resolved_at`: Timestamp da decisão final.
 
 ---
 

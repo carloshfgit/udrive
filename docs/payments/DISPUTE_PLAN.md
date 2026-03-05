@@ -383,5 +383,5 @@ A implementação segue a ordem **Domain → Application → Infrastructure → 
 - [ ] **Etapa 3:** Migration `disputes`, SQLAlchemy Model, `DisputeRepository`
 - [ ] **Etapa 4:** Atualizar endpoint aluno, router admin, schemas, dependencies
 - [ ] **Etapa 5:** API functions, hook, `ReportProblemScreen`, badge DISPUTED, navegação
-- [ ] **Etapa 6:** Reembolso via Celery, liberação de pagamento, reagendamento mediado
-- [ ] **Etapa 7:** Push notifications (decorators), WebSocket events
+- [x] **Etapa 6:** Reembolso via Celery, liberação de pagamento, reagendamento mediado
+- [x] **Etapa 7:** Push notifications (decorators), WebSocket events
