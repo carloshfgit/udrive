@@ -15,6 +15,7 @@
 7. [Arquitetura do Painel Admin](#7-arquitetura-do-painel-admin)
 8. [Comparativo de Abordagens](#8-comparativo-de-abordagens)
 9. [Priorização Recomendada](#9-priorização-recomendada)
+10. [Recomendação Definitiva](#10-recomendação-definitiva)
 
 ---
 
@@ -728,6 +729,233 @@ Baseado no impacto para a operação e complexidade de implementação:
 | **Moderação por IA no chat** | Volume precisa justificar |
 | **Relatórios automatizados** | Exportações e reports periódicos |
 | **Heat maps e analytics avançados** | Dados de uso para decisões de produto |
+
+---
+
+## 10. Recomendação Definitiva
+
+Esta seção consolida **a decisão final** de qual ferramenta/abordagem usar em cada etapa do ciclo de vida do GoDrive. A lógica é simples: **MVP com o que já está na stack ou zero custo**, e **escalar com ferramentas profissionais quando o volume justificar**.
+
+### 10.1 Tabela Resumo — Decisão por Componente
+
+| Componente | 🚀 MVP (Dia 1) | 📈 Escala (quando migrar) | Gatilho para migrar |
+|------------|-----------------|---------------------------|---------------------|
+| **Painel Admin (CRUD)** | SQLAdmin (já existe) | SQLAdmin (manter) | Nunca migrar — serve como backdoor técnico |
+| **Painel Admin (Operacional)** | Endpoints `/api/v1/admin/*` + Postman/Insomnia | Frontend React/Next.js dedicado | Quando houver >1 pessoa no suporte |
+| **Sistema de Disputas** | Tabela `disputes` + SQLAdmin view + scripts manuais | Workflow completo no Admin Panel custom | Quando disputas ultrapassarem 10/semana |
+| **Suporte ao Usuário** | Formulário in-app → tabela `support_tickets` + SQLAdmin | Sistema de tickets com SLA, fila, e chat admin-user | Quando tickets ultrapassarem 20/semana |
+| **Monitoramento de Chat** | Endpoint admin read-only (sob demanda) | Flags automáticos + Perspectiva API (Google) | Quando houver incidente de segurança ou >500 mensagens/dia |
+| **Perfil de Usuário (Admin)** | SQLAdmin views + queries SQL manuais | Perfil 360° no Admin Panel custom | Junto com a migração do painel operacional |
+| **Erros e Crashes** | Sentry free tier (backend + mobile) | Sentry Team ($26/mês) | Quando exceder 5K events/mês |
+| **Logs** | `structlog` → stdout → `docker logs` | Better Stack (SaaS) ou Grafana Loki (self-hosted) | Quando debugging em produção se tornar frequente |
+| **Métricas de Infra** | Docker stats + pg_stat_activity manual | Prometheus + Grafana | Quando for para produção com deploy real |
+| **Métricas de Negócio** | Queries SQL manuais (Metabase free ou DBeaver) | Grafana dashboards com PostgreSQL data source | Junto com Prometheus (mesmo Grafana) |
+| **Alertas** | Sentry Alerts (erros) + cron jobs (disputas/tickets) | Grafana Alerting → Slack/Telegram/Email | Junto com Grafana |
+| **APM (Traces)** | Sentry Performance (free tier) | OpenTelemetry + Sentry (ou Jaeger) | Quando precisar debugar latência entre serviços |
+| **RBAC Admin** | Campo `is_admin` na tabela `users` | Tabela `admin_users` + roles (SUPER_ADMIN, SUPPORT, etc.) | Quando houver >1 pessoa com acesso admin |
+
+---
+
+### 10.2 Detalhamento por Área
+
+#### 🛠️ Painel Administrativo
+
+**MVP:** Manter o **SQLAdmin** para operações CRUD diretas (editar usuário, visualizar agendamento, etc.). Para funcionalidades operacionais (resolver disputa, visualizar chat, gerenciar tickets), criar **endpoints REST no FastAPI** (`/api/v1/admin/*`) e operar via Postman/Insomnia ou scripts Python. É funcional, zero custo e já está na stack.
+
+**Escala → Admin Panel React/Next.js:**
+- Criar um frontend web separado usando **Next.js** + **shadcn/ui** + **Recharts**.
+- Consome os endpoints `/api/v1/admin/*` já existentes.
+- Hospedar no **Vercel** (free tier) ou no mesmo servidor.
+- O SQLAdmin continua ativo como ferramenta de acesso direto ao banco para desenvolvedores.
+
+**Por que Next.js e não Retool/Appsmith?**
+- Controle total, sem vendor lock-in, sem custo mensal por usuário.
+- O GoDrive já usa React (React Native), então Next.js é extensão natural da expertise.
+- Customização irrestrita para workflows de disputa, chat viewer, perfil 360°.
+
+---
+
+#### 🎫 Suporte ao Usuário
+
+**MVP:** Tela simples no mobile com formulário: **categoria** (dropdown) + **descrição** (texto). Isso cria um registro na tabela `support_tickets`. O admin visualiza e gerencia via SQLAdmin (nova `SupportTicketAdmin` view). Resposta ao usuário via **notificação push** com a resolução.
+
+**Escala → Sistema de Tickets Completo:**
+- Thread de mensagens admin ↔ usuário dentro do próprio ticket (como um mini-chat).
+- SLA automático com escalação (Celery task verifica tickets > 24h sem resposta → alerta).
+- Dashboard de métricas de suporte (tempo de resposta, CSAT, volume por categoria).
+- CSAT: após resolução, enviar push pedindo nota de 1 a 5.
+
+**Por que não Crisp/Intercom/Zendesk no MVP?**
+- Custo desnecessário quando o volume é baixo.
+- Os dados ficam no seu banco, facilitando análise e integração com disputas.
+- Quando/se o volume justificar, o **Crisp** (free tier para 2 agentes) é a melhor opção SaaS para adicionar chat em tempo real, pois tem SDK React Native e é leve.
+
+---
+
+#### ⚖️ Mediação de Disputas
+
+**MVP:** Implementar o `ResolveDisputeUseCase` no backend com as 3 transições (favor instrutor, favor aluno, reagendamento). A tabela `disputes` armazena tudo para auditoria. O admin opera via **SQLAdmin** (para ver) + **endpoint admin** (para resolver, pois envolve lógica: mudar status + disparar reembolso se necessário).
+
+**Escala → Workflow no Admin Panel:**
+- Tela dedicada com **fila priorizada** (FIFO + badges de urgência).
+- Painel de detalhes "tudo em uma tela" (resumo + participantes + chat + timeline + ações).
+- Notas internas entre admins.
+- Métricas: tempo de resolução, taxa por motivo, instrutores reincidentes.
+
+**Pipeline ideal de uma disputa no sistema maduro:**
+```
+Aluno abre disputa
+  → Notification push para admin
+  → Aparece na fila de disputas (badge 🟢)
+  → Admin abre painel de detalhes
+  → Lê chat + telemetria + histórico
+  → Toma decisão + escreve justificativa
+  → Clica "Resolver" → backend executa transição + reembolso se aplicável
+  → Push para aluno e instrutor com resultado
+  → Disputa entra nas métricas
+```
+
+---
+
+#### 💬 Monitoramento de Chat
+
+**MVP:** Um único endpoint admin: `GET /api/v1/admin/chats/{room_id}/messages` que retorna todas as mensagens de uma conversa. Usado **apenas quando necessário** (ex: análise de disputa). Registrar em log de auditoria quem acessou qual chat.
+
+**Escala → Flags Automáticos:**
+- Adicionar regex no `handle_send_message` (chat handler) para detectar padrões suspeitos (números de telefone, "pix", "paga direto", links externos).
+- Criar registro na tabela `chat_flags` → aparece na fila de revisão do admin.
+- **Perspectiva API (Google)** — gratuita, detecta toxicidade em português. Integrar como Celery task (async, não bloqueia o envio da mensagem).
+- Não bloquear nenhuma mensagem automaticamente — apenas flagar para revisão humana.
+
+**Por que não moderação por IA desde o MVP?**
+- Volume inicial de chat é baixo.
+- Falsos positivos causam mais problema do que resolvem cedo.
+- Revisão manual com regex é suficiente até centenas de mensagens/dia.
+
+---
+
+#### 👤 Visualização de Usuários
+
+**MVP:** As views do SQLAdmin já cobrem o básico (listagem, busca por email). Para investigar um caso específico, o admin usa **queries SQL diretas** (via DBeaver, pgAdmin, ou até um notebook) com JOINs entre `users`, `schedulings`, `payments`, `disputes`, `messages`.
+
+**Escala → Perfil 360°:**
+- Página dedicada no Admin Panel custom.
+- Sidebar com dados cadastrais + badges de status.
+- Abas: Aulas, Pagamentos, Disputas, Chat, Timeline de Atividade.
+- Ações inline: desativar, advertir, exportar dados (LGPD).
+- Score de confiabilidade calculado (para instrutores).
+
+---
+
+#### 📊 Monitoramento do Sistema
+
+**MVP imediato — Sentry:**
+```python
+# backend — 3 linhas para começar
+import sentry_sdk
+from sentry_sdk.integrations.fastapi import FastApiIntegration
+sentry_sdk.init(dsn="SEU_DSN", integrations=[FastApiIntegration()], traces_sample_rate=0.1)
+```
+```typescript
+// mobile — setup no App.tsx
+import * as Sentry from '@sentry/react-native';
+Sentry.init({ dsn: 'SEU_DSN' });
+```
+- Free tier: 5K errors/mês + 10K transactions/mês para performance.
+- Cobre: crash reports, error tracking, performance monitoring básico.
+- **Tempo para configurar: ~30 minutos.**
+
+**MVP logs — `structlog` + Docker logs:**
+- Já está no `PROJECT_GUIDELINES.md`.
+- Em desenvolvimento: `docker compose logs -f backend`.
+- Em produção (VPS/EC2): configurar `docker log driver` para enviar ao **Better Stack** (free tier: 1GB/mês) — setup de 5 minutos.
+
+**Escala → Stack Completa de Observabilidade:**
+
+Quando for para produção com usuários reais, adicionar ao Docker Compose:
+
+```
+Observabilidade Stack (docker-compose.monitoring.yml)
+├── Prometheus        → Coleta métricas do FastAPI, PostgreSQL, Redis, Celery
+├── Grafana           → Dashboards de infra + negócio + alertas
+├── Loki + Promtail   → Centralização de logs (substitui Better Stack)
+├── postgres-exporter → Métricas do PostgreSQL
+├── redis-exporter    → Métricas do Redis
+└── celery-exporter   → Métricas do Celery
+```
+
+**Custo total da stack completa self-hosted: R$ 0** (apenas CPU/RAM do servidor).
+
+---
+
+### 10.3 Roadmap Visual de Evolução
+
+```
+╔══════════════════════════════════════════════════════════════════════════╗
+║                        ROADMAP DE EVOLUÇÃO                              ║
+╠══════════════════════════════════════════════════════════════════════════╣
+║                                                                          ║
+║  FASE 1 — MVP (Pré-lançamento)                                          ║
+║  Custo: R$ 0                                                            ║
+║  ┌─────────────────────────────────────────────────────────────────┐     ║
+║  │ ✅ Sentry free (backend + mobile)                               │     ║
+║  │ ✅ structlog → Docker logs                                      │     ║
+║  │ ✅ SQLAdmin (CRUD + views de disputas/tickets)                  │     ║
+║  │ ✅ Endpoints admin REST (/api/v1/admin/*)                       │     ║
+║  │ ✅ Tabelas: disputes + support_tickets                          │     ║
+║  │ ✅ FAQ estático in-app + formulário de ticket                   │     ║
+║  │ ✅ Chat read-only para admin (endpoint sob demanda)             │     ║
+║  └─────────────────────────────────────────────────────────────────┘     ║
+║                              │                                           ║
+║                              ▼                                           ║
+║  FASE 2 — Produção Inicial (Primeiros 100 usuários)                     ║
+║  Custo: ~R$ 0-50/mês                                                    ║
+║  ┌─────────────────────────────────────────────────────────────────┐     ║
+║  │ ➕ Better Stack ou Loki (logs centralizados)                    │     ║
+║  │ ➕ Metabase free (métricas de negócio via SQL)                  │     ║
+║  │ ➕ Celery tasks para SLA (tickets/disputas > 24h)               │     ║
+║  │ ➕ Regex flags no chat (tentativas de bypass)                   │     ║
+║  │ ➕ CSAT (nota após resolução de ticket)                         │     ║
+║  └─────────────────────────────────────────────────────────────────┘     ║
+║                              │                                           ║
+║                              ▼                                           ║
+║  FASE 3 — Escala (500+ usuários ativos)                                 ║
+║  Custo: ~R$ 100-300/mês                                                 ║
+║  ┌─────────────────────────────────────────────────────────────────┐     ║
+║  │ ➕ Admin Panel Next.js (disputas, perfil 360°, tickets)         │     ║
+║  │ ➕ Prometheus + Grafana (infra + negócio + alertas)             │     ║
+║  │ ➕ Grafana Alerting → Slack/Telegram                            │     ║
+║  │ ➕ RBAC admin (múltiplos agentes de suporte)                    │     ║
+║  │ ➕ Perspectiva API (flags de toxicidade no chat)                │     ║
+║  │ ➕ Sentry Team (pago, mais volume)                              │     ║
+║  └─────────────────────────────────────────────────────────────────┘     ║
+║                              │                                           ║
+║                              ▼                                           ║
+║  FASE 4 — Maturidade (1000+ usuários ativos)                            ║
+║  Custo: ~R$ 500+/mês                                                    ║
+║  ┌─────────────────────────────────────────────────────────────────┐     ║
+║  │ ➕ OpenTelemetry (traces distribuídos)                          │     ║
+║  │ ➕ Chatbot de autoatendimento                                   │     ║
+║  │ ➕ Crisp ou chat in-app admin ↔ usuário                         │     ║
+║  │ ➕ Relatórios automatizados (Celery → email semanal)            │     ║
+║  │ ➕ Heat maps de geolocalização (PostGIS + Grafana GeoMap)       │     ║
+║  │ ➕ Score de confiabilidade automatizado (instrutores)           │     ║
+║  └─────────────────────────────────────────────────────────────────┘     ║
+║                                                                          ║
+╚══════════════════════════════════════════════════════════════════════════╝
+```
+
+### 10.4 Princípios que Guiam Essas Decisões
+
+1. **Construir internamente o que é core do negócio** — Disputas, suporte e perfis de usuários são diferenciais competitivos. Não terceirizar para SaaS que pode mudar pricing ou sair do ar.
+
+2. **Usar SaaS para o que é commodity** — Monitoramento de erros (Sentry), logs (Better Stack), observabilidade (Grafana Cloud) são commodities. Use ferramentas prontas.
+
+3. **Zero custo no MVP** — Cada real economizado antes de ter receita é um dia a mais de runway. Todas as ferramentas recomendadas para MVP são gratuitas.
+
+4. **Dados no seu banco** — Tickets, disputas, flags de chat, métricas históricas — tudo fica no PostgreSQL. Isso permite análises futuras, compliance (LGPD) e independência de fornecedores.
+
+5. **Migrar por dor, não por planejamento** — Não implementar Prometheus, Grafana, ou Admin Panel custom até que a ausência deles cause dor real. O gatilho de migração na tabela acima define quando.
 
 ---
 
