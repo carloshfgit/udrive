@@ -16,6 +16,7 @@
 8. [Comparativo de Abordagens](#8-comparativo-de-abordagens)
 9. [Priorização Recomendada](#9-priorização-recomendada)
 10. [Recomendação Definitiva](#10-recomendação-definitiva)
+11. [Checklist Dia 1 — Lançamento nas Stores](#11-checklist-dia-1--lançamento-nas-stores)
 
 ---
 
@@ -956,6 +957,197 @@ Observabilidade Stack (docker-compose.monitoring.yml)
 4. **Dados no seu banco** — Tickets, disputas, flags de chat, métricas históricas — tudo fica no PostgreSQL. Isso permite análises futuras, compliance (LGPD) e independência de fornecedores.
 
 5. **Migrar por dor, não por planejamento** — Não implementar Prometheus, Grafana, ou Admin Panel custom até que a ausência deles cause dor real. O gatilho de migração na tabela acima define quando.
+
+---
+
+## 11. Checklist Dia 1 — Lançamento nas Stores
+
+Esta seção define **o mínimo absoluto** que precisa estar funcionando antes de publicar o GoDrive na Play Store e Apple Store. Se algum item aqui não estiver pronto, **não lance**.
+
+### 11.1 🚨 Monitoramento — Sem Isso Você Opera Cego
+
+| Item | O quê | Por quê | Esforço |
+|------|--------|---------|--------|
+| **Sentry (backend)** | `sentry_sdk.init()` no FastAPI com `FastApiIntegration` | Erros 500 em produção sem stack trace = impossível debugar | ~15 min |
+| **Sentry (mobile)** | `@sentry/react-native` no App.tsx | Crash no celular do usuário sem log = invisível | ~30 min |
+| **Logs estruturados** | `structlog` → JSON → stdout (já na stack) | `docker compose logs -f backend` precisa funcionar com contexto útil | Já existe |
+| **Health check endpoint** | `GET /health` retornando status do DB + Redis | Saber se a API está viva antes que o usuário descubra que não está | ~10 min |
+| **Alertas de erro** | Sentry Alerts → email/Slack quando error rate > 5% | Ser notificado antes do usuário reclamar | ~10 min |
+
+**Configuração mínima do Sentry:**
+```python
+# backend/src/interface/api/main.py
+import sentry_sdk
+from sentry_sdk.integrations.fastapi import FastApiIntegration
+from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+from sentry_sdk.integrations.celery import CeleryIntegration
+
+sentry_sdk.init(
+    dsn="SEU_DSN_AQUI",
+    integrations=[
+        FastApiIntegration(),
+        SqlalchemyIntegration(),
+        CeleryIntegration(),
+    ],
+    traces_sample_rate=0.1,  # 10% das requests para performance
+    environment="production",
+)
+```
+
+---
+
+### 11.2 🎫 Suporte — Canal de Comunicação com o Usuário
+
+| Item | O quê | Por quê |
+|------|--------|---------|
+| **Tela "Ajuda" no app** | Tela acessível do menu/perfil com FAQ básico + botão "Fale Conosco" | Usuário frustrado sem canal de contato = nota 1 na store |
+| **FAQ mínimo** | 5-10 perguntas frequentes (pagamento, agendamento, cancelamento, reembolso) | Reduz volume de contato nos primeiros dias |
+| **Formulário de contato** | Categoria + descrição → cria `support_ticket` no banco | Registro formal de todo contato |
+| **Notificação para admin** | Push/email quando ticket é criado | Não pode perder ticket nos primeiros dias |
+| **Resposta ao usuário** | Push notification com a resolução do ticket | Fechar o loop — usuário precisa saber que foi ouvido |
+| **Email de suporte** | `suporte@godrive.com.br` visível no app e na store | Exigência das stores + fallback se o in-app falhar |
+
+**FAQ mínimo sugerido:**
+1. Como agendar uma aula?
+2. Como funciona o pagamento?
+3. Posso cancelar uma aula? Qual o prazo?
+4. Como solicitar reembolso?
+5. O instrutor não apareceu, o que faço?
+6. Como alterar meus dados?
+7. Como funciona a avaliação?
+8. Meu pagamento foi recusado, e agora?
+
+---
+
+### 11.3 ⚖️ Disputas — Proteção Financeira
+
+| Item | O quê | Por quê |
+|------|--------|---------|
+| **Botão "Relatar Problema"** | Visível na `LessonDetailsScreen` para aulas confirmadas que já passaram | Sem isso, aluno não tem como reportar no-show |
+| **Status DISPUTED** | Entidade `Scheduling` com transição para `DISPUTED` | Bloqueia auto-complete e protege o dinheiro |
+| **Tabela `disputes`** | Registro de auditoria: motivo, descrição, timestamps | Compliance e rastreabilidade |
+| **Endpoint admin para resolver** | `POST /api/v1/admin/disputes/{id}/resolve` | Admin precisa poder tomar ação |
+| **Bloqueio de auto-complete** | Celery job ignora schedulings em `DISPUTED` | Senão o instrutor recebe por aula não dada |
+| **Notificação de resolução** | Push para aluno + instrutor com resultado | Transparência |
+
+> ⚠️ **Sem o sistema de disputas, a plataforma fica vulnerável financeiramente.** Um único caso de no-show sem recurso pode gerar avaliação negativa e até processo no Procon.
+
+---
+
+### 11.4 🔒 Segurança e Compliance
+
+| Item | O quê | Por quê |
+|------|--------|---------|
+| **HTTPS obrigatório** | Certificado SSL na API (Let's Encrypt ou Cloudflare) | Dados sensíveis em trânsito; exigência das stores |
+| **Rate limiting** | `slowapi` nos endpoints de login (5/min) e API geral (100/min) | Proteção contra brute force e DDoS básico |
+| **Refresh token rotation** | Refresh tokens com rotação ativa (já planejado) | Session hijacking prevention |
+| **Dados sensíveis** | Nunca logar tokens, senhas ou dados de cartão | Compliance PCI-DSS (Mercado Pago cuida do cartão, mas logs podem vazar) |
+| **Política de Privacidade** | URL pública com política LGPD | **Obrigatório para publicação** nas stores |
+| **Termos de Uso** | URL pública com termos do serviço | **Obrigatório para publicação** nas stores |
+| **Tela de consentimento** | Checkbox de aceite dos termos no cadastro | LGPD + exigência das stores |
+| **Deletion account** | Endpoint ou fluxo para exclusão de conta | **Obrigatório na Apple Store** desde 2022; Google Play também exige |
+
+> 🍎 **Apple Store rejeita apps que não oferecem exclusão de conta.** Isso deve estar no app antes do primeiro submit.
+
+---
+
+### 11.5 📱 Requisitos Específicos das Stores
+
+#### Apple Store (App Store Connect)
+
+| Requisito | Detalhe |
+|-----------|---------|
+| **Apple Developer Account** | $99/ano; aprovação pode levar 24-48h |
+| **App Privacy Labels** | Declarar quais dados você coleta e por quê (preenchido no App Store Connect) |
+| **Exclusão de conta** | Fluxo funcional in-app para deletar conta (obrigatório) |
+| **In-App Purchases** | Se não tem compra in-app de conteúdo digital, ok. Pagamento de serviço real (aulas) **não** precisa usar IAP |
+| **Screenshots e metadados** | 6.5" e 5.5" screenshots, descrição, categorias, rating |
+| **Review guidelines** | Testar em dispositivo real antes do submit; review leva 24-48h |
+| **Versão mínima iOS** | Definir (recomendado: iOS 15+) |
+| **TestFlight** | Testar com beta testers antes do submit final |
+
+#### Google Play Store
+
+| Requisito | Detalhe |
+|-----------|---------|
+| **Google Developer Account** | $25 (único pagamento); aprovação até 48h para nova conta |
+| **Data Safety Section** | Declarar coleta e uso de dados (similar ao Apple) |
+| **Exclusão de conta** | Obrigatório desde 2024 |
+| **Target API Level** | Deve atingir o API level exigido (atualmente targetSdkVersion 34+) |
+| **App signing** | Google Play App Signing (recomendado) |
+| **Screenshots e metadados** | Feature graphic (1024x500), screenshots, descrição |
+| **Classificação de conteúdo** | Questionário IARC (dentro do Console) |
+| **Teste interno/fechado** | Testar via Internal Testing antes de Produção |
+
+---
+
+### 11.6 🔧 Operação — Dia 1 Sem Caos
+
+| Item | O quê | Por quê |
+|------|--------|---------|
+| **Backup do banco** | Backup automático diário do PostgreSQL (pg_dump ou managed DB) | Perder dados no dia 1 = game over |
+| **Migrations em dia** | `alembic upgrade head` rodou sem erros no ambiente de produção | Schema inconsistente = erros 500 aleatórios |
+| **Variáveis de ambiente** | `.env` de produção configurado (DB, Redis, JWT, Sentry, MP credentials) | Variável faltando = app não inicia |
+| **Mercado Pago em modo produção** | Credenciais de produção, não sandbox; webhook configurado | Pagamento falhando = zero receita |
+| **Webhook MP testado** | Enviar webhook test e confirmar que o backend processa | Pagamento aprovado sem callback = aula não confirma |
+| **Celery workers rodando** | Verificar que workers e beat estão ativos e processando | Auto-complete, lembretes e notificações dependem disso |
+| **Push notifications testando** | Enviar push real para dispositivo de teste | Se push não funciona, usuário perde notificações críticas |
+| **DNS + domínio** | `api.godrive.com.br` apontando para o servidor | Mobile precisa de URL fixa, não IP |
+| **Testes de carga mínimos** | 50 requests/s no endpoint de busca de instrutores | Se o endpoint mais pesado (geo query) aguenta, o resto aguenta |
+
+---
+
+### 11.7 📋 Checklist Final — Marque Antes de Publicar
+
+```
+MONITORAMENTO
+[ ] Sentry configurado no backend (FastAPI + Celery)
+[ ] Sentry configurado no mobile (React Native)
+[ ] Health check endpoint respondendo (/health)
+[ ] Alertas de erro configurados (email ou Slack)
+[ ] structlog emitindo logs em JSON no stdout
+
+SUPORTE
+[ ] Tela de Ajuda/FAQ acessível no app
+[ ] Formulário "Fale Conosco" funcional → cria ticket no banco
+[ ] Email de suporte configurado e visível
+[ ] Notificação ao admin quando ticket é criado
+
+DISPUTAS
+[ ] Botão "Relatar Problema" na LessonDetailsScreen
+[ ] Transição CONFIRMED → DISPUTED funcional
+[ ] Endpoint admin para resolver disputa
+[ ] Auto-complete ignora schedulings em DISPUTED
+[ ] Tabela disputes criada e migration rodou
+
+SEGURANÇA & COMPLIANCE
+[ ] HTTPS ativo na API
+[ ] Rate limiting configurado (login + API geral)
+[ ] Política de Privacidade publicada (URL pública)
+[ ] Termos de Uso publicados (URL pública)
+[ ] Tela de consentimento no cadastro
+[ ] Fluxo de exclusão de conta funcional
+[ ] Dados sensíveis não aparecem nos logs
+
+STORES
+[ ] Apple Developer Account criada e aprovada
+[ ] Google Developer Account criada e aprovada
+[ ] Screenshots e metadados preparados (ambas stores)
+[ ] App Privacy Labels / Data Safety preenchidos
+[ ] TestFlight / Internal Testing testados com beta testers
+[ ] Classificação de conteúdo (IARC) preenchida
+
+OPERAÇÃO
+[ ] Backup automático do PostgreSQL configurado
+[ ] Migrations de produção rodaram sem erro
+[ ] .env de produção com todas as variáveis
+[ ] Mercado Pago em modo produção (credenciais reais)
+[ ] Webhook do Mercado Pago testado e confirmado
+[ ] Celery workers e beat rodando
+[ ] Push notifications testadas em dispositivo real
+[ ] DNS configurado (api.godrive.com.br)
+[ ] Teste de carga básico passou
+```
 
 ---
 
