@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, useWindowDimensions, NativeSyntheticEvent, NativeScrollEvent, Image } from 'react-native';
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
-import { User, Calendar, MapPin, MessageSquare } from 'lucide-react-native';
+import { User, Calendar, MapPin, MessageSquare, CheckSquare } from 'lucide-react-native';
 
 const MP_ICON = require('../../../../../assets/images/logo-mercado-pago-icone-512.png');
 const GAP = 12;
@@ -25,27 +25,34 @@ const STEPS: TutorialStep[] = [
     },
     {
         id: '2',
+        title: 'Ative as Notificações!',
+        description: 'Conceda a permissão de notificações para o aplicativo.',
+        icon: <CheckSquare size={24} color="#8b35f6ff" />,
+        color: 'bg-purple-50',
+    },
+    {
+        id: '3',
         title: 'Encontre um Instrutor',
         description: 'Busque instrutores próximos a você.',
         icon: <MapPin size={24} color="#10B981" />,
         color: 'bg-emerald-50',
     },
     {
-        id: '3',
+        id: '4',
         title: 'Agende sua Aula',
         description: 'Escolha o melhor horário na agenda do instrutor.',
         icon: <Calendar size={24} color="#F59E0B" />,
         color: 'bg-amber-50',
     },
     {
-        id: '4',
+        id: '5',
         title: 'Pagamento Seguro',
         description: 'Pague suas aulas com a segurança do Mercado Pago.',
         icon: <Image source={MP_ICON} style={{ width: 40, height: 40 }} />,
         color: 'bg-blue-50',
     },
     {
-        id: '5',
+        id: '6',
         title: 'Converse com seu Instrutor',
         description: 'Defina o ponto de encontro e tire suas dúvidas.',
         icon: <MessageSquare size={24} color="#8b35f6ff" />,

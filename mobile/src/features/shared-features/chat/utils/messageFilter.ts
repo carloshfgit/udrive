@@ -44,7 +44,6 @@ const CONTACT_KEYWORDS = [
     'zapzap',
     'instagram',
     'insta',
-    'ig',
     '@',
     'telegram',
     'facebook',
