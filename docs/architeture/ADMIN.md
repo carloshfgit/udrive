@@ -401,17 +401,16 @@ O monitoramento profissional opera em **4 camadas**:
 
 O `PROJECT_GUIDELINES.md` já define o uso de **structlog** com output JSON.
 
-#### Ferramenta Recomendada: Stack de Logging
+#### Ferramenta Recomendada: Cloud Logging (GCP)
+
+Como o GoDrive será hospedado no **Google Cloud Platform** (conforme [DEPLOY_INFRA.md](file:///home/carloshf/udrive/docs/architeture/DEPLOY_INFRA.md)), o **Cloud Logging** (antigo Stackdriver Logging) é a escolha natural:
 
 | Opção | Custo | Melhor para |
 |-------|-------|-------------|
-| **Grafana Loki + Promtail** | Gratuito (self-hosted) | TimeTeam pequeno, já usa Docker |
-| **ELK Stack (Elasticsearch + Logstash + Kibana)** | Gratuito (self-hosted), pesado | Busca full-text em logs, alto volume |
-| **AWS CloudWatch Logs** | Pay-per-use | Se já estiver na AWS |
-| **Better Stack (Logtail)** | Free tier generoso | SaaS zero-config, fácil de começar |
-| **Datadog Logs** | Caro | Enterprise, tudo-em-um |
+| **Cloud Logging (GCP)** ✅ | Incluso (50 GB/mês grátis) | Já integrado com Cloud Run, Cloud SQL, tudo no GCP |
+| **Better Stack (Logtail)** | Free tier generoso | Alternativa SaaS se quiser busca mais amigável |
 
-**Recomendação:** **Grafana Loki** se self-hosted (já vai usar Grafana para dashboards), ou **Better Stack** para começar rápido com SaaS.
+**Recomendação:** **Cloud Logging** — zero configuração extra. Os logs do Cloud Run (stdout do FastAPI e Celery) são capturados automaticamente. O **Logs Explorer** permite busca avançada com filtros por severity, resource, e texto livre.
 
 #### Boas Práticas de Logging para o GoDrive:
 
@@ -447,21 +446,18 @@ logger.info(
 
 #### Ferramentas:
 
-| Opção | Custo | Stack |
-|-------|-------|-------|
-| **Prometheus + Grafana** | Gratuito (self-hosted) | Padrão da indústria para métricas + dashboards |
-| **Datadog** | ~$15/host/mês | SaaS all-in-one, fácil setup |
-| **New Relic** | Free tier (100GB/mês) | SaaS, ótimo para começar |
-| **Netdata** | Gratuito (self-hosted) | Zero-config, dashboards incríveis out-of-the-box |
+Com a infraestrutura no GCP, o **Cloud Monitoring** já coleta métricas automaticamente de todos os serviços gerenciados:
 
-**Recomendação:** **Prometheus + Grafana** (indústria padrão, gratuito, infinitamente customizável). Adicionar **exporters** para PostgreSQL e Redis.
+| Serviço GCP | Métricas Automáticas |
+|-------------|---------------------|
+| **Cloud Run** (API + Worker) | CPU, RAM, request count, latência (P50/P95/P99), instâncias ativas, erros por código HTTP |
+| **Cloud SQL** (PostgreSQL) | Conexões ativas, query time, disco, CPU, replication lag |
+| **Memorystore** (Redis) | Memória usada, hit rate, keys, comandos/s |
 
-Integração com FastAPI:
-```python
-# Biblioteca: prometheus-fastapi-instrumentator
-from prometheus_fastapi_instrumentator import Instrumentator
-Instrumentator().instrument(app).expose(app, endpoint="/metrics")
-```
+**Recomendação:** **Cloud Monitoring** — nativo, sem necessidade de exporters ou servidores extras. As métricas já estão disponíveis no console do GCP e podem ser usadas para criar dashboards e alertas.
+
+> [!TIP]
+> Se no futuro precisar de métricas customizadas do FastAPI (ex: contagem de agendamentos por hora), use a biblioteca `opentelemetry-exporter-gcp-monitoring` para enviar métricas personalizadas ao Cloud Monitoring.
 
 ### 6.4 Camada 3: Application Performance Monitoring (APM)
 
@@ -476,19 +472,22 @@ Instrumentator().instrument(app).expose(app, endpoint="/metrics")
 
 | Opção | Custo | Melhor para |
 |-------|-------|-------------|
-| **Sentry** | Free tier (5K events/mês) | Erros + Performance, SDK para Python e React Native |
-| **Datadog APM** | $31/host/mês | Traces distribuídos, correlação com logs |
-| **New Relic** | Free tier | Full-stack observability |
-| **OpenTelemetry + Jaeger** | Gratuito (self-hosted) | Traces distribuídos open-source |
+| **Cloud Error Reporting (GCP)** ✅ | Gratuito (incluso) | Captura exceções do backend automaticamente via Cloud Logging |
+| **Sentry** ✅ | Free tier (5K events/mês) | SDK para React Native (mobile) + Performance monitoring |
+| **Cloud Trace (GCP)** | Gratuito (incluso) | Traces distribuídos entre Cloud Run, Cloud SQL, Redis |
 
-**Recomendação:** **Sentry** — já mencionado no `PROJECT_GUIDELINES.md`. SDK nativo para FastAPI e Expo. O free tier é suficiente para MVP.
+**Recomendação:**
+- **Backend:** **Cloud Error Reporting** (automático, zero config) + **Cloud Trace** para latências entre serviços.
+- **Mobile:** **Sentry** — SDK nativo para React Native/Expo. Indispensável para crash reports no dispositivo do usuário, que o GCP não consegue capturar.
 
 ```python
-# Backend
-import sentry_sdk
-sentry_sdk.init(dsn="...", traces_sample_rate=0.2)
-
-# Mobile
+# Backend — Cloud Trace (opcional, para traces distribuídos)
+from opentelemetry import trace
+from opentelemetry.exporter.cloud_trace import CloudTraceSpanExporter
+# Configuração automática no Cloud Run com variável de ambiente GOOGLE_CLOUD_PROJECT
+```
+```typescript
+// Mobile — Sentry (obrigatório para crash reports)
 import * as Sentry from '@sentry/react-native';
 Sentry.init({ dsn: '...' });
 ```
@@ -536,18 +535,17 @@ Dashboard Principal
 
 #### Implementação do Dashboard:
 
-**Opção A: Grafana Dashboards (Recomendado)**
-- Conecta diretamente ao PostgreSQL para métricas de negócio.
-- Conecta ao Prometheus para métricas de infra.
-- Dashboards customizáveis com SQL queries.
-- Alertas integrados (Slack, Email, PagerDuty).
-- **Custo:** Gratuito (self-hosted) ou Grafana Cloud (free tier).
+**Opção A: Cloud Monitoring Dashboards (GCP) (Recomendado para infra)**
+- Dashboards nativos para Cloud Run, Cloud SQL, Memorystore — já existem out-of-the-box.
+- Dashboards customizáveis com métricas GCP + métricas personalizadas.
+- Alertas integrados (Slack, Email, PagerDuty, SMS).
+- **Custo:** Incluso no GCP.
 
-**Opção B: Metabase**
-- Focado em BI/analytics, não em monitoramento técnico.
-- Interface amigável para não-técnicos.
-- Bom para relatórios financeiros e de negócio.
-- **Custo:** Gratuito (self-hosted).
+**Opção B: Looker Studio (antigo Data Studio) (Recomendado para negócio)**
+- Gratuito, conecta diretamente ao Cloud SQL (PostgreSQL).
+- Interface amigável para não-técnicos, ótimo para relatórios financeiros.
+- Compartilhável via link (sem necessidade de deploy).
+- **Custo:** Gratuito.
 
 **Opção C: Dashboard Customizado no Admin**
 - Construir dentro do próprio painel admin (React/Next.js).
@@ -556,19 +554,20 @@ Dashboard Principal
 - Usar bibliotecas: **Recharts**, **Chart.js**, **Tremor** (React).
 
 **Recomendação prática:**
-- **Grafana** para monitoramento técnico (infra + application).
-- **Dashboard customizado no admin** para métricas de negócio (user-facing para o time operacional).
+- **Cloud Monitoring** para monitoramento técnico (infra + application) — já vem pronto.
+- **Looker Studio** para métricas de negócio iniciais (zero custo, fácil de montar).
+- **Dashboard customizado no admin** quando o painel React/Next.js for construído.
 
 ### 6.6 Sistema de Alertas
 
-Alertas devem ser **acionáveis** e **não ruidosos**:
+Alertas devem ser **acionáveis** e **não ruidosos**. O **Cloud Monitoring Alerting Policies** do GCP gerencia tudo (já exemplificado no [DEPLOY_INFRA.md](file:///home/carloshf/udrive/docs/architeture/DEPLOY_INFRA.md), seção 10):
 
 | Tipo | Canal | Exemplos |
 |------|-------|----------|
-| **Crítico (P0)** | SMS + Push + Slack | API down, DB unreachable, erro 500 > 10% |
+| **Crítico (P0)** | SMS + Push + Slack (via Notification Channels do GCP) | API down, DB unreachable, erro 500 > 10% |
 | **Alto (P1)** | Slack + Email | Latência > 2s, Celery queue > 500, disputa > 48h sem resposta |
 | **Médio (P2)** | Slack (canal específico) | Novo cadastro de instrutor para verificar, taxa de cancelamento subiu |
-| **Baixo (P3)** | Dashboard (visual) | Picos de uso, métricas de vaidade |
+| **Baixo (P3)** | Cloud Monitoring Dashboard (visual) | Picos de uso, métricas de vaidade |
 
 ---
 
@@ -627,29 +626,31 @@ Contras:
 
 **Veredicto:** Excelente para validar rapidamente, mas considerar trade-offs de dependência e custo.
 
-### 7.2 Arquitetura Recomendada (Híbrida)
+### 7.2 Arquitetura Recomendada (Híbrida + GCP)
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                    Browser Admin                     │
-│  ┌──────────┐  ┌──────────────┐  ┌───────────────┐ │
-│  │ SQLAdmin │  │ Admin Panel  │  │   Grafana     │ │
-│  │ (CRUD    │  │ (React/Next) │  │ (Métricas     │ │
-│  │  rápido) │  │              │  │  + Alertas)   │ │
-│  └────┬─────┘  └──────┬───────┘  └───────┬───────┘ │
-│       │               │                  │          │
-└───────┼───────────────┼──────────────────┼──────────┘
-        │               │                  │
-    ┌───▼───────────────▼──────┐    ┌──────▼──────┐
-    │      FastAPI Backend     │    │ Prometheus  │
-    │  /admin/* (SQLAdmin)     │    │ /metrics    │
-    │  /api/v1/admin/*         │    └─────────────┘
+┌──────────────────────────────────────────────────────────┐
+│                    Browser Admin                          │
+│  ┌──────────┐  ┌──────────────┐  ┌────────────────────┐ │
+│  │ SQLAdmin │  │ Admin Panel  │  │ Cloud Monitoring   │ │
+│  │ (CRUD    │  │ (React/Next) │  │ (Dashboards +      │ │
+│  │  rápido) │  │              │  │  Alertas + Logs)   │ │
+│  └────┬─────┘  └──────┬───────┘  └────────────────────┘ │
+│       │               │                                   │
+└───────┼───────────────┼───────────────────────────────────┘
+        │               │
+    ┌───▼───────────────▼──────┐
+    │  FastAPI Backend         │
+    │  (Cloud Run)             │
+    │  /admin/* (SQLAdmin)     │
+    │  /api/v1/admin/*         │
     │     (endpoints admin)    │
     └──────────┬───────────────┘
                │
-    ┌──────────▼──────────┐
-    │  PostgreSQL + Redis  │
-    └─────────────────────┘
+    ┌──────────▼──────────────────────────┐
+    │  Cloud SQL (PostgreSQL + PostGIS)   │
+    │  Memorystore (Redis)                │
+    └─────────────────────────────────────┘
 ```
 
 ### 7.3 RBAC (Role-Based Access Control) para Admin
@@ -669,16 +670,17 @@ Roles
 
 ## 8. Comparativo de Abordagens
 
-### Stack de Monitoramento
+### Stack de Monitoramento (alinhado com GCP)
 
-| Componente | MVP (Baixo Custo) | Produção (Profissional) |
+| Componente | MVP (GCP incluso) | Produção (Profissional) |
 |------------|-------------------|------------------------|
-| **Erros/Crashes** | Sentry (free tier) | Sentry (paid) |
-| **Métricas Infra** | Netdata (zero-config) | Prometheus + Grafana |
-| **Logs** | `structlog` → stdout + Docker logs | Grafana Loki ou Better Stack |
-| **Métricas Negócio** | Queries SQL manuais | Grafana + Metabase |
-| **Alertas** | Sentry alerts | Grafana Alerts → Slack/PagerDuty |
-| **APM/Traces** | Sentry Performance | OpenTelemetry + Jaeger |
+| **Erros/Crashes (backend)** | Cloud Error Reporting (gratuito, automático) | Cloud Error Reporting + Cloud Trace |
+| **Erros/Crashes (mobile)** | Sentry (free tier) | Sentry Team (pago) |
+| **Métricas Infra** | Cloud Monitoring (automático para Cloud Run, SQL, Redis) | Cloud Monitoring + métricas customizadas |
+| **Logs** | Cloud Logging (automático via Cloud Run stdout) | Cloud Logging + log sinks para análise |
+| **Métricas Negócio** | Queries SQL manuais (DBeaver / Cloud SQL Studio) | Looker Studio + Dashboard custom |
+| **Alertas** | Cloud Monitoring Alerting Policies → Email | Alerting Policies → Slack/PagerDuty/SMS |
+| **APM/Traces** | Cloud Trace (gratuito, incluso) | Cloud Trace + OpenTelemetry |
 
 ### Stack do Admin Panel
 
@@ -687,9 +689,9 @@ Roles
 | **CRUD de dados** | SQLAdmin (já existe) | SQLAdmin (manter) |
 | **Disputas** | SQLAdmin + scripts | Admin Panel custom |
 | **Suporte** | Google Forms + Planilha | Sistema de tickets in-app + painel |
-| **Chat Monitor** | Query SQL direta | Painel com viewer + flags automáticos |
+| **Chat Monitor** | Query SQL direta (via Cloud SQL Studio) | Painel com viewer + flags automáticos |
 | **User Profile** | SQLAdmin views | Perfil 360° no painel custom |
-| **Dashboard** | Nenhum | Grafana + Dashboard custom |
+| **Dashboard** | Cloud Monitoring (infra) | Looker Studio (negócio) + Dashboard custom |
 
 ---
 
@@ -742,17 +744,18 @@ Esta seção consolida **a decisão final** de qual ferramenta/abordagem usar em
 | Componente | 🚀 MVP (Dia 1) | 📈 Escala (quando migrar) | Gatilho para migrar |
 |------------|-----------------|---------------------------|---------------------|
 | **Painel Admin (CRUD)** | SQLAdmin (já existe) | SQLAdmin (manter) | Nunca migrar — serve como backdoor técnico |
-| **Painel Admin (Operacional)** | Endpoints `/api/v1/admin/*` + Postman/Insomnia | Frontend React/Next.js dedicado | Quando houver >1 pessoa no suporte |
+| **Painel Admin (Operacional)** | Endpoints `/api/v1/admin/*` + Postman/Insomnia | Frontend React/Next.js dedicado (Cloud Run) | Quando houver >1 pessoa no suporte |
 | **Sistema de Disputas** | Tabela `disputes` + SQLAdmin view + scripts manuais | Workflow completo no Admin Panel custom | Quando disputas ultrapassarem 10/semana |
 | **Suporte ao Usuário** | Formulário in-app → tabela `support_tickets` + SQLAdmin | Sistema de tickets com SLA, fila, e chat admin-user | Quando tickets ultrapassarem 20/semana |
 | **Monitoramento de Chat** | Endpoint admin read-only (sob demanda) | Flags automáticos + Perspectiva API (Google) | Quando houver incidente de segurança ou >500 mensagens/dia |
-| **Perfil de Usuário (Admin)** | SQLAdmin views + queries SQL manuais | Perfil 360° no Admin Panel custom | Junto com a migração do painel operacional |
-| **Erros e Crashes** | Sentry free tier (backend + mobile) | Sentry Team ($26/mês) | Quando exceder 5K events/mês |
-| **Logs** | `structlog` → stdout → `docker logs` | Better Stack (SaaS) ou Grafana Loki (self-hosted) | Quando debugging em produção se tornar frequente |
-| **Métricas de Infra** | Docker stats + pg_stat_activity manual | Prometheus + Grafana | Quando for para produção com deploy real |
-| **Métricas de Negócio** | Queries SQL manuais (Metabase free ou DBeaver) | Grafana dashboards com PostgreSQL data source | Junto com Prometheus (mesmo Grafana) |
-| **Alertas** | Sentry Alerts (erros) + cron jobs (disputas/tickets) | Grafana Alerting → Slack/Telegram/Email | Junto com Grafana |
-| **APM (Traces)** | Sentry Performance (free tier) | OpenTelemetry + Sentry (ou Jaeger) | Quando precisar debugar latência entre serviços |
+| **Perfil de Usuário (Admin)** | SQLAdmin views + queries SQL manuais (Cloud SQL Studio) | Perfil 360° no Admin Panel custom | Junto com a migração do painel operacional |
+| **Erros e Crashes (backend)** | Cloud Error Reporting (gratuito, automático no GCP) | Cloud Error Reporting + Cloud Trace | Já incluso — sem gatilho de migração |
+| **Erros e Crashes (mobile)** | Sentry free tier (React Native) | Sentry Team ($26/mês) | Quando exceder 5K events/mês |
+| **Logs** | Cloud Logging (automático via Cloud Run) | Cloud Logging + log sinks para BigQuery | Já incluso — configurar sinks quando precisar de análise histórica |
+| **Métricas de Infra** | Cloud Monitoring (automático para Cloud Run, SQL, Redis) | Cloud Monitoring + métricas customizadas (OpenTelemetry) | Já incluso — adicionar métricas custom quando necessário |
+| **Métricas de Negócio** | Queries SQL manuais (DBeaver ou Cloud SQL Studio) | Looker Studio (gratuito) + Dashboard custom no Admin Panel | Quando o time operacional precisar de relatórios visuais |
+| **Alertas** | Cloud Monitoring Alerting Policies → Email | Alerting Policies → Slack/Telegram/PagerDuty | Configurar canais adicionais conforme o time cresce |
+| **APM (Traces)** | Cloud Trace (gratuito, incluso no GCP) | Cloud Trace + OpenTelemetry instrumentação custom | Quando precisar debugar latência entre serviços específicos |
 | **RBAC Admin** | Campo `is_admin` na tabela `users` | Tabela `admin_users` + roles (SUPER_ADMIN, SUPPORT, etc.) | Quando houver >1 pessoa com acesso admin |
 
 ---
@@ -766,7 +769,7 @@ Esta seção consolida **a decisão final** de qual ferramenta/abordagem usar em
 **Escala → Admin Panel React/Next.js:**
 - Criar um frontend web separado usando **Next.js** + **shadcn/ui** + **Recharts**.
 - Consome os endpoints `/api/v1/admin/*` já existentes.
-- Hospedar no **Vercel** (free tier) ou no mesmo servidor.
+- Hospedar no **Cloud Run** (mesmo ambiente do backend, simplifica a rede) ou **Firebase Hosting** (para sites estáticos).
 - O SQLAdmin continua ativo como ferramenta de acesso direto ao banco para desenvolvedores.
 
 **Por que Next.js e não Retool/Appsmith?**
@@ -788,7 +791,7 @@ Esta seção consolida **a decisão final** de qual ferramenta/abordagem usar em
 
 **Por que não Crisp/Intercom/Zendesk no MVP?**
 - Custo desnecessário quando o volume é baixo.
-- Os dados ficam no seu banco, facilitando análise e integração com disputas.
+- Os dados ficam no seu banco (Cloud SQL), facilitando análise e integração com disputas.
 - Quando/se o volume justificar, o **Crisp** (free tier para 2 agentes) é a melhor opção SaaS para adicionar chat em tempo real, pois tem SDK React Native e é leve.
 
 ---
@@ -850,113 +853,115 @@ Aluno abre disputa
 
 #### 📊 Monitoramento do Sistema
 
-**MVP imediato — Sentry:**
-```python
-# backend — 3 linhas para começar
-import sentry_sdk
-from sentry_sdk.integrations.fastapi import FastApiIntegration
-sentry_sdk.init(dsn="SEU_DSN", integrations=[FastApiIntegration()], traces_sample_rate=0.1)
-```
+**MVP imediato — Cloud Error Reporting + Sentry (mobile):**
+
+No GCP, o **Cloud Error Reporting** captura exceções do backend automaticamente via Cloud Logging (zero config). Para o mobile, o **Sentry** continua sendo essencial:
+
 ```typescript
-// mobile — setup no App.tsx
+// Mobile — Sentry (obrigatório para crash reports no dispositivo)
 import * as Sentry from '@sentry/react-native';
 Sentry.init({ dsn: 'SEU_DSN' });
 ```
-- Free tier: 5K errors/mês + 10K transactions/mês para performance.
-- Cobre: crash reports, error tracking, performance monitoring básico.
-- **Tempo para configurar: ~30 minutos.**
+- Free tier Sentry: 5K errors/mês + 10K transactions/mês para performance.
+- Cobre: crash reports mobile, error tracking no dispositivo do usuário.
+- **Tempo para configurar: ~15 minutos.**
+- No backend, o Cloud Error Reporting já está ativo automaticamente no Cloud Run.
 
-**MVP logs — `structlog` + Docker logs:**
+**MVP logs — `structlog` + Cloud Logging:**
 - Já está no `PROJECT_GUIDELINES.md`.
 - Em desenvolvimento: `docker compose logs -f backend`.
-- Em produção (VPS/EC2): configurar `docker log driver` para enviar ao **Better Stack** (free tier: 1GB/mês) — setup de 5 minutos.
+- Em produção (Cloud Run): logs capturados **automaticamente** pelo **Cloud Logging**. Use o **Logs Explorer** no console GCP para busca, filtragem e análise.
 
-**Escala → Stack Completa de Observabilidade:**
+**Escala → Observabilidade Avançada (GCP-native):**
 
-Quando for para produção com usuários reais, adicionar ao Docker Compose:
+Tudo já está disponível no GCP sem containers extras:
 
 ```
-Observabilidade Stack (docker-compose.monitoring.yml)
-├── Prometheus        → Coleta métricas do FastAPI, PostgreSQL, Redis, Celery
-├── Grafana           → Dashboards de infra + negócio + alertas
-├── Loki + Promtail   → Centralização de logs (substitui Better Stack)
-├── postgres-exporter → Métricas do PostgreSQL
-├── redis-exporter    → Métricas do Redis
-└── celery-exporter   → Métricas do Celery
+Observabilidade GCP (já inclusa)
+├── Cloud Monitoring    → Métricas de Cloud Run, Cloud SQL, Memorystore (automático)
+├── Cloud Logging       → Centralização de logs (automático via stdout)
+├── Cloud Error Report  → Exceções do backend (automático)
+├── Cloud Trace         → Traces distribuídos (Cloud Run → SQL → Redis)
+└── Alerting Policies   → Alertas configurados no Cloud Monitoring
 ```
 
-**Custo total da stack completa self-hosted: R$ 0** (apenas CPU/RAM do servidor).
+**Custo total da stack de observabilidade: incluso no GCP** (dentro dos free tiers generosos).
+
+> [!NOTE]
+> Diferente da abordagem self-hosted (Prometheus/Grafana/Loki), no GCP você **não precisa manter nenhum container de monitoramento**. Toda a observabilidade é gerenciada.
 
 ---
 
 ### 10.3 Roadmap Visual de Evolução
 
 ```
-╔══════════════════════════════════════════════════════════════════════════╗
-║                        ROADMAP DE EVOLUÇÃO                              ║
-╠══════════════════════════════════════════════════════════════════════════╣
+╔══════════════════════════════════════════════════════════════════════╗
+║                        ROADMAP DE EVOLUÇÃO (GCP)                         ║
+╠══════════════════════════════════════════════════════════════════════╣
 ║                                                                          ║
 ║  FASE 1 — MVP (Pré-lançamento)                                          ║
-║  Custo: R$ 0                                                            ║
-║  ┌─────────────────────────────────────────────────────────────────┐     ║
-║  │ ✅ Sentry free (backend + mobile)                               │     ║
-║  │ ✅ structlog → Docker logs                                      │     ║
+║  Custo: ~$95-150/mês (infra GCP) | Monitoramento incluso                ║
+║  ┌─────────────────────────────────────────────────────────────┐     ║
+║  │ ✅ Cloud Error Reporting (backend — automático)                 │     ║
+║  │ ✅ Sentry free (mobile — crash reports)                        │     ║
+║  │ ✅ Cloud Logging (logs automáticos via Cloud Run)               │     ║
+║  │ ✅ Cloud Monitoring (métricas de infra automáticas)              │     ║
 ║  │ ✅ SQLAdmin (CRUD + views de disputas/tickets)                  │     ║
 ║  │ ✅ Endpoints admin REST (/api/v1/admin/*)                       │     ║
 ║  │ ✅ Tabelas: disputes + support_tickets                          │     ║
 ║  │ ✅ FAQ estático in-app + formulário de ticket                   │     ║
 ║  │ ✅ Chat read-only para admin (endpoint sob demanda)             │     ║
-║  └─────────────────────────────────────────────────────────────────┘     ║
+║  └─────────────────────────────────────────────────────────────┘     ║
 ║                              │                                           ║
 ║                              ▼                                           ║
 ║  FASE 2 — Produção Inicial (Primeiros 100 usuários)                     ║
-║  Custo: ~R$ 0-50/mês                                                    ║
-║  ┌─────────────────────────────────────────────────────────────────┐     ║
-║  │ ➕ Better Stack ou Loki (logs centralizados)                    │     ║
-║  │ ➕ Metabase free (métricas de negócio via SQL)                  │     ║
-║  │ ➕ Celery tasks para SLA (tickets/disputas > 24h)               │     ║
-║  │ ➕ Regex flags no chat (tentativas de bypass)                   │     ║
+║  Custo: ~$95-170/mês (mesma infra + Sentry free)                        ║
+║  ┌─────────────────────────────────────────────────────────────┐     ║
+║  │ ➕ Looker Studio (métricas de negócio via Cloud SQL — gratuito) │     ║
+║  │ ➕ Cloud Scheduler tasks para SLA (tickets/disputas > 24h)     │     ║
+║  │ ➕ Regex flags no chat (tentativas de bypass)                  │     ║
 ║  │ ➕ CSAT (nota após resolução de ticket)                         │     ║
-║  └─────────────────────────────────────────────────────────────────┘     ║
+║  │ ➕ Alerting Policies no Cloud Monitoring → Slack/Email          │     ║
+║  └─────────────────────────────────────────────────────────────┘     ║
 ║                              │                                           ║
 ║                              ▼                                           ║
 ║  FASE 3 — Escala (500+ usuários ativos)                                 ║
-║  Custo: ~R$ 100-300/mês                                                 ║
-║  ┌─────────────────────────────────────────────────────────────────┐     ║
+║  Custo: ~$150-300/mês (infra GCP escala + Sentry pago)                  ║
+║  ┌─────────────────────────────────────────────────────────────┐     ║
 ║  │ ➕ Admin Panel Next.js (disputas, perfil 360°, tickets)         │     ║
-║  │ ➕ Prometheus + Grafana (infra + negócio + alertas)             │     ║
-║  │ ➕ Grafana Alerting → Slack/Telegram                            │     ║
+║  │ ➕ Cloud Monitoring dashboards customizados                    │     ║
+║  │ ➕ Alerting Policies avançadas → Slack/Telegram/PagerDuty       │     ║
 ║  │ ➕ RBAC admin (múltiplos agentes de suporte)                    │     ║
 ║  │ ➕ Perspectiva API (flags de toxicidade no chat)                │     ║
-║  │ ➕ Sentry Team (pago, mais volume)                              │     ║
-║  └─────────────────────────────────────────────────────────────────┘     ║
+║  │ ➕ Sentry Team (pago, mais volume para mobile)                  │     ║
+║  └─────────────────────────────────────────────────────────────┘     ║
 ║                              │                                           ║
 ║                              ▼                                           ║
 ║  FASE 4 — Maturidade (1000+ usuários ativos)                            ║
-║  Custo: ~R$ 500+/mês                                                    ║
-║  ┌─────────────────────────────────────────────────────────────────┐     ║
-║  │ ➕ OpenTelemetry (traces distribuídos)                          │     ║
+║  Custo: ~$300+/mês (GCP escala automática)                               ║
+║  ┌─────────────────────────────────────────────────────────────┐     ║
+║  │ ➕ OpenTelemetry + Cloud Trace (traces distribuídos avançados)  │     ║
 ║  │ ➕ Chatbot de autoatendimento                                   │     ║
 ║  │ ➕ Crisp ou chat in-app admin ↔ usuário                         │     ║
-║  │ ➕ Relatórios automatizados (Celery → email semanal)            │     ║
-║  │ ➕ Heat maps de geolocalização (PostGIS + Grafana GeoMap)       │     ║
+║  │ ➕ Relatórios automatizados (Cloud Scheduler → email semanal)   │     ║
+║  │ ➕ Heat maps de geolocalização (PostGIS + Looker Studio GeoMap) │     ║
 ║  │ ➕ Score de confiabilidade automatizado (instrutores)           │     ║
-║  └─────────────────────────────────────────────────────────────────┘     ║
+║  │ ➕ Log sinks para BigQuery (análise histórica de logs)          │     ║
+║  └─────────────────────────────────────────────────────────────┘     ║
 ║                                                                          ║
-╚══════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════╗
 ```
 
 ### 10.4 Princípios que Guiam Essas Decisões
 
-1. **Construir internamente o que é core do negócio** — Disputas, suporte e perfis de usuários são diferenciais competitivos. Não terceirizar para SaaS que pode mudar pricing ou sair do ar.
 
-2. **Usar SaaS para o que é commodity** — Monitoramento de erros (Sentry), logs (Better Stack), observabilidade (Grafana Cloud) são commodities. Use ferramentas prontas.
+2. **Usar serviços gerenciados do GCP para o que é commodity** — Monitoramento (Cloud Monitoring), logs (Cloud Logging), erros (Cloud Error Reporting) e traces (Cloud Trace) são commodities já inclusas na infraestrutura. Sentry permanece apenas para o mobile.
 
-3. **Zero custo no MVP** — Cada real economizado antes de ter receita é um dia a mais de runway. Todas as ferramentas recomendadas para MVP são gratuitas.
+3. **Custo de observabilidade incluído na infra** — Diferente da abordagem self-hosted (Prometheus/Grafana/Loki), no GCP o custo de monitoramento já está embutido nos ~$95-150/mês de infraestrutura (conforme [DEPLOY_INFRA.md](file:///home/carloshf/udrive/docs/architeture/DEPLOY_INFRA.md)).
 
-4. **Dados no seu banco** — Tickets, disputas, flags de chat, métricas históricas — tudo fica no PostgreSQL. Isso permite análises futuras, compliance (LGPD) e independência de fornecedores.
+4. **Dados no seu banco** — Tickets, disputas, flags de chat, métricas históricas — tudo fica no Cloud SQL (PostgreSQL). Isso permite análises futuras, compliance (LGPD) e independência de fornecedores.
 
-5. **Migrar por dor, não por planejamento** — Não implementar Prometheus, Grafana, ou Admin Panel custom até que a ausência deles cause dor real. O gatilho de migração na tabela acima define quando.
+5. **Migrar por dor, não por planejamento** — Não implementar Admin Panel custom, Looker Studio ou OpenTelemetry até que a ausência deles cause dor real. O gatilho de migração na tabela acima define quando.
 
 ---
 
@@ -968,31 +973,25 @@ Esta seção define **o mínimo absoluto** que precisa estar funcionando antes d
 
 | Item | O quê | Por quê | Esforço |
 |------|--------|---------|--------|
-| **Sentry (backend)** | `sentry_sdk.init()` no FastAPI com `FastApiIntegration` | Erros 500 em produção sem stack trace = impossível debugar | ~15 min |
-| **Sentry (mobile)** | `@sentry/react-native` no App.tsx | Crash no celular do usuário sem log = invisível | ~30 min |
-| **Logs estruturados** | `structlog` → JSON → stdout (já na stack) | `docker compose logs -f backend` precisa funcionar com contexto útil | Já existe |
+| **Cloud Error Reporting** | Automático via Cloud Logging no Cloud Run | Exceções 500 capturadas automaticamente com stack trace | ~0 min (já incluso) |
+| **Sentry (mobile)** | `@sentry/react-native` no App.tsx | Crash no celular do usuário sem log = invisível (GCP não cobre mobile) | ~15 min |
+| **Logs estruturados** | `structlog` → JSON → stdout (já na stack) → Cloud Logging captura automático | Logs Explorer do GCP permite busca e filtragem | Já existe |
 | **Health check endpoint** | `GET /health` retornando status do DB + Redis | Saber se a API está viva antes que o usuário descubra que não está | ~10 min |
-| **Alertas de erro** | Sentry Alerts → email/Slack quando error rate > 5% | Ser notificado antes do usuário reclamar | ~10 min |
+| **Alertas de erro** | Cloud Monitoring Alerting Policies → email/Slack quando error rate > 5% | Ser notificado antes do usuário reclamar | ~15 min |
 
-**Configuração mínima do Sentry:**
-```python
-# backend/src/interface/api/main.py
-import sentry_sdk
-from sentry_sdk.integrations.fastapi import FastApiIntegration
-from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
-from sentry_sdk.integrations.celery import CeleryIntegration
+**Configuração mínima do Sentry (apenas mobile):**
+```typescript
+// mobile/App.tsx
+import * as Sentry from '@sentry/react-native';
 
-sentry_sdk.init(
-    dsn="SEU_DSN_AQUI",
-    integrations=[
-        FastApiIntegration(),
-        SqlalchemyIntegration(),
-        CeleryIntegration(),
-    ],
-    traces_sample_rate=0.1,  # 10% das requests para performance
-    environment="production",
-)
+Sentry.init({
+    dsn: 'SEU_DSN_AQUI',
+    environment: 'production',
+});
 ```
+
+> [!NOTE]
+> No backend, o **Cloud Error Reporting** captura exceções automaticamente a partir dos logs JSON emitidos pelo `structlog` no Cloud Run. Não é necessário instalar nenhum SDK adicional.
 
 ---
 
@@ -1038,7 +1037,7 @@ sentry_sdk.init(
 
 | Item | O quê | Por quê |
 |------|--------|---------|
-| **HTTPS obrigatório** | Certificado SSL na API (Let's Encrypt ou Cloudflare) | Dados sensíveis em trânsito; exigência das stores |
+| **HTTPS obrigatório** | Gerenciado automaticamente pelo Cloud Run (certificado SSL incluso) | Dados sensíveis em trânsito; exigência das stores |
 | **Rate limiting** | `slowapi` nos endpoints de login (5/min) e API geral (100/min) | Proteção contra brute force e DDoS básico |
 | **Refresh token rotation** | Refresh tokens com rotação ativa (já planejado) | Session hijacking prevention |
 | **Dados sensíveis** | Nunca logar tokens, senhas ou dados de cartão | Compliance PCI-DSS (Mercado Pago cuida do cartão, mas logs podem vazar) |
@@ -1085,14 +1084,14 @@ sentry_sdk.init(
 
 | Item | O quê | Por quê |
 |------|--------|---------|
-| **Backup do banco** | Backup automático diário do PostgreSQL (pg_dump ou managed DB) | Perder dados no dia 1 = game over |
-| **Migrations em dia** | `alembic upgrade head` rodou sem erros no ambiente de produção | Schema inconsistente = erros 500 aleatórios |
-| **Variáveis de ambiente** | `.env` de produção configurado (DB, Redis, JWT, Sentry, MP credentials) | Variável faltando = app não inicia |
-| **Mercado Pago em modo produção** | Credenciais de produção, não sandbox; webhook configurado | Pagamento falhando = zero receita |
-| **Webhook MP testado** | Enviar webhook test e confirmar que o backend processa | Pagamento aprovado sem callback = aula não confirma |
-| **Celery workers rodando** | Verificar que workers e beat estão ativos e processando | Auto-complete, lembretes e notificações dependem disso |
+| **Backup do banco** | Cloud SQL backup automático diário (já configurado no deploy) | Perder dados no dia 1 = game over |
+| **Migrations em dia** | `alembic upgrade head` rodou sem erros no Cloud SQL de produção | Schema inconsistente = erros 500 aleatórios |
+| **Variáveis de ambiente** | Segredos no **Secret Manager** + env vars no Cloud Run | Variável faltando = app não inicia |
+| **Mercado Pago em modo produção** | Credenciais de produção no Secret Manager, não sandbox; webhook configurado | Pagamento falhando = zero receita |
+| **Webhook MP testado** | Enviar webhook test e confirmar que o Cloud Run processa | Pagamento aprovado sem callback = aula não confirma |
+| **Celery workers rodando** | Verificar que Cloud Run services (worker + beat) estão ativos | Auto-complete, lembretes e notificações dependem disso |
 | **Push notifications testando** | Enviar push real para dispositivo de teste | Se push não funciona, usuário perde notificações críticas |
-| **DNS + domínio** | `api.godrive.com.br` apontando para o servidor | Mobile precisa de URL fixa, não IP |
+| **DNS + domínio** | `api.godrive.com.br` mapeado para o Cloud Run via domínio customizado | Mobile precisa de URL fixa, não IP |
 | **Testes de carga mínimos** | 50 requests/s no endpoint de busca de instrutores | Se o endpoint mais pesado (geo query) aguenta, o resto aguenta |
 
 ---
@@ -1101,11 +1100,11 @@ sentry_sdk.init(
 
 ```
 MONITORAMENTO
-[ ] Sentry configurado no backend (FastAPI + Celery)
+[ ] Cloud Error Reporting ativo (automático no Cloud Run)
 [ ] Sentry configurado no mobile (React Native)
 [ ] Health check endpoint respondendo (/health)
-[ ] Alertas de erro configurados (email ou Slack)
-[ ] structlog emitindo logs em JSON no stdout
+[ ] Alerting Policies configuradas no Cloud Monitoring (email ou Slack)
+[ ] structlog emitindo logs em JSON no stdout → Cloud Logging
 
 SUPORTE
 [ ] Tela de Ajuda/FAQ acessível no app
@@ -1121,7 +1120,7 @@ DISPUTAS
 [ ] Tabela disputes criada e migration rodou
 
 SEGURANÇA & COMPLIANCE
-[ ] HTTPS ativo na API
+[ ] HTTPS ativo na API (automático no Cloud Run)
 [ ] Rate limiting configurado (login + API geral)
 [ ] Política de Privacidade publicada (URL pública)
 [ ] Termos de Uso publicados (URL pública)
@@ -1137,15 +1136,15 @@ STORES
 [ ] TestFlight / Internal Testing testados com beta testers
 [ ] Classificação de conteúdo (IARC) preenchida
 
-OPERAÇÃO
-[ ] Backup automático do PostgreSQL configurado
-[ ] Migrations de produção rodaram sem erro
-[ ] .env de produção com todas as variáveis
-[ ] Mercado Pago em modo produção (credenciais reais)
+OPERAÇÃO (GCP)
+[ ] Cloud SQL backup automático configurado
+[ ] Migrations de produção rodaram sem erro no Cloud SQL
+[ ] Segredos no Secret Manager configurados
+[ ] Mercado Pago em modo produção (credenciais reais no Secret Manager)
 [ ] Webhook do Mercado Pago testado e confirmado
-[ ] Celery workers e beat rodando
+[ ] Cloud Run services (API + Worker + Beat) rodando
 [ ] Push notifications testadas em dispositivo real
-[ ] DNS configurado (api.godrive.com.br)
+[ ] Domínio customizado configurado no Cloud Run (api.godrive.com.br)
 [ ] Teste de carga básico passou
 ```
 
@@ -1153,6 +1152,7 @@ OPERAÇÃO
 
 ## Referências
 
+- [`DEPLOY_INFRA.md`](file:///home/carloshf/udrive/docs/architeture/DEPLOY_INFRA.md) — Guia de deploy e infraestrutura no Google Cloud Platform
 - [`PROJECT_GUIDELINES.md`](file:///home/carloshf/udrive/docs/architeture/PROJECT_GUIDELINES.md) — Stack e padrões do projeto
 - [`DISPUTE_FLOW.md`](file:///home/carloshf/udrive/docs/payments/DISPUTE_FLOW.md) — Fluxo de disputas planejado
 - [`PAYMENT_FLOW.md`](file:///home/carloshf/udrive/docs/payments/PAYMENT_FLOW.md) — Fluxo de pagamento e precificação
