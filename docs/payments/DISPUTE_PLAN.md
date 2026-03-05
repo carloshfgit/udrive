@@ -378,10 +378,10 @@ A implementação segue a ordem **Domain → Application → Infrastructure → 
 
 ## Checklist Geral
 
-- [ ] **Etapa 1:** Entidade `Dispute`, enums, interface `IDisputeRepository`, métodos de resolução em `Scheduling`
-- [ ] **Etapa 2:** DTOs, `OpenDisputeUseCase`, `ResolveDisputeUseCase`, `ListOpenDisputesUseCase`
-- [ ] **Etapa 3:** Migration `disputes`, SQLAlchemy Model, `DisputeRepository`
-- [ ] **Etapa 4:** Atualizar endpoint aluno, router admin, schemas, dependencies
-- [ ] **Etapa 5:** API functions, hook, `ReportProblemScreen`, badge DISPUTED, navegação
+- [x] **Etapa 1:** Entidade `Dispute`, enums, interface `IDisputeRepository`, métodos de resolução em `Scheduling`
+- [x] **Etapa 2:** DTOs, `OpenDisputeUseCase`, `ResolveDisputeUseCase`, `ListOpenDisputesUseCase`
+- [x] **Etapa 3:** Migration `disputes`, SQLAlchemy Model, `DisputeRepository`
+- [x] **Etapa 4:** Atualizar endpoint aluno, router admin, schemas, dependencies
+- [x] **Etapa 5:** API functions, hook, `ReportProblemScreen`, badge DISPUTED, navegação
 - [x] **Etapa 6:** Reembolso via Celery, liberação de pagamento, reagendamento mediado
 - [x] **Etapa 7:** Push notifications (decorators), WebSocket events
