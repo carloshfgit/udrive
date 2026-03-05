@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, SafeAreaView, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
-import { Calendar, Clock, User, ChevronRight, MessageSquare, AlertCircle, CheckCircle2, Car, Bike, Award } from 'lucide-react-native';
+import { Calendar, Clock, User, ChevronRight, MessageSquare, AlertCircle, AlertTriangle, CheckCircle2, Car, Bike, Award } from 'lucide-react-native';
 import { Header } from '../../../../shared/components/Header';
 import { Button } from '../../../../shared/components/Button';
 import { Avatar } from '../../../../shared/components/Avatar';
@@ -68,6 +68,7 @@ export function LessonDetailsScreen() {
         if (s === 'confirmed') return 'success';
         if (s === 'pending') return 'warning';
         if (s === 'reschedule_requested') return 'warning';
+        if (s === 'disputed') return 'warning';
         if (s === 'completed') return 'secondary';
         if (s === 'canceled' || s === 'cancelled') return 'error';
         return 'default';
@@ -78,10 +79,14 @@ export function LessonDetailsScreen() {
         if (s === 'confirmed') return 'CONFIRMADA';
         if (s === 'pending') return 'PENDENTE';
         if (s === 'reschedule_requested') return 'REAGENDAMENTO';
+        if (s === 'disputed') return 'EM DISPUTA';
         if (s === 'completed') return 'CONCLUÍDA';
         if (s === 'canceled' || s === 'cancelled') return 'CANCELADA';
         return status.toUpperCase();
     };
+
+    // Verifica se a hora de início da aula já passou
+    const isLessonStartPassed = scheduledDate.getTime() < Date.now();
 
     const handleStart = () => {
         Alert.alert(
@@ -342,6 +347,20 @@ export function LessonDetailsScreen() {
                         </View>
                     )}
 
+                    {lesson.status.toLowerCase() === 'disputed' && (
+                        <View className="bg-amber-50 p-6 rounded-3xl items-center border border-amber-200">
+                            <View className="bg-amber-100 p-3 rounded-full mb-3">
+                                <AlertTriangle size={32} color="#D97706" />
+                            </View>
+                            <Text className="text-amber-900 font-bold text-lg text-center">
+                                Agendamento em disputa
+                            </Text>
+                            <Text className="text-amber-700 text-center mt-2">
+                                Seu agendamento foi para disputa. O suporte entrará em contato em até 24 horas úteis.
+                            </Text>
+                        </View>
+                    )}
+
                     {lesson.status.toLowerCase() === 'pending' && (
                         <View className="bg-amber-50 p-4 rounded-2xl flex-row items-center mb-2 border border-amber-100">
                             <AlertCircle size={20} color="#D97706" />
@@ -431,6 +450,19 @@ export function LessonDetailsScreen() {
                                 fullWidth
                             />
                         )}
+
+                    {/* Botão Relatar Problema — aula confirmada + horário de início já passou */}
+                    {lesson.status.toLowerCase() === 'confirmed' && isLessonStartPassed && (
+                        <Button
+                            title="Relatar Problema"
+                            variant="ghost"
+                            textClassName="text-amber-600 font-bold"
+                            leftIcon={<AlertTriangle size={18} color="#D97706" />}
+                            onPress={() => navigation.navigate('ReportProblem', { schedulingId })}
+                            size="lg"
+                            fullWidth
+                        />
+                    )}
                 </View>
             </ScrollView>
 

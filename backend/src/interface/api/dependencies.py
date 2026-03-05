@@ -30,6 +30,7 @@ from src.domain.interfaces.student_repository import IStudentRepository
 from src.domain.interfaces.token_repository import ITokenRepository
 from src.domain.interfaces.user_repository import IUserRepository
 from src.domain.interfaces.payment_repository import IPaymentRepository
+from src.domain.interfaces.dispute_repository import IDisputeRepository
 from src.infrastructure.db.database import get_db
 from src.infrastructure.repositories.instructor_repository_impl import (
     InstructorRepositoryImpl,
@@ -52,6 +53,9 @@ from src.infrastructure.repositories.student_repository_impl import (
 from src.infrastructure.repositories.token_repository_impl import TokenRepositoryImpl
 from src.infrastructure.repositories.user_repository_impl import UserRepositoryImpl
 from src.infrastructure.repositories.payment_repository_impl import PaymentRepositoryImpl
+from src.infrastructure.repositories.dispute_repository_impl import (
+    DisputeRepositoryImpl,
+)
 from src.infrastructure.services.auth_service_impl import AuthServiceImpl
 from src.infrastructure.services.location_service_impl import LocationServiceImpl
 from src.infrastructure.external.redis_cache import RedisCacheService, cache_service
@@ -112,6 +116,11 @@ def get_review_repository(session: DBSession) -> IReviewRepository:
 def get_message_repository(session: DBSession) -> IMessageRepository:
     """Fornece uma instância do repositório de mensagens."""
     return MessageRepositoryImpl(session)
+
+
+def get_dispute_repository(session: DBSession) -> IDisputeRepository:
+    """Fornece uma instância do repositório de disputas."""
+    return DisputeRepositoryImpl(session)
 
 
 # =============================================================================
@@ -234,6 +243,23 @@ def require_instructor(
     return current_user
 
 
+def require_admin(
+    current_user: Annotated[User, Depends(get_current_active_user)],
+) -> User:
+    """
+    Garante que o usuário autenticado seja um administrador.
+
+    Raises:
+        HTTPException 403: Se não for administrador.
+    """
+    if not current_user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Acesso permitido apenas para administradores",
+        )
+    return current_user
+
+
 # =============================================================================
 # Type Aliases para uso nos endpoints
 # =============================================================================
@@ -250,10 +276,12 @@ AuthService = Annotated[IAuthService, Depends(get_auth_service)]
 LocationService = Annotated[ILocationService, Depends(get_location_service)]
 CacheService = Annotated[RedisCacheService, Depends(get_cache_service)]
 MessageRepo = Annotated[IMessageRepository, Depends(get_message_repository)]
+DisputeRepo = Annotated[IDisputeRepository, Depends(get_dispute_repository)]
 
 CurrentUser = Annotated[User, Depends(get_current_active_user)]
 CurrentStudent = Annotated[User, Depends(require_student)]
 CurrentInstructor = Annotated[User, Depends(require_instructor)]
+CurrentAdmin = Annotated[User, Depends(require_admin)]
 
 
 # =============================================================================

@@ -18,7 +18,7 @@ from src.interface.admin import setup_admin
 from src.interface.api.exceptions import EXCEPTION_HANDLERS
 from src.interface.api.middleware.rate_limit import limiter, rate_limit_exceeded_handler
 from src.interface.api.middleware.security import SecurityHeadersMiddleware
-from src.interface.api.routers import auth, health, instructor, shared, student
+from src.interface.api.routers import admin, auth, health, instructor, shared, student
 from src.interface.websockets.chat_handler import ws_router, set_pubsub_service
 from src.interface.websockets.event_dispatcher import init_event_dispatcher
 from src.interface.websockets.event_dispatcher import init_event_dispatcher
@@ -109,6 +109,7 @@ app.include_router(auth.router)
 app.include_router(student.router, prefix="/api/v1/student", tags=["Student"])
 app.include_router(instructor.router, prefix="/api/v1/instructor", tags=["Instructor"])
 app.include_router(shared.router, prefix="/api/v1/shared", tags=["Shared"])
+app.include_router(admin.router, prefix="/api/v1/admin", tags=["Admin"])
 
 # WebSocket routes
 app.include_router(ws_router)

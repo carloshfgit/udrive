@@ -5,6 +5,7 @@ Implementações concretas de repositórios.
 """
 
 from .availability_repository_impl import AvailabilityRepositoryImpl
+from .dispute_repository_impl import DisputeRepositoryImpl
 from .instructor_repository_impl import InstructorRepositoryImpl
 from .notification_repository_impl import NotificationRepositoryImpl
 from .push_token_repository_impl import PushTokenRepositoryImpl
@@ -20,6 +21,7 @@ __all__ = [
     "StudentRepositoryImpl",
     "SchedulingRepositoryImpl",
     "AvailabilityRepositoryImpl",
+    "DisputeRepositoryImpl",
     "NotificationRepositoryImpl",
     "PushTokenRepositoryImpl",
 ]

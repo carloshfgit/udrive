@@ -39,6 +39,7 @@ from src.domain.entities.scheduling_status import SchedulingStatus
 from src.interface.api.dependencies import (
     AvailabilityRepo,
     CurrentStudent,
+    DisputeRepo,
     InstructorRepo,
     NotificationServiceDep,
     ReviewRepo,
@@ -56,6 +57,10 @@ from src.interface.api.schemas.scheduling_schemas import (
     ReviewResponse,
     SchedulingListResponse,
     SchedulingResponse,
+)
+from src.interface.api.schemas.dispute_schemas import (
+    DisputeResponse,
+    OpenDisputeRequest,
 )
 from src.interface.websockets.event_dispatcher import get_event_dispatcher
 
@@ -519,33 +524,40 @@ async def clear_student_cart(
 
 @router.post(
     "/{scheduling_id}/dispute",
-    response_model=SchedulingResponse,
+    response_model=DisputeResponse,
+    status_code=status.HTTP_201_CREATED,
     summary="Abrir disputa",
-    description="Abre uma disputa para uma aula confirmada que já passou do horário. Impede a auto-conclusão automática.",
+    description="Abre uma disputa para uma aula confirmada que já passou do horário. "
+    "Requer motivo, descrição e dados de contato.",
 )
 async def open_dispute(
     scheduling_id: UUID,
+    request: OpenDisputeRequest,
     current_user: CurrentStudent,
     scheduling_repo: SchedulingRepo,
-) -> SchedulingResponse:
+    dispute_repo: DisputeRepo,
+) -> DisputeResponse:
     """Abre uma disputa para uma aula já realizada."""
-    scheduling = await scheduling_repo.get_by_id(scheduling_id)
-    if scheduling is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Agendamento não encontrado",
-        )
+    from src.application.dtos.dispute_dtos import OpenDisputeDTO
+    from src.application.use_cases.scheduling.open_dispute import OpenDisputeUseCase
 
-    if scheduling.student_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Acesso não autorizado a este agendamento",
-        )
+    use_case = OpenDisputeUseCase(
+        scheduling_repository=scheduling_repo,
+        dispute_repository=dispute_repo,
+    )
+
+    dto = OpenDisputeDTO(
+        scheduling_id=scheduling_id,
+        student_id=current_user.id,
+        reason=request.reason,
+        description=request.description,
+        contact_phone=request.contact_phone,
+        contact_email=request.contact_email,
+    )
 
     try:
-        scheduling.open_dispute()
-        updated = await scheduling_repo.update(scheduling)
-        return SchedulingResponse.model_validate(updated)
+        result = await use_case.execute(dto)
+        return DisputeResponse.model_validate(result.__dict__)
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

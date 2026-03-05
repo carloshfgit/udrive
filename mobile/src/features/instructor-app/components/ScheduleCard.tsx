@@ -58,6 +58,8 @@ export function ScheduleCard({
                 return { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200', accent: 'bg-red-500', icon: '#B91C1C', label: 'Cancelado' };
             case 'reschedule_requested':
                 return { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', accent: 'bg-amber-500', icon: '#B45309', label: 'Reagendamento' };
+            case 'disputed':
+                return { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', accent: 'bg-amber-500', icon: '#B45309', label: 'Em Disputa' };
             default:
                 return { bg: 'bg-gray-50', text: 'text-gray-700', border: 'border-gray-200', accent: 'bg-gray-500', icon: '#374151', label: status };
         }

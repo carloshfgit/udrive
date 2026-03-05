@@ -8,7 +8,7 @@ import api, { INSTRUCTOR_API } from '../../../lib/axios';
 
 // ============= Types =============
 
-export type SchedulingStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'reschedule_requested';
+export type SchedulingStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'reschedule_requested' | 'disputed';
 
 export interface Scheduling {
     id: string;

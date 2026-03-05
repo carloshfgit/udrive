@@ -248,3 +248,47 @@ export async function clearStudentCart(): Promise<any> {
     const response = await api.post(`${STUDENT_API}/lessons/clear-cart`);
     return response.data;
 }
+
+// === Tipos de Disputa ===
+
+export interface OpenDisputeData {
+    reason: 'no_show' | 'vehicle_problem' | 'other';
+    description: string;
+    contact_phone: string;
+    contact_email: string;
+}
+
+export interface DisputeResponse {
+    id: string;
+    scheduling_id: string;
+    opened_by: string;
+    reason: string;
+    description: string;
+    contact_phone: string;
+    contact_email: string;
+    status: string;
+    resolution?: string | null;
+    resolution_notes?: string | null;
+    refund_type?: string | null;
+    resolved_by?: string | null;
+    resolved_at?: string | null;
+    created_at?: string | null;
+    updated_at?: string | null;
+    scheduled_datetime?: string | null;
+}
+
+// === Funções de Disputa ===
+
+/**
+ * Abre uma disputa para um agendamento.
+ */
+export async function openDispute(
+    schedulingId: string,
+    data: OpenDisputeData
+): Promise<DisputeResponse> {
+    const response = await api.post<DisputeResponse>(
+        `${STUDENT_API}/lessons/${schedulingId}/dispute`,
+        data
+    );
+    return response.data;
+}

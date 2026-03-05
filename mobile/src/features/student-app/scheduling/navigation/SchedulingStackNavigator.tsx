@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { MyLessonsScreen } from '../../../shared-features/scheduling/screens/MyLessonsScreen';
 import { HistoryScreen } from '../screens/HistoryScreen';
 import { LessonDetailsScreen } from '../screens/LessonDetailsScreen';
+import { ReportProblemScreen } from '../screens/ReportProblemScreen';
 import { InstructorProfileScreen } from '../../instructor-view/screens/InstructorProfileScreen';
 import { ChatRoomScreen } from '../../../shared-features/chat/screens/ChatRoomScreen';
 import { StudentLessonHistoryScreen } from '../../../shared-features/chat/screens/StudentLessonHistoryScreen';
@@ -20,6 +21,7 @@ export type SchedulingStackParamList = {
     Cart: undefined;
     History: undefined;
     LessonDetails: { schedulingId: string };
+    ReportProblem: { schedulingId: string };
     InstructorProfile: { instructorId: string };
     ChatRoom: { otherUserId: string; otherUserName: string };
     StudentLessonHistory: { studentId: string; studentName: string };
@@ -84,6 +86,7 @@ export function SchedulingStackNavigator() {
             <Stack.Screen name="Cart" component={CartScreen} />
             <Stack.Screen name="History" component={HistoryScreen} />
             <Stack.Screen name="LessonDetails" component={LessonDetailsScreen} />
+            <Stack.Screen name="ReportProblem" component={ReportProblemScreen} />
             <Stack.Screen name="InstructorProfile" component={InstructorProfileScreen} />
             <Stack.Screen name="ChatRoom" component={ChatRoomScreen} />
             <Stack.Screen name="StudentLessonHistory" component={StudentLessonHistoryScreen} />
