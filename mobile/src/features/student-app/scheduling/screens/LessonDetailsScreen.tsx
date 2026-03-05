@@ -452,7 +452,7 @@ export function LessonDetailsScreen() {
                         )}
 
                     {/* Botão Relatar Problema — aula confirmada + horário de início já passou */}
-                    {lesson.status.toLowerCase() === 'confirmed' && isLessonStartPassed && (
+                    {lesson.status.toLowerCase() === 'confirmed' && (
                         <Button
                             title="Relatar Problema"
                             variant="ghost"

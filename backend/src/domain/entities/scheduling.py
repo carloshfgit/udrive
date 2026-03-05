@@ -399,9 +399,9 @@ class Scheduling:
                 f"Disputa só pode ser aberta em aulas confirmadas. Status atual: {self.status}"
             )
 
-        now = datetime.now(timezone.utc)
-        if self.lesson_end_datetime > now:
-            raise ValueError("Disputa só pode ser aberta após o término da aula.")
+        # now = datetime.now(timezone.utc)
+        # if self.lesson_end_datetime > now:
+        #     raise ValueError("Disputa só pode ser aberta após o término da aula.")
 
         self.status = SchedulingStatus.DISPUTED
         self.updated_at = datetime.now(timezone.utc)

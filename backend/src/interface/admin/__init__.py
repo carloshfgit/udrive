@@ -9,6 +9,7 @@ from src.interface.admin.views import (
     SchedulingAdmin,
     StudentProfileAdmin,
     UserAdmin,
+    DisputeAdmin,
 )
 
 
@@ -28,3 +29,4 @@ def setup_admin(app: FastAPI, engine: AsyncEngine) -> None:
     admin.add_view(InstructorProfileAdmin)
     admin.add_view(StudentProfileAdmin)
     admin.add_view(SchedulingAdmin)
+    admin.add_view(DisputeAdmin)
