@@ -17,7 +17,7 @@ import {
     Text,
     TouchableOpacity,
 } from 'react-native';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
 import { BookOpen, MapPin } from 'lucide-react-native';
 import { useAuthStore } from '@lib/store';
 import { Header } from '../../../../shared/components/Header';
@@ -28,12 +28,22 @@ import { ChatInput } from '../components/ChatInput';
 import { useMessages } from '../hooks/useMessages';
 import { MessageResponse } from '../api/chatApi';
 import { colors, spacing, typography } from '../../../../shared/theme';
+import { useInAppBannerStore } from '../../../../shared/stores/inAppBannerStore';
 
 export function ChatRoomScreen() {
     const route = useRoute<any>();
     const navigation = useNavigation<any>();
     const { user } = useAuthStore();
     const flatListRef = useRef<FlatList>(null);
+    const setChatScreenActive = useInAppBannerStore((s) => s.setChatScreenActive);
+
+    // Suprimir banners de chat enquanto esta tela estiver focada
+    useFocusEffect(
+        React.useCallback(() => {
+            setChatScreenActive(true);
+            return () => setChatScreenActive(false);
+        }, [setChatScreenActive])
+    );
 
     const { otherUserId, otherUserName } = route.params;
     const { messages, sendMessage, isSending, isLoading } = useMessages(otherUserId);

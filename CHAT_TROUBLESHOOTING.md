@@ -210,6 +210,17 @@ Implementada detecção ativa de conexão morta:
 - O efeito automático de `mark_as_read` agora possui um guarda adicional: `if (!isFocused) return;`.
 - Agora as mensagens são marcadas como lidas **apenas** quando a tela de chat está visível e focada pelo usuário.
 
+### 6.5 Nome Ausente no Header ao Abrir via Notificação (Front end)
+**Onde**: `mobile/src/shared/hooks/useNotificationNavigation.ts`
+
+**Problema**: Ao abrir o chat clicando em uma notificação push, o nome do interlocutor no Header da `ChatRoomScreen` ficava vazio ou desaparecia. Isso ocorria porque a navegação passava apenas o `otherUserId`, mas a tela dependia do parâmetro `otherUserName` para exibir o título imediatamente sem esperar o carregamento das mensagens.
+
+**Solução**:
+- Atualizada a lógica de navegação de notificações para obter o `otherUserName` antes de abrir a tela.
+- **Estratégia 1 (Regex)**: Tenta extrair o nome diretamente do título da notificação (ex: "Nova mensagem de **Fulano** 💬").
+- **Estratégia 2 (API/Cache)**: Caso falhe, busca na lista de conversas ativas do usuário (`getConversations`) para encontrar o nome correspondente ao ID.
+- O parâmetro `otherUserName` é então passado no objeto de navegação, garantindo que o Header seja preenchido instantaneamente.
+
 ---
 
 ## Conclusão Final
