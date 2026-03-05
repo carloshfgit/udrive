@@ -160,7 +160,7 @@ export function ScheduleCard({
                             <Text className="text-sm text-gray-500">Valor da aula</Text>
                         </View>
                         <Text className="text-lg font-black text-gray-900">
-                            R$ {Number(scheduling.price).toFixed(2)}
+                            R$ {Number(scheduling.applied_base_price || scheduling.price).toFixed(2)}
                         </Text>
                     </View>
 

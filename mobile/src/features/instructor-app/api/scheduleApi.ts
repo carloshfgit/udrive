@@ -32,6 +32,8 @@ export interface Scheduling {
     lesson_category?: string;
     vehicle_ownership?: string;
     payment_status?: string | null;
+    applied_base_price?: number | string | null;
+    applied_final_price?: number | string | null;
 }
 
 export interface SchedulingListResponse {
