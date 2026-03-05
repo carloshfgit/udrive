@@ -410,3 +410,69 @@ class Scheduling:
     def is_disputed(self) -> bool:
         """Verifica se está em disputa."""
         return self.status == SchedulingStatus.DISPUTED
+
+    def resolve_dispute_favor_instructor(self) -> None:
+        """
+        Resolve disputa a favor do instrutor — aula considerada concluída.
+
+        O pagamento deve ser liberado para o instrutor via split do Mercado Pago.
+
+        Raises:
+            ValueError: Se o status não for DISPUTED.
+        """
+        if self.status != SchedulingStatus.DISPUTED:
+            raise ValueError(
+                f"Resolução de disputa só pode ser aplicada em aulas disputadas. Status atual: {self.status}"
+            )
+
+        self.status = SchedulingStatus.COMPLETED
+        self.completed_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(timezone.utc)
+
+    def resolve_dispute_favor_student(self) -> None:
+        """
+        Resolve disputa a favor do aluno — aula cancelada com reembolso.
+
+        O reembolso (total ou parcial) deve ser disparado via gateway.
+
+        Raises:
+            ValueError: Se o status não for DISPUTED.
+        """
+        if self.status != SchedulingStatus.DISPUTED:
+            raise ValueError(
+                f"Resolução de disputa só pode ser aplicada em aulas disputadas. Status atual: {self.status}"
+            )
+
+        self.status = SchedulingStatus.CANCELLED
+        self.cancelled_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(timezone.utc)
+
+    def resolve_dispute_reschedule(self, new_datetime: datetime) -> None:
+        """
+        Resolve disputa com reagendamento mediado pelo suporte.
+
+        O pagamento permanece retido na plataforma. A nova data é definida
+        pelo administrador após acordo entre as partes.
+
+        Args:
+            new_datetime: Nova data e hora da aula definida pelo suporte.
+
+        Raises:
+            ValueError: Se o status não for DISPUTED ou data inválida.
+        """
+        if self.status != SchedulingStatus.DISPUTED:
+            raise ValueError(
+                f"Resolução de disputa só pode ser aplicada em aulas disputadas. Status atual: {self.status}"
+            )
+
+        now = datetime.now(timezone.utc)
+        if new_datetime <= now:
+            raise ValueError("A nova data de reagendamento deve ser no futuro.")
+
+        # Preserva a data original para trava de multa se necessário
+        if self.original_scheduled_datetime is None:
+            self.original_scheduled_datetime = self.scheduled_datetime
+
+        self.scheduled_datetime = new_datetime
+        self.status = SchedulingStatus.CONFIRMED
+        self.updated_at = now

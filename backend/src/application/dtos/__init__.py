@@ -5,6 +5,14 @@ Data Transfer Objects para operações da camada de aplicação.
 """
 
 from .auth_dtos import LoginDTO, RegisterUserDTO, TokenPairDTO
+from .dispute_dtos import (
+    DisputeListResponseDTO,
+    DisputeResponseDTO,
+    ListDisputesDTO,
+    OpenDisputeDTO,
+    ResolveDisputeDTO,
+    UpdateDisputeStatusDTO,
+)
 from .payment_dtos import (
     CheckoutResponseDTO,
     ConnectGatewayAccountDTO,
@@ -86,5 +94,12 @@ __all__ = [
     "PaymentHistoryResponseDTO",
     "GatewayConnectResponseDTO",
     "InstructorEarningsDTO",
+    # Dispute DTOs
+    "OpenDisputeDTO",
+    "ResolveDisputeDTO",
+    "UpdateDisputeStatusDTO",
+    "ListDisputesDTO",
+    "DisputeResponseDTO",
+    "DisputeListResponseDTO",
 ]
 

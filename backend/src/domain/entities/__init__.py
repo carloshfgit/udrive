@@ -5,6 +5,8 @@ Entidades puras de domínio sem dependências externas.
 """
 
 from .availability import Availability
+from .dispute import Dispute
+from .dispute_enums import DisputeReason, DisputeResolution, DisputeStatus
 from .notification import Notification, NotificationActionType, NotificationType
 from .push_token import PushToken
 from .review import Review
@@ -32,6 +34,10 @@ __all__ = [
     "Scheduling",
     "SchedulingStatus",
     "Availability",
+    "Dispute",
+    "DisputeReason",
+    "DisputeStatus",
+    "DisputeResolution",
     "Payment",
     "PaymentStatus",
     "Transaction",

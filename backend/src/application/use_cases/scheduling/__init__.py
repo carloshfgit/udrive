@@ -11,7 +11,10 @@ from .confirm_scheduling import ConfirmSchedulingUseCase
 from .create_scheduling import CreateSchedulingUseCase
 from .list_user_schedulings import ListUserSchedulingsUseCase
 from .manage_availability import ManageAvailabilityUseCase
+from .open_dispute import OpenDisputeUseCase
 from .request_reschedule_use_case import RequestRescheduleUseCase
+from .resolve_dispute import ResolveDisputeUseCase
+from .list_disputes import ListDisputesUseCase
 from .respond_reschedule_use_case import RespondRescheduleUseCase
 from .start_scheduling import StartSchedulingUseCase
 from .get_next_student_scheduling_use_case import GetNextStudentSchedulingUseCase
@@ -28,4 +31,7 @@ __all__ = [
     "RespondRescheduleUseCase",
     "StartSchedulingUseCase",
     "GetNextStudentSchedulingUseCase",
+    "OpenDisputeUseCase",
+    "ResolveDisputeUseCase",
+    "ListDisputesUseCase",
 ]
