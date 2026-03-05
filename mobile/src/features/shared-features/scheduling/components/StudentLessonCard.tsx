@@ -72,7 +72,11 @@ export function StudentLessonCard({
     };
 
     return (
-        <View className="bg-white rounded-3xl p-6 mb-5 border border-neutral-100 shadow-md">
+        <TouchableOpacity
+            onPress={() => onPressDetails(scheduling)}
+            activeOpacity={0.7}
+            className="bg-white rounded-3xl p-6 mb-5 border border-neutral-100 shadow-md"
+        >
             {/* Top Section: Date, Time and Status */}
             <View className="flex-row justify-between items-start mb-6">
                 <View className="flex-row items-center flex-1">
@@ -148,17 +152,15 @@ export function StudentLessonCard({
                         </TouchableOpacity>
                     )}
 
-                    <TouchableOpacity
-                        onPress={() => onPressDetails(scheduling)}
+                    <View
                         className="bg-primary-600 px-5 py-2.5 rounded-xl shadow-sm shadow-primary-200"
-                        activeOpacity={0.8}
                     >
                         <Text className="text-white font-bold text-sm">
                             {isInstructor ? 'Ver na Agenda' : 'Ver Detalhes'}
                         </Text>
-                    </TouchableOpacity>
+                    </View>
                 </View>
             </View>
-        </View>
+        </TouchableOpacity>
     );
 }
