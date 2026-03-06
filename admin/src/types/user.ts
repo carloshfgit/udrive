@@ -13,3 +13,11 @@ export interface User {
     created_at: string;
     updated_at: string;
 }
+
+export interface AdminUserFilters {
+    q?: string;
+    user_type?: 'student' | 'instructor' | 'admin' | 'all';
+    is_active?: boolean | string;
+    page: number;
+    size: number;
+}
