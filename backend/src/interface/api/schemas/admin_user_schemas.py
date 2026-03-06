@@ -15,6 +15,38 @@ from pydantic import BaseModel, ConfigDict
 # =============================================================================
 
 
+class UserAdminScheduling(BaseModel):
+    """Schema para agendamento resumido."""
+
+    id: UUID
+    scheduled_datetime: datetime
+    status: str
+    price: float
+    instructor_name: str | None = None
+    student_name: str | None = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UserAdminProfile(BaseModel):
+    """Schema para detalhes de perfil."""
+
+    # Campos de Instrutor
+    bio: str | None = None
+    vehicle_type: str | None = None
+    license_category: str | None = None
+    hourly_rate: float | None = None
+    rating: float | None = None
+    total_reviews: int | None = None
+
+    # Campos de Aluno
+    learning_stage: str | None = None
+    license_category_goal: str | None = None
+    total_lessons: int | None = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class UserAdminResponse(BaseModel):
     """Schema de resposta para um usuário (visão admin)."""
 
@@ -30,6 +62,10 @@ class UserAdminResponse(BaseModel):
     biological_sex: str | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
+
+    # Novos campos para Etapa 2.2
+    profile: UserAdminProfile | None = None
+    recent_schedulings: list[UserAdminScheduling] = []
 
     model_config = ConfigDict(from_attributes=True)
 

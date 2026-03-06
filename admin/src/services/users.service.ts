@@ -35,3 +35,13 @@ export const getUsers = async (
         pages: Math.ceil((data.total_count || 0) / (data.limit || filters.size)) || 1,
     };
 };
+
+export const getUserById = async (id: string): Promise<User> => {
+    const { data } = await api.get<User>(`/admin/users/${id}`);
+    return data;
+};
+
+export const toggleUserStatus = async (id: string): Promise<User> => {
+    const { data } = await api.patch<User>(`/admin/users/${id}/status`);
+    return data;
+};

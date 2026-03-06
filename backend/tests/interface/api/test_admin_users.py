@@ -137,3 +137,28 @@ async def test_admin_endpoints_require_admin(client: AsyncClient, db_session: As
     
     response = await client.get("/api/v1/admin/users", headers=headers)
     assert response.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_get_user_details_as_admin(client: AsyncClient, admin_token: str, db_session: AsyncSession):
+    """Testa a obtenção de detalhes de um usuário."""
+    user = UserModel(
+        id=uuid4(),
+        email="details@test.com",
+        full_name="Details User",
+        hashed_password="hashed",
+        user_type=UserType.STUDENT.value,
+        is_active=True,
+        is_verified=True
+    )
+    db_session.add(user)
+    await db_session.commit()
+
+    headers = {"Authorization": f"Bearer {admin_token}"}
+    response = await client.get(f"/api/v1/admin/users/{user.id}", headers=headers)
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["email"] == "details@test.com"
+    assert "profile" in data
+    assert "recent_schedulings" in data

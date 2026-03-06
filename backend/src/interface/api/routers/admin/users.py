@@ -23,7 +23,13 @@ from src.application.use_cases.admin_users.toggle_user_status import (
     ToggleUserStatusUseCase,
     UserNotFoundException,
 )
-from src.interface.api.dependencies import CurrentAdmin, UserRepo
+from src.interface.api.dependencies import (
+    CurrentAdmin,
+    InstructorRepo,
+    SchedulingRepo,
+    StudentRepo,
+    UserRepo,
+)
 from src.interface.api.schemas.admin_user_schemas import (
     UserAdminResponse,
     UserListResponse,
@@ -111,9 +117,17 @@ async def get_user_details(
     user_id: UUID,
     current_user: CurrentAdmin,
     user_repo: UserRepo,
+    instructor_repo: InstructorRepo,
+    student_repo: StudentRepo,
+    scheduling_repo: SchedulingRepo,
 ) -> UserAdminResponse:
     """Obtém detalhes de um usuário específico."""
-    use_case = GetUserDetailsUseCase(user_repository=user_repo)
+    use_case = GetUserDetailsUseCase(
+        user_repository=user_repo,
+        instructor_repo=instructor_repo,
+        student_repo=student_repo,
+        scheduling_repo=scheduling_repo,
+    )
     result = await use_case.execute(user_id)
 
     if result is None:
