@@ -99,10 +99,33 @@ export default function DisputeDetailsPage() {
             return;
         }
 
+        if (resolutionData.resolution_notes.length < 5) {
+            alert("As notas de resolução devem ter pelo menos 5 caracteres.");
+            return;
+        }
+
+        // Limpar o payload para evitar erro 422 no backend
+        const payload: ResolveDisputeData = {
+            resolution: resolutionData.resolution,
+            resolution_notes: resolutionData.resolution_notes,
+        };
+
+        if (resolutionData.resolution === DisputeResolution.FAVOR_STUDENT) {
+            payload.refund_type = resolutionData.refund_type || "full";
+        }
+
+        if (resolutionData.resolution === DisputeResolution.RESCHEDULED) {
+            if (!resolutionData.new_datetime) {
+                alert("Por favor, selecione uma nova data/hora para o reagendamento.");
+                return;
+            }
+            payload.new_datetime = resolutionData.new_datetime;
+        }
+
         try {
             await resolveMutation.mutateAsync({
                 id: disputeId,
-                data: resolutionData
+                data: payload
             });
             setIsResolving(false);
         } catch (error) {
