@@ -49,10 +49,20 @@ class SchedulingAdminResponseDTO:
     scheduled_datetime: datetime
     status: str
     price: float
+    duration_minutes: int
     student_name: str | None = None
     instructor_name: str | None = None
     payment_status: str | None = None
     lesson_category: str | None = None
+    vehicle_ownership: str | None = None
+    applied_base_price: float | None = None
+    applied_final_price: float | None = None
+    cancellation_reason: str | None = None
+    cancelled_by: UUID | None = None
+    cancelled_at: datetime | None = None
+    completed_at: datetime | None = None
+    started_at: datetime | None = None
+    student_confirmed_at: datetime | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
 
