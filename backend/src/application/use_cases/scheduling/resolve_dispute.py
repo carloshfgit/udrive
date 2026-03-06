@@ -132,4 +132,6 @@ class ResolveDisputeUseCase:
             created_at=dispute.created_at,
             updated_at=dispute.updated_at,
             scheduled_datetime=scheduling.scheduled_datetime,
+            student_name=scheduling.student_name,
+            instructor_name=scheduling.instructor_name,
         )

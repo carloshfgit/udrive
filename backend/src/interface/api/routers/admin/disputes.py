@@ -93,12 +93,14 @@ async def get_dispute(
     dispute_repo: DisputeRepo,
 ) -> DisputeResponse:
     """Obtém detalhes de uma disputa específica."""
-    dispute = await dispute_repo.get_by_id(dispute_id)
-    if dispute is None:
+    result = await dispute_repo.get_enriched_by_id(dispute_id)
+    if result is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Disputa não encontrada",
         )
+
+    dispute, student_name, instructor_name, scheduled_datetime = result
 
     return DisputeResponse(
         id=dispute.id,
@@ -116,6 +118,9 @@ async def get_dispute(
         resolved_at=dispute.resolved_at,
         created_at=dispute.created_at,
         updated_at=dispute.updated_at,
+        student_name=student_name,
+        instructor_name=instructor_name,
+        scheduled_datetime=scheduled_datetime,
     )
 
 
@@ -267,7 +272,17 @@ async def update_dispute_status(
         )
 
     dispute.status = new_status
-    updated = await dispute_repo.update(dispute)
+    await dispute_repo.update(dispute)
+
+    # Buscar dados enriquecidos para retorno
+    result = await dispute_repo.get_enriched_by_id(dispute_id)
+    if result is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Disputa não encontrada após atualização",
+        )
+
+    updated, student_name, instructor_name, scheduled_datetime = result
 
     return DisputeResponse(
         id=updated.id,
@@ -285,4 +300,7 @@ async def update_dispute_status(
         resolved_at=updated.resolved_at,
         created_at=updated.created_at,
         updated_at=updated.updated_at,
+        student_name=student_name,
+        instructor_name=instructor_name,
+        scheduled_datetime=scheduled_datetime,
     )

@@ -5,6 +5,7 @@ Interface para repositório de disputas.
 """
 
 from abc import ABC, abstractmethod
+from datetime import datetime
 from uuid import UUID
 
 from src.domain.entities.dispute import Dispute
@@ -103,5 +104,41 @@ class IDisputeRepository(ABC):
 
         Returns:
             Contagem de disputas.
+        """
+        ...
+
+    @abstractmethod
+    async def list_enriched(
+        self,
+        status: DisputeStatus | None = None,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> list[tuple[Dispute, str, str, datetime]]:
+        """
+        Lista disputas enriquecidas com nomes e data do agendamento.
+
+        Args:
+            status: Filtro por status (opcional).
+            limit: Número máximo de resultados.
+            offset: Deslocamento para paginação.
+
+        Returns:
+            Lista de tuplas (Dispute, student_name, instructor_name, scheduled_datetime).
+        """
+        ...
+
+    @abstractmethod
+    async def get_enriched_by_id(
+        self,
+        dispute_id: UUID,
+    ) -> tuple[Dispute, str, str, datetime] | None:
+        """
+        Busca uma disputa enriquecida por ID.
+
+        Args:
+            dispute_id: ID da disputa.
+
+        Returns:
+            Tupla (Dispute, student_name, instructor_name, scheduled_datetime) ou None.
         """
         ...

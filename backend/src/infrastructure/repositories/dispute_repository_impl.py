@@ -1,18 +1,16 @@
-"""
-DisputeRepository Implementation
-
-Implementação concreta do repositório de disputas usando SQLAlchemy.
-"""
-
+from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import aliased
 
 from src.domain.entities.dispute import Dispute
 from src.domain.entities.dispute_enums import DisputeStatus
 from src.domain.interfaces.dispute_repository import IDisputeRepository
 from src.infrastructure.db.models.dispute_model import DisputeModel
+from src.infrastructure.db.models.scheduling_model import SchedulingModel
+from src.infrastructure.db.models.user_model import UserModel
 
 
 class DisputeRepositoryImpl(IDisputeRepository):
@@ -86,6 +84,71 @@ class DisputeRepositoryImpl(IDisputeRepository):
         result = await self._session.execute(stmt)
         models = result.scalars().all()
         return [model.to_entity() for model in models]
+
+    async def list_enriched(
+        self,
+        status: DisputeStatus | None = None,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> list[tuple[Dispute, str, str, datetime]]:
+        """Lista disputas enriquecidas com nomes e data do agendamento."""
+        student = aliased(UserModel)
+        instructor = aliased(UserModel)
+
+        stmt = (
+            select(
+                DisputeModel,
+                student.full_name.label("student_name"),
+                instructor.full_name.label("instructor_name"),
+                SchedulingModel.scheduled_datetime,
+            )
+            .join(SchedulingModel, DisputeModel.scheduling_id == SchedulingModel.id)
+            .join(student, SchedulingModel.student_id == student.id)
+            .join(instructor, SchedulingModel.instructor_id == instructor.id)
+            .order_by(DisputeModel.created_at.desc())
+        )
+
+        if status is not None:
+            stmt = stmt.where(DisputeModel.status == status.value)
+
+        stmt = stmt.limit(limit).offset(offset)
+
+        result = await self._session.execute(stmt)
+        rows = result.all()
+
+        return [
+            (row[0].to_entity(), row[1], row[2], row[3])
+            for row in rows
+        ]
+
+    async def get_enriched_by_id(
+        self,
+        dispute_id: UUID,
+    ) -> tuple[Dispute, str, str, datetime] | None:
+        """Busca uma disputa enriquecida por ID."""
+        student = aliased(UserModel)
+        instructor = aliased(UserModel)
+
+        stmt = (
+            select(
+                DisputeModel,
+                student.full_name.label("student_name"),
+                instructor.full_name.label("instructor_name"),
+                SchedulingModel.scheduled_datetime,
+            )
+            .join(SchedulingModel, DisputeModel.scheduling_id == SchedulingModel.id)
+            .join(student, SchedulingModel.student_id == student.id)
+            .join(instructor, SchedulingModel.instructor_id == instructor.id)
+            .where(DisputeModel.id == dispute_id)
+        )
+
+        result = await self._session.execute(stmt)
+        row = result.first()
+
+        if row is None:
+            return None
+
+        return (row[0].to_entity(), row[1], row[2], row[3])
 
     async def count_by_status(
         self,

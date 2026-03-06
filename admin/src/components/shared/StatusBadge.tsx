@@ -1,14 +1,18 @@
 import { Badge } from "@/components/ui/badge";
 import { SchedulingStatus } from "@/types/scheduling";
+import { DisputeStatus } from "@/types/dispute";
+
+type AllStatus = SchedulingStatus | DisputeStatus;
 
 interface StatusBadgeProps {
     isActive?: boolean;
-    status?: SchedulingStatus;
+    status?: AllStatus | string;
 }
 
 export function StatusBadge({ isActive, status }: StatusBadgeProps) {
     if (status) {
-        const statusConfig: Record<SchedulingStatus, { label: string; className: string }> = {
+        const statusConfig: Record<string, { label: string; className: string }> = {
+            // Schedulings
             pending: { 
                 label: "Pendente", 
                 className: "bg-yellow-100 text-yellow-800 hover:bg-yellow-200 border-yellow-200" 
@@ -33,6 +37,19 @@ export function StatusBadge({ isActive, status }: StatusBadgeProps) {
                 label: "Em Disputa", 
                 className: "bg-orange-100 text-orange-800 hover:bg-orange-200 border-orange-200" 
             },
+            // Disputes
+            [DisputeStatus.OPEN]: {
+                label: "Urgente",
+                className: "bg-red-100 text-red-800 hover:bg-red-200 border-red-200 animate-pulse"
+            },
+            [DisputeStatus.UNDER_REVIEW]: {
+                label: "Em Análise",
+                className: "bg-yellow-100 text-yellow-800 hover:bg-yellow-200 border-yellow-200"
+            },
+            [DisputeStatus.RESOLVED]: {
+                label: "Resolvida",
+                className: "bg-green-100 text-green-800 hover:bg-green-200 border-green-200"
+            }
         };
 
         const config = statusConfig[status] || { label: status, className: "" };

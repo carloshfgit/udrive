@@ -1,5 +1,5 @@
 import api from "@/lib/api";
-import { SchedulingFilters, SchedulingListResponse } from "@/types/scheduling";
+import { Scheduling, SchedulingFilters, SchedulingListResponse } from "@/types/scheduling";
 
 export const schedulingsService = {
   getSchedulings: async (filters: SchedulingFilters = {}): Promise<SchedulingListResponse> => {
@@ -20,13 +20,13 @@ export const schedulingsService = {
     return response.data;
   },
 
-  getSchedulingById: async (id: string) => {
-    const response = await api.get(`/admin/schedulings/${id}`);
+  getSchedulingById: async (id: string): Promise<Scheduling> => {
+    const response = await api.get<Scheduling>(`/admin/schedulings/${id}`);
     return response.data;
   },
 
-  cancelScheduling: async (id: string, reason: string) => {
-    const response = await api.patch(`/admin/schedulings/${id}/cancel`, { reason });
+  cancelScheduling: async (id: string, reason: string): Promise<Scheduling> => {
+    const response = await api.patch<Scheduling>(`/admin/schedulings/${id}/cancel`, { reason });
     return response.data;
   }
 };

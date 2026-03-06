@@ -41,7 +41,7 @@ class ListDisputesUseCase:
         if dto.status:
             status_filter = DisputeStatus(dto.status)
 
-        disputes = await self.dispute_repository.list_by_status(
+        disputes_data = await self.dispute_repository.list_enriched(
             status=status_filter,
             limit=dto.limit,
             offset=dto.offset,
@@ -68,8 +68,11 @@ class ListDisputesUseCase:
                 resolved_at=d.resolved_at,
                 created_at=d.created_at,
                 updated_at=d.updated_at,
+                student_name=student_name,
+                instructor_name=instructor_name,
+                scheduled_datetime=scheduled_datetime,
             )
-            for d in disputes
+            for d, student_name, instructor_name, scheduled_datetime in disputes_data
         ]
 
         return DisputeListResponseDTO(
