@@ -118,3 +118,7 @@ create_admin.py
 # Expo
 google-services.json
 udrive-504d3-firebase-adminsdk-fbsvc-7442c4b996.json
+
+# Appsmith
+appsmith-data
+APPSMITH.md
