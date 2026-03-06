@@ -90,7 +90,7 @@ class DisputeRepositoryImpl(IDisputeRepository):
         status: DisputeStatus | None = None,
         limit: int = 50,
         offset: int = 0,
-    ) -> list[tuple[Dispute, str, str, datetime]]:
+    ) -> list[tuple[Dispute, str, str, datetime, float]]:
         """Lista disputas enriquecidas com nomes e data do agendamento."""
         student = aliased(UserModel)
         instructor = aliased(UserModel)
@@ -101,6 +101,7 @@ class DisputeRepositoryImpl(IDisputeRepository):
                 student.full_name.label("student_name"),
                 instructor.full_name.label("instructor_name"),
                 SchedulingModel.scheduled_datetime,
+                SchedulingModel.price,
             )
             .join(SchedulingModel, DisputeModel.scheduling_id == SchedulingModel.id)
             .join(student, SchedulingModel.student_id == student.id)
@@ -117,14 +118,14 @@ class DisputeRepositoryImpl(IDisputeRepository):
         rows = result.all()
 
         return [
-            (row[0].to_entity(), row[1], row[2], row[3])
+            (row[0].to_entity(), row[1], row[2], row[3], float(row[4]))
             for row in rows
         ]
 
     async def get_enriched_by_id(
         self,
         dispute_id: UUID,
-    ) -> tuple[Dispute, str, str, datetime] | None:
+    ) -> tuple[Dispute, str, str, datetime, float] | None:
         """Busca uma disputa enriquecida por ID."""
         student = aliased(UserModel)
         instructor = aliased(UserModel)
@@ -135,6 +136,7 @@ class DisputeRepositoryImpl(IDisputeRepository):
                 student.full_name.label("student_name"),
                 instructor.full_name.label("instructor_name"),
                 SchedulingModel.scheduled_datetime,
+                SchedulingModel.price,
             )
             .join(SchedulingModel, DisputeModel.scheduling_id == SchedulingModel.id)
             .join(student, SchedulingModel.student_id == student.id)
@@ -148,7 +150,7 @@ class DisputeRepositoryImpl(IDisputeRepository):
         if row is None:
             return None
 
-        return (row[0].to_entity(), row[1], row[2], row[3])
+        return (row[0].to_entity(), row[1], row[2], row[3], float(row[4]))
 
     async def count_by_status(
         self,

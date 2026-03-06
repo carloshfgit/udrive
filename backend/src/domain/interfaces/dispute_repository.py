@@ -107,13 +107,12 @@ class IDisputeRepository(ABC):
         """
         ...
 
-    @abstractmethod
     async def list_enriched(
         self,
         status: DisputeStatus | None = None,
         limit: int = 50,
         offset: int = 0,
-    ) -> list[tuple[Dispute, str, str, datetime]]:
+    ) -> list[tuple[Dispute, str, str, datetime, float]]:
         """
         Lista disputas enriquecidas com nomes e data do agendamento.
 
@@ -127,11 +126,10 @@ class IDisputeRepository(ABC):
         """
         ...
 
-    @abstractmethod
     async def get_enriched_by_id(
         self,
         dispute_id: UUID,
-    ) -> tuple[Dispute, str, str, datetime] | None:
+    ) -> tuple[Dispute, str, str, datetime, float] | None:
         """
         Busca uma disputa enriquecida por ID.
 

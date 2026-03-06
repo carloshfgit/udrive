@@ -1,5 +1,5 @@
 import api from '@/lib/api';
-import { Dispute, AdminDisputeFilters } from '@/types/dispute';
+import { Dispute, AdminDisputeFilters, ResolveDisputeData } from '@/types/dispute';
 import { PaginatedResponse } from '@/types/api';
 
 export const getDisputes = async (
@@ -31,4 +31,16 @@ export const getDisputes = async (
 export const getDisputeById = async (id: string): Promise<Dispute> => {
     const { data } = await api.get<Dispute>(`/admin/disputes/${id}`);
     return data;
+};
+
+export const updateDisputeStatus = async (id: string, status: string): Promise<Dispute> => {
+    const { data } = await api.patch<Dispute>(`/admin/disputes/${id}/status`, {
+        new_status: status,
+    });
+    return data;
+};
+
+export const resolveDispute = async (id: string, data: ResolveDisputeData): Promise<Dispute> => {
+    const { data: responseData } = await api.post<Dispute>(`/admin/disputes/${id}/resolve`, data);
+    return responseData;
 };

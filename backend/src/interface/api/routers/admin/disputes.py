@@ -100,7 +100,7 @@ async def get_dispute(
             detail="Disputa não encontrada",
         )
 
-    dispute, student_name, instructor_name, scheduled_datetime = result
+    dispute, student_name, instructor_name, scheduled_datetime, price = result
 
     return DisputeResponse(
         id=dispute.id,
@@ -121,6 +121,7 @@ async def get_dispute(
         student_name=student_name,
         instructor_name=instructor_name,
         scheduled_datetime=scheduled_datetime,
+        price=price,
     )
 
 
@@ -282,7 +283,7 @@ async def update_dispute_status(
             detail="Disputa não encontrada após atualização",
         )
 
-    updated, student_name, instructor_name, scheduled_datetime = result
+    updated, student_name, instructor_name, scheduled_datetime, price = result
 
     return DisputeResponse(
         id=updated.id,
@@ -303,4 +304,5 @@ async def update_dispute_status(
         student_name=student_name,
         instructor_name=instructor_name,
         scheduled_datetime=scheduled_datetime,
+        price=price,
     )

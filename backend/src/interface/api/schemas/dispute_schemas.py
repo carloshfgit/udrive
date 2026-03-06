@@ -105,6 +105,7 @@ class DisputeResponse(BaseModel):
     student_name: str | None = None
     instructor_name: str | None = None
     scheduled_datetime: datetime | None = None
+    price: float | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

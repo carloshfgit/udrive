@@ -37,10 +37,18 @@ export interface Dispute {
     student_name?: string;
     instructor_name?: string;
     scheduled_datetime?: string;
+    price?: number;
 }
 
 export interface AdminDisputeFilters {
     status?: string | "all";
     page: number;
     size: number;
+}
+
+export interface ResolveDisputeData {
+    resolution: string;
+    resolution_notes: string;
+    refund_type?: string | null;
+    new_datetime?: string | null;
 }

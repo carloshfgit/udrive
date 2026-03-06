@@ -71,8 +71,9 @@ class ListDisputesUseCase:
                 student_name=student_name,
                 instructor_name=instructor_name,
                 scheduled_datetime=scheduled_datetime,
+                price=price,
             )
-            for d, student_name, instructor_name, scheduled_datetime in disputes_data
+            for d, student_name, instructor_name, scheduled_datetime, price in disputes_data
         ]
 
         return DisputeListResponseDTO(
