@@ -57,6 +57,11 @@ export default function UsersPage() {
     // Debounce Search Term Input
     useEffect(() => {
         const handler = setTimeout(() => {
+            const currentQ = searchParams.get("q") || "";
+            if (searchTerm === currentQ) {
+                return; // Evita loop caso o valor não tenha realmente mudado
+            }
+
             const params = new URLSearchParams(searchParams);
             if (searchTerm) {
                 params.set("q", searchTerm);
@@ -68,7 +73,7 @@ export default function UsersPage() {
         }, 500);
 
         return () => clearTimeout(handler);
-    }, [searchTerm, router, searchParams, initialQ]);
+    }, [searchTerm, router, searchParams]);
 
     // Handle Select Changes
     const handleFilterChange = (key: string, value: string) => {

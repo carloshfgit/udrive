@@ -9,6 +9,15 @@ import { usePathname } from 'next/navigation';
 export function AdminLayout({ children }: { children: React.ReactNode }) {
     const { isAuthenticated, isLoading } = useAuth();
     const pathname = usePathname();
+    const [isMounted, setIsMounted] = React.useState(false);
+
+    React.useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    if (!isMounted) {
+        return null;
+    }
 
     // Se estiver carregando, mostra um loading simples (ou skeleton)
     if (isLoading) {
