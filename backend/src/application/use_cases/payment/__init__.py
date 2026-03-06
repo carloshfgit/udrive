@@ -13,6 +13,7 @@ from .handle_payment_webhook import HandlePaymentWebhookUseCase
 from .oauth_authorize_instructor import OAuthAuthorizeInstructorUseCase
 from .oauth_callback import OAuthCallbackUseCase
 from .process_refund import ProcessRefundUseCase
+from .refund_single_payment import RefundSinglePaymentUseCase
 from .refresh_instructor_token import RefreshInstructorTokenUseCase
 
 __all__ = [
@@ -20,6 +21,7 @@ __all__ = [
     "CreateCheckoutUseCase",
     "HandlePaymentWebhookUseCase",
     "ProcessRefundUseCase",
+    "RefundSinglePaymentUseCase",
     "GetPaymentHistoryUseCase",
     "ConnectGatewayAccountUseCase",
     "GetInstructorEarningsUseCase",
@@ -27,3 +29,4 @@ __all__ = [
     "OAuthCallbackUseCase",
     "RefreshInstructorTokenUseCase",
 ]
+

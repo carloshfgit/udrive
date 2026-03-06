@@ -201,3 +201,28 @@ class CancelSchedulingResultDTO:
     refund_amount: Decimal | None = None
     refund_status: str | None = None  # "approved" / None se 0%
 
+
+# === Refund Seletivo (Fase 3) ===
+
+
+@dataclass(frozen=True)
+class RefundSinglePaymentDTO:
+    """DTO para reembolso seletivo de um único Payment (admin)."""
+
+    payment_id: UUID
+    admin_id: UUID
+    refund_percentage: int = 100
+    reason: str | None = None
+
+
+@dataclass
+class RefundSinglePaymentResultDTO:
+    """DTO de resultado do reembolso seletivo."""
+
+    payment_id: UUID
+    mp_refund_id: str
+    refund_amount: Decimal
+    payment_status: str
+    scheduling_id: UUID
+    scheduling_status: str
+
