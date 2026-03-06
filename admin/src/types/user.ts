@@ -17,6 +17,10 @@ export interface UserAdminProfile {
     hourly_rate?: number;
     rating?: number;
     total_reviews?: number;
+    price_cat_a_instructor_vehicle?: number;
+    price_cat_a_student_vehicle?: number;
+    price_cat_b_instructor_vehicle?: number;
+    price_cat_b_student_vehicle?: number;
 
     // Campos de Aluno
     learning_stage?: string;

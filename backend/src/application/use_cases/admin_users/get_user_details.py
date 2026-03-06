@@ -52,6 +52,10 @@ class GetUserDetailsUseCase:
                     hourly_rate=float(profile.hourly_rate),
                     rating=profile.rating,
                     total_reviews=profile.total_reviews,
+                    price_cat_a_instructor_vehicle=float(profile.price_cat_a_instructor_vehicle) if profile.price_cat_a_instructor_vehicle is not None else None,
+                    price_cat_a_student_vehicle=float(profile.price_cat_a_student_vehicle) if profile.price_cat_a_student_vehicle is not None else None,
+                    price_cat_b_instructor_vehicle=float(profile.price_cat_b_instructor_vehicle) if profile.price_cat_b_instructor_vehicle is not None else None,
+                    price_cat_b_student_vehicle=float(profile.price_cat_b_student_vehicle) if profile.price_cat_b_student_vehicle is not None else None,
                 )
             # Buscar 5 agendamentos recentes como instrutor
             scheds = await self._scheduling_repo.list_by_instructor(

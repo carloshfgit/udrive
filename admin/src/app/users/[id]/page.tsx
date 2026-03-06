@@ -131,10 +131,59 @@ export default function UserDetailsPage() {
                                             <Badge variant="outline">{user.profile.license_category || "B"}</Badge>
                                         </div>
                                         <div className="flex justify-between items-center border-b pb-2">
-                                            <span className="text-sm font-medium">Valor/Hora</span>
-                                            <span className="text-sm font-bold text-green-600">R$ {user.profile.hourly_rate?.toFixed(2)}</span>
+                                            <span className="text-sm font-medium">Categoria CNH</span>
+                                            <Badge variant="outline">{user.profile.license_category || "B"}</Badge>
                                         </div>
-                                        <div className="flex justify-between items-center">
+                                        
+                                        <div className="space-y-3 pt-2">
+                                            <h4 className="text-sm font-semibold text-muted-foreground flex items-center gap-1">
+                                                Tabela de Preços
+                                            </h4>
+                                            
+                                            <div className="grid grid-cols-1 gap-2">
+                                                <div className="flex justify-between items-center bg-muted/30 p-2 rounded-lg border border-dashed">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-xs font-medium">Moto (A)</span>
+                                                        <span className="text-[10px] text-muted-foreground">Veículo do Instrutor</span>
+                                                    </div>
+                                                    <span className="text-sm font-bold text-green-600">
+                                                        {user.profile.price_cat_a_instructor_vehicle !== undefined && user.profile.price_cat_a_instructor_vehicle !== null ? `R$ ${user.profile.price_cat_a_instructor_vehicle.toFixed(2)}` : "---"}
+                                                    </span>
+                                                </div>
+
+                                                <div className="flex justify-between items-center bg-muted/30 p-2 rounded-lg border border-dashed">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-xs font-medium">Moto (A)</span>
+                                                        <span className="text-[10px] text-muted-foreground">Veículo do Aluno</span>
+                                                    </div>
+                                                    <span className="text-sm font-bold text-green-600">
+                                                        {user.profile.price_cat_a_student_vehicle !== undefined && user.profile.price_cat_a_student_vehicle !== null ? `R$ ${user.profile.price_cat_a_student_vehicle.toFixed(2)}` : "---"}
+                                                    </span>
+                                                </div>
+
+                                                <div className="flex justify-between items-center bg-muted/30 p-2 rounded-lg border border-dashed">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-xs font-medium">Carro (B)</span>
+                                                        <span className="text-[10px] text-muted-foreground">Veículo do Instrutor</span>
+                                                    </div>
+                                                    <span className="text-sm font-bold text-green-600">
+                                                        {user.profile.price_cat_b_instructor_vehicle !== undefined && user.profile.price_cat_b_instructor_vehicle !== null ? `R$ ${user.profile.price_cat_b_instructor_vehicle.toFixed(2)}` : "---"}
+                                                    </span>
+                                                </div>
+
+                                                <div className="flex justify-between items-center bg-muted/30 p-2 rounded-lg border border-dashed">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-xs font-medium">Carro (B)</span>
+                                                        <span className="text-[10px] text-muted-foreground">Veículo do Aluno</span>
+                                                    </div>
+                                                    <span className="text-sm font-bold text-green-600">
+                                                        {user.profile.price_cat_b_student_vehicle !== undefined && user.profile.price_cat_b_student_vehicle !== null ? `R$ ${user.profile.price_cat_b_student_vehicle.toFixed(2)}` : "---"}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex justify-between items-center pt-2">
                                             <span className="text-sm font-medium">Avaliação</span>
                                             <div className="flex items-center gap-1">
                                                 <span className="text-sm font-bold">{user.profile.rating?.toFixed(1)}</span>

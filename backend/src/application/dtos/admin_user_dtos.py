@@ -64,6 +64,10 @@ class UserAdminProfileDTO:
     hourly_rate: float | None = None
     rating: float | None = None
     total_reviews: int | None = None
+    price_cat_a_instructor_vehicle: float | None = None
+    price_cat_a_student_vehicle: float | None = None
+    price_cat_b_instructor_vehicle: float | None = None
+    price_cat_b_student_vehicle: float | None = None
 
     # Campos de Aluno
     learning_stage: str | None = None
