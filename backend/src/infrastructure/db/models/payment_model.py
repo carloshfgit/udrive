@@ -58,6 +58,7 @@ class PaymentModel(Base):
     payer_email: Mapped[str | None] = mapped_column(nullable=True)
     refund_amount: Mapped[float | None] = mapped_column(DECIMAL(10, 2), nullable=True)
     refunded_at: Mapped[datetime | None] = mapped_column(nullable=True)
+    mp_refund_id: Mapped[str | None] = mapped_column(nullable=True, index=True)
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
     updated_at: Mapped[datetime | None] = mapped_column(
         onupdate=datetime.utcnow, nullable=True
@@ -98,6 +99,7 @@ class PaymentModel(Base):
             payer_email=self.payer_email,
             refund_amount=self.refund_amount,
             refunded_at=self.refunded_at,
+            mp_refund_id=self.mp_refund_id,
             created_at=self.created_at,
             updated_at=self.updated_at,
         )
@@ -122,6 +124,7 @@ class PaymentModel(Base):
             payer_email=entity.payer_email,
             refund_amount=entity.refund_amount,
             refunded_at=entity.refunded_at,
+            mp_refund_id=entity.mp_refund_id,
             created_at=entity.created_at,
             updated_at=entity.updated_at,
         )

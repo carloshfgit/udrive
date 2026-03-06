@@ -283,3 +283,32 @@ class MercadoPagoGateway(IPaymentGateway):
                 user_id=str(data["user_id"]),
                 scope=data["scope"],
             )
+
+    async def get_refunds(
+        self,
+        payment_id: str,
+        access_token: str,
+    ) -> list[dict]:
+        """
+        Lista todos os reembolsos de um pagamento via API do MP.
+        GET /v1/payments/{payment_id}/refunds
+        """
+        url = f"{self.base_url}/v1/payments/{payment_id}/refunds"
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+        }
+
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url, headers=headers)
+            try:
+                response.raise_for_status()
+            except httpx.HTTPStatusError as e:
+                logger.error(
+                    "mp_get_refunds_error",
+                    status_code=response.status_code,
+                    response_body=response.text,
+                    payment_id=payment_id,
+                    url=str(response.url),
+                )
+                raise e
+            return response.json()

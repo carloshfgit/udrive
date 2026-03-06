@@ -53,6 +53,7 @@ class Payment:
     payer_email: str | None = None
     refund_amount: Decimal | None = None
     refunded_at: datetime | None = None
+    mp_refund_id: str | None = None
     id: UUID = field(default_factory=uuid4)
     created_at: datetime = field(default_factory=datetime.utcnow)
     updated_at: datetime | None = None

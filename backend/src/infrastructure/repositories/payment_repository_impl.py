@@ -41,6 +41,7 @@ class PaymentRepositoryImpl(IPaymentRepository):
             model.payer_email = payment.payer_email
             model.refund_amount = payment.refund_amount
             model.refunded_at = payment.refunded_at
+            model.mp_refund_id = payment.mp_refund_id
             model.updated_at = payment.updated_at
             await self.session.flush()
             return model.to_entity()

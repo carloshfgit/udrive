@@ -213,3 +213,23 @@ class IPaymentGateway(ABC):
             OAuthResult com novos tokens.
         """
         ...
+
+    @abstractmethod
+    async def get_refunds(
+        self,
+        payment_id: str,
+        access_token: str,
+    ) -> list[dict]:
+        """
+        Lista todos os reembolsos de um pagamento no gateway.
+
+        Útil no webhook para cruzar refund_id com Payment.mp_refund_id.
+
+        Args:
+            payment_id: ID do pagamento no gateway (MP payment ID).
+            access_token: Token do vendedor para autorizar a consulta.
+
+        Returns:
+            Lista de dicts com dados de cada refund (id, amount, status, etc).
+        """
+        ...
