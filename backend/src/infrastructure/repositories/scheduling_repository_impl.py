@@ -4,6 +4,7 @@ Scheduling Repository Implementation
 Implementação concreta do repositório de agendamentos.
 """
 
+from datetime import datetime
 from typing import Sequence
 from uuid import UUID
 
@@ -627,4 +628,74 @@ class SchedulingRepositoryImpl(ISchedulingRepository):
 
         result = await self._session.execute(stmt)
         return [row.to_entity() for row in result.unique().scalars().all()]
+
+    async def list_all(
+        self,
+        status: SchedulingStatus | None = None,
+        student_id: UUID | None = None,
+        instructor_id: UUID | None = None,
+        date_from: datetime | None = None,
+        date_to: datetime | None = None,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> list[Scheduling]:
+        """
+        Lista todos os agendamentos do sistema com filtros abrangentes.
+        """
+        stmt = (
+            select(SchedulingModel)
+            .options(
+                joinedload(SchedulingModel.student).load_only(UserModel.id, UserModel.full_name),
+                joinedload(SchedulingModel.instructor).options(
+                    load_only(UserModel.id, UserModel.full_name),
+                    joinedload(UserModel.instructor_profile)
+                ),
+                joinedload(SchedulingModel.payment),
+            )
+        )
+
+        if status is not None:
+            stmt = stmt.where(SchedulingModel.status == status.value)
+        if student_id is not None:
+            stmt = stmt.where(SchedulingModel.student_id == student_id)
+        if instructor_id is not None:
+            stmt = stmt.where(SchedulingModel.instructor_id == instructor_id)
+        if date_from is not None:
+            stmt = stmt.where(SchedulingModel.scheduled_datetime >= date_from)
+        if date_to is not None:
+            stmt = stmt.where(SchedulingModel.scheduled_datetime <= date_to)
+
+        stmt = stmt.order_by(SchedulingModel.scheduled_datetime.desc())
+        stmt = stmt.limit(limit).offset(offset)
+
+        result = await self._session.execute(stmt)
+        return [row.to_entity() for row in result.unique().scalars().all()]
+
+    async def count_all(
+        self,
+        status: SchedulingStatus | None = None,
+        student_id: UUID | None = None,
+        instructor_id: UUID | None = None,
+        date_from: datetime | None = None,
+        date_to: datetime | None = None,
+    ) -> int:
+        """
+        Conta agendamentos com filtros.
+        """
+        stmt = select(func.count()).select_from(SchedulingModel)
+
+        if status is not None:
+            stmt = stmt.where(SchedulingModel.status == status.value)
+        if student_id is not None:
+            stmt = stmt.where(SchedulingModel.student_id == student_id)
+        if instructor_id is not None:
+            stmt = stmt.where(SchedulingModel.instructor_id == instructor_id)
+        if date_from is not None:
+            stmt = stmt.where(SchedulingModel.scheduled_datetime >= date_from)
+        if date_to is not None:
+            stmt = stmt.where(SchedulingModel.scheduled_datetime <= date_to)
+
+        result = await self._session.execute(stmt)
+        return result.scalar_one() or 0
+
 

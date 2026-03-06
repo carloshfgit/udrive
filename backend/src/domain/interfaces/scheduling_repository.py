@@ -21,6 +21,52 @@ class ISchedulingRepository(ABC):
     """
 
     @abstractmethod
+    async def get_expired_cart_items(self, expires_at: datetime) -> list[Scheduling]:
+        """
+        Retorna itens no carrinho que expiraram.
+        """
+        ...
+
+    @abstractmethod
+    async def list_all(
+        self,
+        status: SchedulingStatus | None = None,
+        student_id: UUID | None = None,
+        instructor_id: UUID | None = None,
+        date_from: datetime | None = None,
+        date_to: datetime | None = None,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> list[Scheduling]:
+        """
+        Lista todos os agendamentos do sistema com filtros abrangentes.
+
+        Args:
+            status: Filtro por status do agendamento.
+            student_id: Filtro por aluno.
+            instructor_id: Filtro por instrutor.
+            date_from: Data inicial (scheduled_datetime).
+            date_to: Data final (scheduled_datetime).
+            limit: Limite de resultados.
+            offset: Deslocamento para paginação.
+        """
+        ...
+
+    @abstractmethod
+    async def count_all(
+        self,
+        status: SchedulingStatus | None = None,
+        student_id: UUID | None = None,
+        instructor_id: UUID | None = None,
+        date_from: datetime | None = None,
+        date_to: datetime | None = None,
+    ) -> int:
+        """
+        Conta agendamentos com filtros.
+        """
+        ...
+
+    @abstractmethod
     async def create(self, scheduling: Scheduling) -> Scheduling:
         """
         Cria um novo agendamento.
