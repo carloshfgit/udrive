@@ -11,6 +11,7 @@ todos os payments de um mesmo checkout.
 
 import structlog
 from dataclasses import dataclass, field
+from decimal import Decimal
 from typing import TYPE_CHECKING
 
 from src.application.dtos.payment_dtos import WebhookNotificationDTO
@@ -255,6 +256,18 @@ class HandlePaymentWebhookUseCase:
             )
             return
 
+        # 5b. Detectar reembolso parcial (MP mantém status "approved" com detail "partially_refunded")
+        if (
+            status_result.status == "approved"
+            and status_result.status_detail == "partially_refunded"
+        ):
+            await self._handle_partial_refund(
+                payment=payment,
+                mp_payment_id=mp_payment_id,
+                access_token=decrypt_token(instructor_profile.mp_access_token),
+            )
+            return
+
         # 6. Buscar todos os payments do grupo (multi-item)
         if payment.preference_group_id:
             group_payments = await self.payment_repository.get_by_preference_group_id(
@@ -389,3 +402,82 @@ class HandlePaymentWebhookUseCase:
                     payment_id=payment.id,
                     status=payment.status.value,
                 )
+
+    async def _handle_partial_refund(
+        self, payment, mp_payment_id: str, access_token: str
+    ) -> None:
+        """
+        Trata webhook de reembolso parcial.
+
+        Consulta os refunds do MP e cruza cada refund_id com os Payments
+        do grupo. Se o Payment já tem mp_refund_id == refund["id"], é
+        idempotente (ignora). Se não, tenta associar pelo valor (fallback).
+        """
+        # 1. Buscar refunds do MP via gateway
+        refunds = await self.payment_gateway.get_refunds(mp_payment_id, access_token)
+
+        if not refunds:
+            logger.warning(
+                "partial_refund_no_refunds_found",
+                mp_payment_id=mp_payment_id,
+            )
+            return
+
+        # 2. Buscar todos os Payments do grupo
+        if payment.preference_group_id:
+            group_payments = await self.payment_repository.get_by_preference_group_id(
+                payment.preference_group_id
+            )
+        else:
+            group_payments = [payment]
+
+        # 3. Para cada refund do MP, associar ao Payment correto
+        for refund in refunds:
+            refund_id = str(refund["id"])
+            refund_amount = Decimal(str(refund["amount"]))
+
+            # 3a. Checar se algum Payment já possui esse refund_id → idempotente
+            already_mapped = any(
+                p.mp_refund_id == refund_id for p in group_payments
+            )
+            if already_mapped:
+                logger.info(
+                    "partial_refund_already_mapped",
+                    refund_id=refund_id,
+                    mp_payment_id=mp_payment_id,
+                )
+                continue
+
+            # 3b. Fallback: encontrar Payment pelo valor que está COMPLETED
+            #     e ainda não tem mp_refund_id
+            candidate = next(
+                (
+                    p
+                    for p in group_payments
+                    if p.status == PaymentStatus.COMPLETED
+                    and p.mp_refund_id is None
+                    and p.amount == refund_amount
+                ),
+                None,
+            )
+
+            if candidate is None:
+                logger.warning(
+                    "partial_refund_no_candidate",
+                    refund_id=refund_id,
+                    refund_amount=str(refund_amount),
+                    mp_payment_id=mp_payment_id,
+                )
+                continue
+
+            # 3c. Associar o refund ao Payment
+            candidate.mp_refund_id = refund_id
+            candidate.process_refund(100)  # 100% do valor daquela aula
+            await self.payment_repository.update(candidate)
+
+            logger.info(
+                "partial_refund_payment_updated",
+                payment_id=str(candidate.id),
+                refund_id=refund_id,
+                refund_amount=str(refund_amount),
+            )
