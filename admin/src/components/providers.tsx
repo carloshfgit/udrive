@@ -5,6 +5,8 @@ import { ThemeProvider as NextThemesProvider } from 'next-themes';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/lib/query-client';
 
+import { AuthProvider } from '@/hooks/use-auth';
+
 export function Providers({ children }: { children: React.ReactNode }) {
     return (
         <QueryClientProvider client={queryClient}>
@@ -14,7 +16,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
                 enableSystem
                 disableTransitionOnChange
             >
-                {children}
+                <AuthProvider>
+                    {children}
+                </AuthProvider>
             </NextThemesProvider>
         </QueryClientProvider>
     );
