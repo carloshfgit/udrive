@@ -52,6 +52,7 @@ class SchedulingAdminResponseDTO:
     student_name: str | None = None
     instructor_name: str | None = None
     payment_status: str | None = None
+    lesson_category: str | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
 

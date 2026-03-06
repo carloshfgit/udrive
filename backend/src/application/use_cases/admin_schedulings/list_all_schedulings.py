@@ -48,6 +48,7 @@ class ListAllSchedulingsUseCase:
                 price=s.price,
                 student_name=s.student_name,
                 instructor_name=s.instructor_name,
+                lesson_category=s.lesson_category.value if s.lesson_category and hasattr(s.lesson_category, "value") else str(s.lesson_category) if s.lesson_category else None,
                 payment_status=s.payment_status or "none",
                 created_at=s.created_at,
                 updated_at=s.updated_at,
