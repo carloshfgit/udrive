@@ -7,7 +7,8 @@ Endpoints para gerenciamento de disputas pelo administrador.
 from uuid import UUID
 
 import structlog
-from fastapi import APIRouter, HTTPException, Query, status
+from typing import Annotated
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from src.application.dtos.dispute_dtos import (
     ListDisputesDTO,
@@ -29,6 +30,7 @@ from src.interface.api.dependencies import (
     NotificationServiceDep,
     PaymentRepo,
     SchedulingRepo,
+    get_resolve_dispute_use_case,
 )
 from src.interface.api.schemas.dispute_schemas import (
     DisputeListResponse,
@@ -135,20 +137,10 @@ async def resolve_dispute(
     dispute_id: UUID,
     request: ResolveDisputeRequest,
     current_user: CurrentAdmin,
-    dispute_repo: DisputeRepo,
+    use_case: Annotated[NotifyOnResolveDispute, Depends(get_resolve_dispute_use_case)],
     scheduling_repo: SchedulingRepo,
-    payment_repo: PaymentRepo,
-    notification_svc: NotificationServiceDep,
 ) -> DisputeResponse:
     """Resolve uma disputa."""
-    use_case = NotifyOnResolveDispute(
-        _wrapped=ResolveDisputeUseCase(
-            dispute_repository=dispute_repo,
-            scheduling_repository=scheduling_repo,
-        ),
-        _notification_service=notification_svc,
-    )
-
     dto = ResolveDisputeDTO(
         dispute_id=dispute_id,
         admin_id=current_user.id,
@@ -156,49 +148,37 @@ async def resolve_dispute(
         resolution_notes=request.resolution_notes,
         refund_type=request.refund_type,
         new_datetime=request.new_datetime,
+        payment_ids_to_refund=request.payment_ids_to_refund,
     )
 
     try:
         result = await use_case.execute(dto)
 
-        # Etapa 6 — Integração Financeira: disparar reembolso se FAVOR_STUDENT
-        resolution = DisputeResolution(request.resolution)
-        if resolution == DisputeResolution.FAVOR_STUDENT:
-            refund_percentage = 100 if request.refund_type == "full" else 50
+        # Etapa 7 — WebSocket: emitir evento de disputa resolvida
+        dispatcher = get_event_dispatcher()
+        if dispatcher:
             try:
-                payment = await payment_repo.get_by_scheduling_id(result.scheduling_id)
-                if payment and payment.can_refund():
-                    from src.infrastructure.tasks.refund_tasks import process_refund_task
-                    process_refund_task.delay(
-                        payment_id=str(payment.id),
-                        refund_percentage=refund_percentage,
-                        reason=f"Disputa resolvida a favor do aluno: {request.resolution_notes}",
+                scheduling = await scheduling_repo.get_by_id(result.scheduling_id)
+                if scheduling:
+                    from src.application.dtos.scheduling_dtos import SchedulingResponseDTO
+                    scheduling_dto = SchedulingResponseDTO(
+                        id=scheduling.id,
+                        student_id=scheduling.student_id,
+                        instructor_id=scheduling.instructor_id,
+                        scheduled_datetime=scheduling.scheduled_datetime,
+                        duration_minutes=scheduling.duration_minutes,
+                        price=scheduling.price,
+                        status=scheduling.status.value if hasattr(scheduling.status, 'value') else str(scheduling.status),
+                        student_name=scheduling.student_name,
+                        instructor_name=scheduling.instructor_name,
                     )
-                    logger.info(
-                        "dispute_refund_task_dispatched",
-                        dispute_id=str(dispute_id),
-                        payment_id=str(payment.id),
-                        refund_percentage=refund_percentage,
-                    )
-                elif payment:
-                    logger.warning(
-                        "dispute_refund_skipped_cannot_refund",
-                        dispute_id=str(dispute_id),
-                        payment_id=str(payment.id),
-                        payment_status=payment.status.value if hasattr(payment.status, 'value') else str(payment.status),
-                    )
-                else:
-                    logger.warning(
-                        "dispute_refund_skipped_no_payment",
-                        dispute_id=str(dispute_id),
-                        scheduling_id=str(result.scheduling_id),
+                    await dispatcher.emit_dispute_resolved(
+                        scheduling_dto, scheduling.student_id, scheduling.instructor_id
                     )
             except Exception as e:
-                logger.error(
-                    "dispute_refund_task_dispatch_error",
-                    error=str(e),
-                    dispute_id=str(dispute_id),
-                )
+                logger.error("event_dispatch_error", dispatch_event="dispute_resolved", error=str(e))
+
+        return DisputeResponse.model_validate(result.__dict__)
 
         # Etapa 7 — WebSocket: emitir evento de disputa resolvida
         dispatcher = get_event_dispatcher()

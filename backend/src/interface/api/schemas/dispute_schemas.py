@@ -65,6 +65,10 @@ class ResolveDisputeRequest(BaseModel):
         None,
         description="Nova data/hora para reagendamento (obrigatório se rescheduled)",
     )
+    payment_ids_to_refund: list[UUID] | None = Field(
+        None,
+        description="Lista de IDs de pagamento para reembolso seletivo (opcional)",
+    )
 
 
 class UpdateDisputeStatusRequest(BaseModel):

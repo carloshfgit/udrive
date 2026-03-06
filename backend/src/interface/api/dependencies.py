@@ -326,6 +326,11 @@ from src.application.use_cases.chat.get_student_lessons_for_instructor_use_case 
 from src.application.use_cases.chat.get_instructor_lessons_for_student_use_case import (
     GetInstructorLessonsForStudentUseCase,
 )
+from src.application.use_cases.payment.refund_single_payment import RefundSinglePaymentUseCase
+from src.application.use_cases.scheduling.resolve_dispute import ResolveDisputeUseCase
+from src.application.use_cases.scheduling.scheduling_notification_decorators import (
+    NotifyOnResolveDispute,
+)
 
 
 from src.application.use_cases.chat.chat_notification_decorators import NotifyOnSendMessage
@@ -368,5 +373,51 @@ def get_get_instructor_lessons_for_student_use_case(
     scheduling_repo: SchedulingRepo,
 ) -> GetInstructorLessonsForStudentUseCase:
     return GetInstructorLessonsForStudentUseCase(scheduling_repo)
+
+
+def get_refund_single_payment_use_case(
+    payment_repo: PaymentRepo,
+    transaction_repo: Annotated[DBSession, Depends(get_db)], # Custom injection if needed
+    instructor_repo: InstructorRepo,
+    scheduling_repo: SchedulingRepo,
+) -> RefundSinglePaymentUseCase:
+    # Transaction repository impl
+    from src.infrastructure.repositories.transaction_repository_impl import TransactionRepositoryImpl
+    from src.infrastructure.external.mercadopago_gateway import MercadoPagoGateway
+    
+    # Nota: O transaction_repo precisa da session
+    db_session = transaction_repo # Reutilizando a session injetada
+    trans_repo = TransactionRepositoryImpl(db_session)
+    gateway = MercadoPagoGateway()
+    
+    return RefundSinglePaymentUseCase(
+        payment_repository=payment_repo,
+        transaction_repository=trans_repo,
+        instructor_repository=instructor_repo,
+        scheduling_repository=scheduling_repo,
+        payment_gateway=gateway,
+    )
+
+
+def get_resolve_dispute_use_case(
+    dispute_repo: DisputeRepo,
+    scheduling_repo: SchedulingRepo,
+    payment_repo: PaymentRepo,
+    instructor_repo: InstructorRepo,
+    notification_svc: NotificationServiceDep,
+    session: DBSession,
+) -> NotifyOnResolveDispute:
+    refund_use_case = get_refund_single_payment_use_case(
+        payment_repo, session, instructor_repo, scheduling_repo
+    )
+    wrapped = ResolveDisputeUseCase(
+        dispute_repository=dispute_repo,
+        scheduling_repository=scheduling_repo,
+        refund_use_case=refund_use_case,
+    )
+    return NotifyOnResolveDispute(
+        _wrapped=wrapped,
+        _notification_service=notification_svc,
+    )
 
 

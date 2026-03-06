@@ -34,6 +34,7 @@ class ResolveDisputeDTO:
     resolution_notes: str
     refund_type: str | None = None  # "full" ou "partial"
     new_datetime: datetime | None = None  # obrigatório se resolution == "rescheduled"
+    payment_ids_to_refund: list[UUID] | None = None  # Lista opcional de pagamentos para reembolso seletivo
 
 
 @dataclass(frozen=True)
