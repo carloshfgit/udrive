@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getDisputes, getDisputeById, updateDisputeStatus, resolveDispute } from '@/services/disputes.service';
+import { getDisputes, getDisputeById, getDisputePayments, updateDisputeStatus, resolveDispute } from '@/services/disputes.service';
 import { AdminDisputeFilters, ResolveDisputeData } from '@/types/dispute';
 
 export const useDisputes = (filters: AdminDisputeFilters) => {
@@ -16,6 +16,14 @@ export const useDispute = (id: string, enabled: boolean = true) => {
         queryKey: ['admin_dispute', id],
         queryFn: () => getDisputeById(id),
         enabled: !!id && enabled,
+    });
+};
+
+export const useDisputePayments = (disputeId: string, enabled: boolean = true) => {
+    return useQuery({
+        queryKey: ['admin_dispute_payments', disputeId],
+        queryFn: () => getDisputePayments(disputeId),
+        enabled: !!disputeId && enabled,
     });
 };
 

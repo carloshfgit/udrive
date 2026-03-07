@@ -34,6 +34,8 @@ from src.interface.api.dependencies import (
 )
 from src.interface.api.schemas.dispute_schemas import (
     DisputeListResponse,
+    DisputePaymentResponse,
+    DisputePaymentsListResponse,
     DisputeResponse,
     ResolveDisputeRequest,
     UpdateDisputeStatusRequest,
@@ -125,6 +127,65 @@ async def get_dispute(
         scheduled_datetime=scheduled_datetime,
         price=price,
     )
+
+
+@router.get(
+    "/{dispute_id}/payments",
+    response_model=DisputePaymentsListResponse,
+    summary="Listar pagamentos da disputa",
+    description="Lista todos os pagamentos do checkout associado a uma disputa.",
+)
+async def get_dispute_payments(
+    dispute_id: UUID,
+    current_user: CurrentAdmin,
+    dispute_repo: DisputeRepo,
+    payment_repo: PaymentRepo,
+    scheduling_repo: SchedulingRepo,
+) -> DisputePaymentsListResponse:
+    """Lista todos os pagamentos do grupo de checkout da disputa."""
+    # 1. Buscar disputa
+    dispute = await dispute_repo.get_by_id(dispute_id)
+    if dispute is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Disputa não encontrada",
+        )
+
+    # 2. Buscar pagamento do scheduling da disputa
+    payment = await payment_repo.get_by_scheduling_id(dispute.scheduling_id)
+    if payment is None:
+        return DisputePaymentsListResponse(payments=[])
+
+    # 3. Se tem preference_group_id, buscar todos do grupo; senão, retornar só este
+    if payment.preference_group_id:
+        payments = await payment_repo.get_by_preference_group_id(
+            payment.preference_group_id
+        )
+    else:
+        payments = [payment]
+
+    # 4. Enriquecer com data do scheduling
+    result = []
+    for p in payments:
+        scheduled_dt = None
+        scheduling = await scheduling_repo.get_by_id(p.scheduling_id)
+        if scheduling:
+            scheduled_dt = scheduling.scheduled_datetime
+
+        result.append(
+            DisputePaymentResponse(
+                id=p.id,
+                scheduling_id=p.scheduling_id,
+                amount=float(p.amount),
+                status=p.status.value,
+                mp_refund_id=p.mp_refund_id,
+                refund_amount=float(p.refund_amount) if p.refund_amount else None,
+                refunded_at=p.refunded_at,
+                scheduled_datetime=scheduled_dt,
+            )
+        )
+
+    return DisputePaymentsListResponse(payments=result)
 
 
 @router.post(

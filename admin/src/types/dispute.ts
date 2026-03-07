@@ -40,6 +40,17 @@ export interface Dispute {
     price?: number;
 }
 
+export interface DisputePayment {
+    id: string;
+    scheduling_id: string;
+    amount: number;
+    status: string;
+    mp_refund_id?: string | null;
+    refund_amount?: number | null;
+    refunded_at?: string | null;
+    scheduled_datetime?: string | null;
+}
+
 export interface AdminDisputeFilters {
     status?: string | "all";
     page: number;
@@ -51,4 +62,5 @@ export interface ResolveDisputeData {
     resolution_notes: string;
     refund_type?: string | null;
     new_datetime?: string | null;
+    payment_ids_to_refund?: string[];
 }

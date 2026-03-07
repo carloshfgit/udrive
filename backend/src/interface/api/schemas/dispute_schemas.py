@@ -122,3 +122,24 @@ class DisputeListResponse(BaseModel):
     limit: int
     offset: int
     has_more: bool
+
+
+class DisputePaymentResponse(BaseModel):
+    """Schema de resposta para um pagamento associado a uma disputa."""
+
+    id: UUID
+    scheduling_id: UUID
+    amount: float
+    status: str
+    mp_refund_id: str | None = None
+    refund_amount: float | None = None
+    refunded_at: datetime | None = None
+    scheduled_datetime: datetime | None = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class DisputePaymentsListResponse(BaseModel):
+    """Schema de resposta para lista de pagamentos de uma disputa."""
+
+    payments: list[DisputePaymentResponse]

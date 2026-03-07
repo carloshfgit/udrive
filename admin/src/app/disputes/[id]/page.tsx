@@ -22,8 +22,9 @@ import {
     CreditCard
 } from "lucide-react";
 
-import { useDispute, useUpdateDisputeStatus, useResolveDispute } from "@/hooks/useDisputes";
-import { DisputeStatus, DisputeResolution, ResolveDisputeData } from "@/types/dispute";
+import { useDispute, useUpdateDisputeStatus, useResolveDispute, useDisputePayments } from "@/hooks/useDisputes";
+import { DisputeStatus, DisputeResolution, DisputePayment, ResolveDisputeData } from "@/types/dispute";
+import PaymentSelector from "@/components/disputes/PaymentSelector";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -49,12 +50,22 @@ export default function DisputeDetailsPage() {
     const resolveMutation = useResolveDispute();
 
     const [isResolving, setIsResolving] = useState(false);
+    const [selectedPaymentIds, setSelectedPaymentIds] = useState<string[]>([]);
     const [resolutionData, setResolutionData] = useState<ResolveDisputeData>({
         resolution: "",
         resolution_notes: "",
         refund_type: "full",
         new_datetime: ""
     });
+
+    // Buscar pagamentos quando o admin está resolvendo a favor do aluno
+    const shouldFetchPayments = isResolving && resolutionData.resolution === DisputeResolution.FAVOR_STUDENT;
+    const { data: payments, isLoading: paymentsLoading } = useDisputePayments(disputeId, shouldFetchPayments);
+
+    // Buscar pagamentos para exibir na visualização de disputa resolvida
+    const isResolved = dispute?.status === DisputeStatus.RESOLVED;
+    const showResolvedPayments = isResolved && dispute?.resolution === DisputeResolution.FAVOR_STUDENT;
+    const { data: resolvedPayments } = useDisputePayments(disputeId, showResolvedPayments || false);
 
     if (isLoading) {
         return (
@@ -111,7 +122,16 @@ export default function DisputeDetailsPage() {
         };
 
         if (resolutionData.resolution === DisputeResolution.FAVOR_STUDENT) {
-            payload.refund_type = resolutionData.refund_type || "full";
+            if (selectedPaymentIds.length === 0) {
+                alert("Por favor, selecione ao menos uma aula para reembolsar.");
+                return;
+            }
+            // Determinar refund_type baseado na seleção
+            const eligibleCount = payments?.filter(
+                (p: DisputePayment) => p.status === "completed" && !p.mp_refund_id
+            ).length || 0;
+            payload.refund_type = selectedPaymentIds.length >= eligibleCount ? "full" : "partial";
+            payload.payment_ids_to_refund = selectedPaymentIds;
         }
 
         if (resolutionData.resolution === DisputeResolution.RESCHEDULED) {
@@ -141,8 +161,6 @@ export default function DisputeDetailsPage() {
             default: return "Não resolvida";
         }
     };
-
-    const isResolved = dispute.status === DisputeStatus.RESOLVED;
 
     return (
         <div className="space-y-6 pb-12">
@@ -236,9 +254,18 @@ export default function DisputeDetailsPage() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <InfoItem label="Decisão" value={<strong>{getResolutionLabel(dispute.resolution)}</strong>} />
                                     {dispute.refund_type && (
-                                        <InfoItem label="Reembolso" value={<Badge className="bg-green-600 capitalize">{dispute.refund_type === 'full' ? 'Total' : 'Parcial (50%)'}</Badge>} />
+                                        <InfoItem label="Reembolso" value={<Badge className="bg-green-600 capitalize">{dispute.refund_type === 'full' ? 'Total' : 'Parcial'}</Badge>} />
                                     )}
                                 </div>
+
+                                {showResolvedPayments && resolvedPayments && resolvedPayments.length > 0 && (
+                                    <PaymentSelector
+                                        payments={resolvedPayments}
+                                        selectedIds={[]}
+                                        onSelectionChange={() => {}}
+                                        readOnly={true}
+                                    />
+                                )}
                                 <div className="space-y-2">
                                     <label className="text-xs font-semibold text-muted-foreground uppercase">Notas do Admin</label>
                                     <div className="p-4 bg-background rounded-lg border text-sm italic">
@@ -277,20 +304,13 @@ export default function DisputeDetailsPage() {
                                     </div>
 
                                     {resolutionData.resolution === DisputeResolution.FAVOR_STUDENT && (
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-medium">Tipo de Reembolso</label>
-                                            <Select 
-                                                value={resolutionData.refund_type || "full"} 
-                                                onValueChange={(v) => setResolutionData({...resolutionData, refund_type: v})}
-                                            >
-                                                <SelectTrigger>
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="full">Reembolso Total (100%)</SelectItem>
-                                                    <SelectItem value="partial">Reembolso Parcial (50%)</SelectItem>
-                                                </SelectContent>
-                                            </Select>
+                                        <div className="col-span-1 md:col-span-2">
+                                            <PaymentSelector
+                                                payments={payments || []}
+                                                selectedIds={selectedPaymentIds}
+                                                onSelectionChange={setSelectedPaymentIds}
+                                                isLoading={paymentsLoading}
+                                            />
                                         </div>
                                     )}
 
