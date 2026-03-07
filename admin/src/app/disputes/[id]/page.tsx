@@ -126,11 +126,8 @@ export default function DisputeDetailsPage() {
                 alert("Por favor, selecione ao menos uma aula para reembolsar.");
                 return;
             }
-            // Determinar refund_type baseado na seleção
-            const eligibleCount = payments?.filter(
-                (p: DisputePayment) => p.status === "completed" && !p.mp_refund_id
-            ).length || 0;
-            payload.refund_type = selectedPaymentIds.length >= eligibleCount ? "full" : "partial";
+            
+            payload.refund_type = resolutionData.refund_type || "full";
             payload.payment_ids_to_refund = selectedPaymentIds;
         }
 
@@ -263,6 +260,7 @@ export default function DisputeDetailsPage() {
                                         payments={resolvedPayments}
                                         selectedIds={[]}
                                         onSelectionChange={() => {}}
+                                        refundType={dispute.refund_type}
                                         readOnly={true}
                                     />
                                 )}
@@ -304,14 +302,32 @@ export default function DisputeDetailsPage() {
                                     </div>
 
                                     {resolutionData.resolution === DisputeResolution.FAVOR_STUDENT && (
-                                        <div className="col-span-1 md:col-span-2">
-                                            <PaymentSelector
-                                                payments={payments || []}
-                                                selectedIds={selectedPaymentIds}
-                                                onSelectionChange={setSelectedPaymentIds}
-                                                isLoading={paymentsLoading}
-                                            />
-                                        </div>
+                                        <>
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium">Percentual de Reembolso</label>
+                                                <Select 
+                                                    value={resolutionData.refund_type || "full"} 
+                                                    onValueChange={(v) => setResolutionData({...resolutionData, refund_type: v})}
+                                                >
+                                                    <SelectTrigger>
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="full">Reembolso Total (100% do valor da aula)</SelectItem>
+                                                        <SelectItem value="partial">Reembolso Parcial (50% do valor da aula)</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            <div className="col-span-1 md:col-span-2">
+                                                <PaymentSelector
+                                                    payments={payments || []}
+                                                    selectedIds={selectedPaymentIds}
+                                                    onSelectionChange={setSelectedPaymentIds}
+                                                    refundType={resolutionData.refund_type}
+                                                    isLoading={paymentsLoading}
+                                                />
+                                            </div>
+                                        </>
                                     )}
 
                                     {resolutionData.resolution === DisputeResolution.RESCHEDULED && (

@@ -24,6 +24,7 @@ interface PaymentSelectorProps {
     payments: DisputePayment[];
     selectedIds: string[];
     onSelectionChange: (ids: string[]) => void;
+    refundType?: string | null;
     isLoading?: boolean;
     readOnly?: boolean;
 }
@@ -55,6 +56,7 @@ export default function PaymentSelector({
     payments,
     selectedIds,
     onSelectionChange,
+    refundType = "full",
     isLoading = false,
     readOnly = false,
 }: PaymentSelectorProps) {
@@ -105,9 +107,10 @@ export default function PaymentSelector({
         );
     }
 
+    const refundFactor = refundType === "partial" ? 0.5 : 1.0;
     const totalSelected = payments
         .filter(p => selectedIds.includes(p.id))
-        .reduce((sum, p) => sum + p.amount, 0);
+        .reduce((sum, p) => sum + (p.amount * refundFactor), 0);
 
     return (
         <Card className="border-blue-200 dark:border-blue-900">
@@ -117,7 +120,7 @@ export default function PaymentSelector({
                     Aulas do Checkout ({payments.length})
                 </CardTitle>
                 <CardDescription>
-                    Selecione as aulas que devem ser reembolsadas. Aulas já reembolsadas estão desabilitadas.
+                    Selecione as aulas que devem ser reembolsadas ({refundType === "partial" ? "50%" : "100%"} do valor). Aulas já reembolsadas estão desabilitadas.
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -207,7 +210,7 @@ export default function PaymentSelector({
 
                 {selectedIds.length > 0 && !readOnly && (
                     <div className="flex justify-between items-center pt-2 px-1 text-sm border-t">
-                        <span className="text-muted-foreground">Total a reembolsar:</span>
+                        <span className="text-muted-foreground">Total a reembolsar ({refundType === "partial" ? "50%" : "100%"}):</span>
                         <span className="font-bold text-lg text-green-600">
                             R$ {totalSelected.toFixed(2)}
                         </span>
